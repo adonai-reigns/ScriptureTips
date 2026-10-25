@@ -1,0 +1,30 @@
+{
+  "name": "scripturetips",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "packageManager": "pnpm@12.15.0",
+  "engines": {
+    "node": ">=24.22.1 <25"
+  },
+  "scripts": {
+    "format": "biome check --write .",
+    "lint": "biome check .",
+    "boundaries": "depcruise packages apps --config .dependency-cruiser.cjs",
+    "spell": "cspell --no-progress --no-summary .",
+    "static": "pnpm run lint && pnpm run boundaries && pnpm run spell",
+    "verify": "pnpm run static && turbo run typecheck test --affected --output-logs=errors-only",
+    "verify:full": "pnpm run static && turbo run typecheck test --output-logs=errors-only"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.6.2",
+    "@types/node": "24.19.2",
+    "@vitest/coverage-v8": "5.0.5",
+    "cspell": "10.4.0",
+    "dependency-cruiser": "18.7.0",
+    "fast-check": "4.10.2",
+    "turbo": "2.11.10",
+    "typescript": "^6.0.3",
+    "vitest": "5.0.5"
+  }
+}

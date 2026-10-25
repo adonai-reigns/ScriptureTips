@@ -412,7 +412,8 @@ All TypeScript, in one monorepo. Full rationale: see [architecture.md](architect
 | Layer | Choice |
 |---|---|
 | Monorepo | pnpm workspaces + Turborepo |
-| Runtime | Node 24 LTS |
+| Runtime | Node 24 LTS, TypeScript 6 (strict) |
+| Development environment | Docker only: Node, pnpm and all tools run in a toolbox container; nothing is installed on the host |
 | API | NestJS (Fastify adapter) |
 | Database | PostgreSQL (full-text search; pgvector later) |
 | ORM | Drizzle |

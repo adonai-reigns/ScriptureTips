@@ -21,6 +21,7 @@ ScriptureTips is a large system that will be built largely with LLM coding agent
 | `pnpm dev:up` / `dev:down` | Starts or stops the full stack locally (Docker Compose) with seeded data | About 1 minute |
 | `pnpm dev:seed [scenario]` | Loads a named data scenario (e.g. `empty`, `solo-user`, `group-with-publications`, `moderation-queue`) | Seconds |
 
+- **Run through the toolbox:** every command runs inside the development toolbox container (`./toolbox pnpm verify`). The host needs only Docker (AGENTS.md, "Development environment").
 - **The pipeline is plain scripts in the repo.** No checks or steps live in a vendor's config or UI. Anything that triggers a run (a git hook, a script, a CI server later) only calls these commands.
 - **Clean-room runs:** `pnpm ci` runs `verify:full` inside a fresh container built from the repo's own Dockerfile, at a given commit, and keeps the report and logs under `.ci/runs/{timestamp}-{commit}/`. This is what "CI" means for ScriptureTips: the same run, on any machine, with nothing installed beyond Docker.
 - **Output built for agents:** each command ends with a short summary, failures first, with file and line, the failing assertion, and the command to rerun only that test. A JSON report is also written to `.verify/report.json`. Passing tests stay quiet.
@@ -103,9 +104,9 @@ Each test opens the composer, inserts a link, and checks that the link is at the
 - **Flaky tests** are quarantined (still run and reported, but not blocking) and fixed within a set time; they are never just retried until they pass.
 - **Performance budgets** for the public endpoints (passage API, note pages, widget script size), checked nightly.
 
-## 9. New dependencies to approve
+## 9. Testing dependencies
 
-Vitest and Playwright are already approved. These would be added for testing only:
+All approved. Each is added when the first test that needs it is written:
 
 | Package | Purpose |
 |---|---|

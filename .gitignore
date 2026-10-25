@@ -1,0 +1,11 @@
+node_modules/
+.turbo/
+.cache/
+coverage/
+dist/
+.verify/
+.ci/
+.env
+.env.*
+!.env.example
+*.tsbuildinfo

@@ -1,0 +1,6 @@
+biomejs
+depcruise
+pipefail
+scripturetips
+Valkey
+vitest

@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Run a command in the development toolbox container, e.g. ./toolbox pnpm verify
+set -euo pipefail
+cd "$(dirname "$0")"
+
+export HOST_UID="$(id -u)" HOST_GID="$(id -g)"
+
+tty_flag=()
+if [ ! -t 0 ] || [ ! -t 1 ]; then
+  tty_flag=(-T)
+fi
+
+exec docker compose --profile tools run --rm --quiet-pull "${tty_flag[@]}" toolbox "$@"

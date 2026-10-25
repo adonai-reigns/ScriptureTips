@@ -8,7 +8,21 @@ The project is being rebuilt from scratch as this monorepo. The legacy repos alo
 
 ## Status
 
-So far this repo contains only docs. No code has been scaffolded. The stack and commands below are decided but not yet built. Update this file as they become real.
+The monorepo is scaffolded. Built so far: the toolbox, `pnpm verify`, and the first core package, [`packages/passage`](packages/passage/AGENTS.md). The rest of the stack below is decided but not yet built. Update this file as parts become real.
+
+## Development environment
+
+**Nothing is installed on the host except Docker.** Node, pnpm and every tool run in the toolbox container (`infra/docker/toolbox/`). Never install development software on the host (no `nvm install`, global npm packages or apt packages). If a tool is missing, add it to the toolbox image.
+
+Run every project command through the wrapper, from the repo root:
+
+```bash
+./toolbox pnpm install
+./toolbox pnpm verify
+./toolbox pnpm --filter @scripturetips/passage test
+```
+
+The repo is mounted at `/workspace` and commands run as your own user ID, so files stay owned by you. pnpm only installs package versions that have been out for a while (its minimum release age policy). Don't add exceptions to get around it; use an older version instead.
 
 ## Docs map
 
@@ -23,15 +37,24 @@ So far this repo contains only docs. No code has been scaffolded. The stack and 
 
 ## Stack (decided)
 
-All TypeScript, Node 24 LTS. pnpm workspaces + Turborepo. NestJS (Fastify) API, Next.js web, PostgreSQL + Drizzle, Valkey + BullMQ, Better Auth, next-intl, Vitest + Playwright, Biome. Docker Compose for development and hosting. Full table: vision.md §7.
+All TypeScript (6.x: dependency-cruiser and other tools don't support TypeScript 7 yet), Node 24 LTS. pnpm workspaces + Turborepo. NestJS (Fastify) API, Next.js web, PostgreSQL + Drizzle, Valkey + BullMQ, Better Auth, next-intl, Vitest + Playwright, Biome. Docker Compose for development and hosting. Full table: vision.md §7.
 
-## Commands (planned, see testing.md §2)
+## Commands (see testing.md §2)
 
-- `pnpm verify` checks the affected packages: format, lint, types, boundaries, unit and integration tests.
-- `pnpm verify:full` runs everything, including end-to-end, accessibility, PDF and extension tests.
-- `pnpm dev:up` / `pnpm dev:down` / `pnpm dev:seed [scenario]` start, stop and seed the local stack.
+Run each through `./toolbox`.
+
+- `pnpm verify`: Biome lint and format check, dependency boundaries, spelling, then type-check and tests for the packages affected by the change. **Built.**
+- `pnpm verify:full`: the same for every package. **Built.** End-to-end, accessibility, PDF and extension tests are added as those parts are built.
+- `pnpm format`: apply Biome formatting, import sorting and safe fixes.
+- `pnpm dev:up` / `pnpm dev:down` / `pnpm dev:seed [scenario]`: start, stop and seed the local stack. **Planned.**
+
+**Claude Code hooks** (`.claude/settings.json`, scripts in `scripts/claude-hooks/`): every edited file is formatted with Biome, and `pnpm verify` runs before the agent finishes a turn that changed code. A failure is sent back to the agent to fix.
+
+Markdown isn't formatted by Biome yet (it's excluded in `biome.json`), and cspell doesn't check `docs/` yet.
 
 ## Language
+
+<!-- cspell:ignore colour organise -->
 
 - **UI strings:** New Zealand English ("colour", "organise"). The default locale is `en-NZ`.
 - **Code, CSS, comments, docs and commit messages:** US English (`color`, `organize`).
@@ -51,6 +74,8 @@ Ask before adding any package that isn't already approved. Approved so far: Vite
 - Translation license terms are a first-class domain module (domain-model.md §7). Never hard-code assumptions about a text's permissions.
 - **Evidence policy:** whenever a text or data set is obtained, record its terms in `docs/license-evidence/{name}/` with a `SOURCE.md`. Capture the rendered license and download pages as PDF (screen mode), the raw HTML and HTTP headers, any license files in the download, and the file URL, size, date and SHA-256. Never overwrite a capture. Always look at the captured pages.
 - The source files live outside git in `../source-texts/`. Their hashes are in `docs/license-evidence/source-files.json` and `SHA256SUMS`. Verify with `sha256sum -c`.
+- **Unresolved items go in one place:** [sources.md](docs/sources.md) §8 ("Still open"). That covers open questions, decisions, and captures or downloads that couldn't be completed (blocked sites, dead links). Other docs record only facts and point to the §8 item; don't scatter "try again later" notes through them.
+- **When a site blocks automated access, stop and tell the project owner** before working around it. They can open it in their Chrome for the browser tools to read.
 - Use only public-domain or openly licensed original-language data. Exclusions are listed in sources.md §4 and §6.
 
 ## Definition of done (testing.md §7)

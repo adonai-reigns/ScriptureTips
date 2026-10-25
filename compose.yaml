@@ -1,0 +1,16 @@
+name: scripturetips
+
+services:
+  # Development toolbox: Node, pnpm and the test tools. Run commands with ./toolbox.
+  toolbox:
+    build: infra/docker/toolbox
+    image: scripturetips-toolbox:dev
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - pnpm-store:/home/node/.local/share/pnpm/store
+    profiles: [tools]
+
+volumes:
+  pnpm-store:
