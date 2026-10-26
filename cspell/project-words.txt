@@ -13,3 +13,4 @@ TVTMS
 Valkey
 vitest
 wayback
+CXXFLAGS
