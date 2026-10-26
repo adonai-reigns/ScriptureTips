@@ -21,7 +21,7 @@ The TVTMS file's own header:
 - We may load TVTMS into our database and use it for versification mapping, without asking.
 - **Credit** "STEP Bible" with a link to www.STEPBible.org wherever the mappings are used (`attribution`, licenses.md §8).
 - **Changes:** any correction we make must be recorded in a change note that users of our data can see, and sent to STEPBible for checking (`share_changes`).
-- **Don't republish the file.** The header asks us not to redistribute it; the README allows an up-to-date mirror with a link back. We use it inside ScriptureTips and link to the repository rather than offering the file for download. The difference is one of the questions for STEPBible ([sources.md](../../sources.md) §8 item 3).
+- **Including it in our software is allowed:** "Include any part of this data in software or publications without requesting permission". The mapping data we generate from TVTMS is committed with the versification package, with the credit and a link to the repository. We don't offer the TVTMS file itself for download.
 
 ## What the data is
 

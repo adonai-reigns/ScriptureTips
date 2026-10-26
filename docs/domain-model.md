@@ -120,8 +120,9 @@ The path describes; a trailing ID pins.
 Translations number verses differently: verses moved between chapters (English Joel 2:28–32 = Hebrew Joel 3:1–5), Psalm headings counted as verse 1, the Septuagint/Vulgate Psalm offset, verses split or merged (3 John 14–15), verses omitted (Matt 17:21, Acts 8:37), and books present in only some canons.
 
 - **Hub and spoke.** All stored references use one **canonical scheme**: original-language numbering (Paratext's "org"). Each scheme maps only to and from the canonical scheme, never directly to other schemes.
+- **Canonical numbering per book:** the Hebrew (Masoretic) numbering for the Old Testament books in the Hebrew Bible, the Greek (Septuagint) numbering for the deuterocanonical books, and the Greek numbering for the New Testament. Verse numbers a tradition skips (e.g. Matt 17:21 in the Greek text) still exist in the canonical scheme, so translations that have the verse can be stored against it.
 - **Users never see canonical numbers.** Display, input and URLs always use the numbering of the translation or compilation being read.
-- **Mapping data:** taken from STEPBible's **TVTMS** (Tyndale House), with Paratext `.vrs` files as a fallback. License: CC BY 4.0, confirmed and obtained (`license-evidence/stepbible-data/`). Credit "STEP Bible" linked to www.STEPBible.org; record any changes we make.
+- **Mapping data:** taken from STEPBible's **TVTMS** (Tyndale House), with Paratext `.vrs` files as a fallback. License: CC BY 4.0, confirmed and obtained (`license-evidence/stepbible-data/`). Credit "STEP Bible" linked to www.STEPBible.org; record any changes we make. The mapping data generated from TVTMS is committed with the versification package.
 - **Mapping types** tell the reader view how to handle each case:
 
 | Type | Meaning | Display behavior |

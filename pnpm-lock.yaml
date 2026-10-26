@@ -196,6 +196,18 @@ importers:
 
   packages/passage: {}
 
+  packages/versification:
+    dependencies:
+      '@scripturetips/passage':
+        specifier: workspace:*
+        version: link:../passage
+
+  tools/source-conversion:
+    dependencies:
+      '@scripturetips/passage':
+        specifier: workspace:*
+        version: link:../../packages/passage
+
 packages:
 
   '@babel/helper-string-parser@7.29.11':

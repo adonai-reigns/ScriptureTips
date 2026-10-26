@@ -2,9 +2,14 @@ biomejs
 depcruise
 engjps
 eocd
+NRSV
 opensiddur
 pipefail
 scripturetips
+stepbible
+subverse
+subverses
+TVTMS
 Valkey
 vitest
 wayback

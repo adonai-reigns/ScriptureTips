@@ -7,6 +7,10 @@
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
-    "jps1917": "node src/jps1917/cli.ts"
+    "jps1917": "node src/jps1917/cli.ts",
+    "tvtms": "node src/tvtms/cli.ts"
+  },
+  "dependencies": {
+    "@scripturetips/passage": "workspace:*"
   }
 }

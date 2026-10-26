@@ -1,0 +1,23 @@
+TVTMS import, commit be4191f0082aeedddb0eff0c02c966292b2bd641
+20836 rows read
+
+Rows skipped:
+  282  subverse beyond part 9: Greek | Exo.37:2!j | Exo.36:17 | Renumber verse*
+  449  unparsable reference: Greek | Exo.37:2!aa | Exo.36:34 | Renumber verse*
+  308  book not in the registry (Ade): Eng-KJV+Greek | Ade.1:1!a | Est.11:2 | Renumber verse
+  3  book not in the registry (4Es): Eng-KJV+Greek | 4Es.10:59 | 4Es.10:59 | Keep verse
+
+kjv (Eng-KJV): 2587 pairs
+  conflict: canonical: dropped alternative Greek+NRSV Sir.20 Sir.20:31=Last
+
+hebrew (Hebrew): 0 pairs
+
+latin (Latin): 5916 pairs
+  conflict: canonical: dropped alternative Greek+NRSV Sir.20 Sir.20:31=Last
+
+greek (Greek): 4100 pairs
+  conflict: Greek: dropped alternative Greek Exo.39 Exo.39:23=Last & Exo.36:38=Last & Exo.39:19<Exo.39:21
+  conflict: Greek: dropped alternative Greek 1Ki.5 1Ki.5:32=Last & 1Ki.6:36=Last & 1Ki.6:1>1Ki.6:6*2 & 1Ki.6:1.1=Exist
+  conflict: Greek: dropped alternative Greek+NRSV Sir.20 Sir.20:31=Last
+  conflict: Greek Deut.14.14!a: kept → Deut.14.14, dropped → Deut.14.15
+  conflict: canonical: dropped alternative Greek+NRSV Sir.20 Sir.20:31=Last

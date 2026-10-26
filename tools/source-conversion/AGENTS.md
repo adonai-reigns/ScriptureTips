@@ -23,3 +23,20 @@ The third argument is optional: eBible's `engjps`, a second witness. With it the
 - **Record the output** in `docs/license-evidence/jps-tanakh-1917/SOURCE.md` (conversion section and hashes) when you regenerate it.
 
 Run the tests: `./toolbox pnpm --filter @scripturetips/source-conversion test`
+
+## TVTMS versification (`src/tvtms/`)
+
+<!-- cspell:ignore Standardisation -->
+
+Generates the mapping tables of `packages/versification` from STEPBible's TVTMS (expanded section).
+
+```bash
+./toolbox pnpm --filter @scripturetips/source-conversion tvtms \
+  "/source-texts/stepbible-data/Versification/TVTMS - Translators Versification Traditions with Methodology for Standardisation for Eng+Heb+Lat+Grk+Others - STEPBible.org CC BY.txt" \
+  /workspace/packages/versification/src/data
+```
+
+- **Pipeline:** `parse.ts` (rows, skipping summaries and empty slots) → `compose.ts` (scheme → KJV standard → canonical) → `generate.ts` (modules and `import-report.txt`).
+- **`generate.test.ts`** fails if the committed tables differ from a fresh import. Regenerate rather than editing them, and update `packages/versification/src/data/CHANGES.md` when the importer changes what it does to the data.
+- **Plain-language summary:** every import's report also needs a version for non-technical readers on the public translations and licenses page (vision.md §6). Not built yet.
+- When TVTMS is updated: download the new file with license evidence and hashes, change `TVTMS_COMMIT`, regenerate, and check the golden tests.
