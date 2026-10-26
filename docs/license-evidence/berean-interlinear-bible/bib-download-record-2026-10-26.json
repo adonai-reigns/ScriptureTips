@@ -1,0 +1,26 @@
+{
+ "source": "https://interlinearbible.com/",
+ "downloads_page": "https://berean.bible/downloads.htm",
+ "files": [
+  {
+   "path": "berean-interlinear-bible/bib.pdf",
+   "url": "https://interlinearbible.com/bib.pdf",
+   "bytes": 12973694,
+   "sha256": "e592d57cd13a371f3cfbf1f56c23e88b724e12a5235a87b04313018d4f57d6fb",
+   "last_modified": "Thu, 05 May 2016 06:12:58 GMT",
+   "record": "berean-interlinear-bible/bib-download-record-2026-10-26.json",
+   "status": "first recorded here",
+   "retrieved": "2026-10-26"
+  },
+  {
+   "path": "berean-interlinear-bible/bib.docx",
+   "url": "https://interlinearbible.com/bib.docx",
+   "bytes": 7273311,
+   "sha256": "2d969f0a3831a2edd0e374677fd793dc02808575cf9ed9ba555b6970a3e99352",
+   "last_modified": "Thu, 05 May 2016 06:05:41 GMT",
+   "record": "berean-interlinear-bible/bib-download-record-2026-10-26.json",
+   "status": "first recorded here",
+   "retrieved": "2026-10-26"
+  }
+ ]
+}

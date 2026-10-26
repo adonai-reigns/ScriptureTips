@@ -1,0 +1,18 @@
+HTTP/2 200 
+date: Sun, 25 Oct 2026 08:50:57 GMT
+content-type: text/html; charset=UTF-8
+server: cloudflare
+x-powered-by: PHP/8.1.33
+permissions-policy: private-state-token-redemption=(self "https://www.google.com" "https://www.gstatic.com" "https://recaptcha.net" "https://challenges.cloudflare.com" "https://hcaptcha.com"), private-state-token-issuance=(self "https://www.google.com" "https://www.gstatic.com" "https://recaptcha.net" "https://challenges.cloudflare.com" "https://hcaptcha.com")
+expires: Wed, 11 Jan 1984 05:00:00 GMT
+cache-control: no-cache, must-revalidate, max-age=0, no-store, private
+link: <https://netbible.com/wp-json/>; rel="https://api.w.org/"
+link: <https://netbible.com/wp-json/wp/v2/pages/379>; rel="alternate"; title="JSON"; type="application/json"
+link: <https://netbible.com/?p=379>; rel=shortlink
+vary: Accept-Encoding
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=x18YZob1oTn0kb9kVbWdhjaeNGS5JsiIvaehO4XZxq9oeZeYtU939LWGk%2FkrNawzc5bKrtvL7kMxpX8uhDd9NEQvAxKPoEQcvmOWR5T%2FuRjA1C%2FETZfK%2F4r98%2B26PTE%3D"}]}
+cf-cache-status: DYNAMIC
+cf-ray: a4fff9fe8af028c3-AKL
+alt-svc: h3=":443"; ma=86400
+

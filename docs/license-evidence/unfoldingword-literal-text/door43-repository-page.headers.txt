@@ -1,0 +1,13 @@
+HTTP/2 200 
+server: nginx/1.30.5
+date: Sun, 25 Oct 2026 05:25:47 GMT
+content-type: text/html; charset=utf-8
+cache-control: max-age=0, private, must-revalidate
+set-cookie: dcs_session=f69d85a8a12061a5; Path=/; HttpOnly; SameSite=Lax
+x-content-type-options: nosniff
+x-frame-options: SAMEORIGIN
+access-control-allow-origin: *
+access-control-allow-methods: GET
+access-control-allow-headers: Authorization,DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range
+access-control-expose-headers: Content-Length,Content-Range
+

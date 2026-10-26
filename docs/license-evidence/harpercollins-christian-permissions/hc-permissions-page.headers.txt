@@ -1,0 +1,20 @@
+HTTP/2 200 
+date: Sun, 25 Oct 2026 08:50:55 GMT
+content-type: text/html; charset=UTF-8
+vary: Accept-Encoding
+x-sucuri-id: 16012
+x-frame-options: SAMEORIGIN
+x-content-type-options: nosniff
+strict-transport-security: max-age=31536000
+content-security-policy: upgrade-insecure-requests;
+vary: Accept-Encoding
+x-gateway-request-id: 8ce54d2bec49e1af1d5dd001d3f533aa
+link: <https://www.harpercollinschristian.com/wp-json/>; rel="https://api.w.org/", <https://www.harpercollinschristian.com/wp-json/wp/v2/pages/311>; rel="alternate"; title="JSON"; type="application/json", <https://www.harpercollinschristian.com/?p=311>; rel=shortlink
+vary: Accept-Encoding
+x-gateway-cache-key: 1792166502.297|standard|https|www.harpercollinschristian.com|||/sales-and-rights/permissions/
+x-gateway-cache-status: EXPIRED
+x-gateway-skip-cache: 0
+server: Sucuri/Cloudproxy
+x-sucuri-cache: MISS
+alt-svc: h3=":443"; ma=86400
+

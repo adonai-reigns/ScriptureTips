@@ -1,0 +1,8 @@
+HTTP/1.1 200 OK
+Date: Sun, 25 Oct 2026 18:23:21 GMT
+Server: Apache
+Last-Modified: Thu, 05 May 2016 06:05:41 GMT
+Accept-Ranges: bytes
+Content-Length: 7273311
+Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+

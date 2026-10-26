@@ -1,0 +1,21 @@
+HTTP/2 301 
+location: https://www.lsvbible.com/
+date: Sun, 25 Oct 2026 05:25:28 GMT
+content-type: text/html; charset=UTF-8
+server: ghs
+content-length: 222
+x-xss-protection: 0
+x-frame-options: SAMEORIGIN
+
+HTTP/2 200 
+content-type: text/html; charset=UTF-8
+expires: Sun, 25 Oct 2026 05:25:28 GMT
+date: Sun, 25 Oct 2026 05:25:28 GMT
+cache-control: private, max-age=0
+last-modified: Fri, 23 Oct 2026 18:50:21 GMT
+x-content-type-options: nosniff
+x-xss-protection: 1; mode=block
+server: GSE
+accept-ranges: none
+vary: Accept-Encoding
+

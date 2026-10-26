@@ -1,0 +1,19 @@
+HTTP/2 200 
+date: Sun, 25 Oct 2026 10:15:50 GMT
+content-type: application/json; charset=utf-8
+content-length: 15715
+server: cloudflare
+vary: Accept-Language, Cookie
+content-language: en
+url: /api/texts/versions/Malachi
+x-varnish: 106759166
+age: 0
+via: 1.1 varnish (Varnish/6.5)
+accept-ranges: bytes
+access-control-allow-origin: *
+cf-cache-status: DYNAMIC
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+strict-transport-security: max-age=2592000
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=GMU3ULSLJQ2zxvLjH%2Bj7f%2FiNMvdteXWtacBgFo%2FkcNz0L5yjr9zeL580wn1aO6zmZhIHkS5jTGe%2F1s4HLpTUynnxH17YmwafpimwgyWSwAAKseyypLzqnpPkaBtDzNuq8w%3D%3D"}]}
+cf-ray: a5007656c9c001ae-AKL
+

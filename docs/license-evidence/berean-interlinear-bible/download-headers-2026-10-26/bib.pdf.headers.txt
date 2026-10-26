@@ -1,0 +1,8 @@
+HTTP/1.1 200 OK
+Date: Sun, 25 Oct 2026 18:22:53 GMT
+Server: Apache
+Last-Modified: Thu, 05 May 2016 06:12:58 GMT
+Accept-Ranges: bytes
+Content-Length: 12973694
+Content-Type: application/pdf
+

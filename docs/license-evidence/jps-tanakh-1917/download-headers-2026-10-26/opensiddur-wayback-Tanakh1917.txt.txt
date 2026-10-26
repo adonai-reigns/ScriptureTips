@@ -1,0 +1,36 @@
+HTTP/2 200 
+server: nginx
+date: Sun, 25 Oct 2026 17:10:12 GMT
+content-type: text/plain
+content-length: 3558939
+x-archive-orig-date: Sat, 07 May 2011 03:15:10 GMT
+x-archive-orig-server: Apache
+x-archive-orig-last-modified: Fri, 11 Mar 2011 02:56:08 GMT
+x-archive-orig-etag: "57a400c-364e1b-1a8c6200"
+x-archive-orig-accept-ranges: bytes
+x-archive-orig-content-length: 3558939
+x-archive-orig-connection: close
+cache-control: max-age=1800
+accept-ranges: bytes
+memento-datetime: Sat, 07 May 2011 03:15:13 GMT
+link: <http://opensiddur.org:80/wp-content/uploads/2010/08/Tanakh1917.txt>; rel="original", <https://web.archive.org/web/timemap/link/http://opensiddur.org:80/wp-content/uploads/2010/08/Tanakh1917.txt>; rel="timemap"; type="application/link-format", <https://web.archive.org/web/http://opensiddur.org:80/wp-content/uploads/2010/08/Tanakh1917.txt>; rel="timegate"
+content-security-policy: default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob: archive.org web.archive.org web-static.archive.org wayback-api.archive.org athena.archive.org analytics.archive.org pragma.archivelab.org wwwb-events.archive.org
+x-archive-src: alexa-web-20110708222754-00083/51_21_20110507031430_crawl100.arc.gz
+server-timing: captures_list;dur=0.618948, exclusion.robots;dur=0.057981, exclusion.robots.policy;dur=0.043895, esindex;dur=0.009525, cdx.remote;dur=1524.648435, LoadShardBlock;dur=3843.393830, PetaboxLoader3.datanode;dur=516.334736, PetaboxLoader3.resolve;dur=3519.990752, load_resource;dur=591.617995
+x-app-server: wwwb-app246-dc8
+x-ts: 200
+x-tr: 5994
+server-timing: TR;dur=0,Tw;dur=4925,Tc;dur=1
+set-cookie: wb-p-SERVER=wwwb-app246; path=/
+cache-control: private
+x-location: All
+x-as: 45177
+x-rl: 0
+x-na: 0
+x-page-cache: MISS
+server-timing: MISS
+x-nid: Devoli
+referrer-policy: no-referrer-when-downgrade
+permissions-policy: interest-cohort=()
+x-sd: 0
+

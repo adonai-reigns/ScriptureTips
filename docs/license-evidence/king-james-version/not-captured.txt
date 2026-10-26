@@ -1,0 +1,2 @@
+cambridge-queens-printers-patent: https://www.cambridge.org/about-us/who-we-are/queens-printers-patent -> HTTP 403 (automated fetch refused; capture in a real browser)
+2026-10-25 update: the patent URL above now redirects to https://www.cambridge.org/our-story, which has no rights information. Cambridge's KJV terms are on its "Bibles rights and permissions" page instead, captured by Antz in Firefox: cambridge-bibles-rights-and-permissions.pdf.

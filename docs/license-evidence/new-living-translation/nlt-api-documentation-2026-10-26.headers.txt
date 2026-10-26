@@ -1,0 +1,17 @@
+HTTP/2 200 
+date: Sun, 25 Oct 2026 20:04:46 GMT
+content-type: text/html; charset=utf-8
+server: cloudflare
+cache-control: private
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=VsjYz5fqYTzC%2BtYO37mczpKrP6JZi6eCaXXBlrNZIXB9zte6DpGods9ZUznZ91XynpabEJFwDmNJMONRlTGSAKKQbRQAySGNCq1D1z%2Bq67pkl%2BzXUJCXkzrOihtE"}]}
+set-cookie: ARRAffinity=4a6eac7cd7a126800c82af8e21ebe170fc49af859faad57f486e6414349691bc;Path=/;HttpOnly;Secure;Domain=api.nlt.to
+set-cookie: ARRAffinitySameSite=4a6eac7cd7a126800c82af8e21ebe170fc49af859faad57f486e6414349691bc;Path=/;HttpOnly;SameSite=None;Secure;Domain=api.nlt.to
+vary: Accept-Encoding
+x-aspnetmvc-version: 5.2
+x-aspnet-version: 4.0.30319
+x-powered-by: ASP.NET
+cf-cache-status: DYNAMIC
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+cf-ray: a503d50c281e01ae-AKL
+alt-svc: h3=":443"; ma=86400
+

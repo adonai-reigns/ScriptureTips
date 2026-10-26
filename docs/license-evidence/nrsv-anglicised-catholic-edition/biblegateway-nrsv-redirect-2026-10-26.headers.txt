@@ -1,0 +1,11 @@
+HTTP/2 301 
+content-type: text/html; charset=UTF-8
+location: https://www.biblegateway.com/versions/New-Revised-Standard-Version-Updated-Edition-NRSVue-Bible
+date: Sun, 25 Oct 2026 17:23:05 GMT
+strict-transport-security: max-age=7776000
+server: nginx
+x-cache: Miss from cloudfront
+via: 1.1 7fd1761bb6c876d1a643f11341139b1e.cloudfront.net (CloudFront)
+x-amz-cf-pop: AKL53-P2
+x-amz-cf-id: gTgT0PuJjAI4vXM6_98SfqN9zwmIGlquh0HSwqZyiQNGrYUIH7rBnw==
+

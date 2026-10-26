@@ -1,0 +1,241 @@
+
+
+
+<!DOCTYPE html>
+<!--[if lt IE 7]><html id="html" class="no-js ie lt-ie10 lt-ie9 lt-ie8 lt-ie7 ie6" lang="en-US"><![endif]-->
+<!--[if IE 7]><html id="html" class="no-js ie lt-ie10 lt-ie9 lt-ie8 ie7" lang="en-US"> <![endif]-->
+<!--[if IE 8]><html id="html" class="no-js ie lt-ie10 lt-ie9 ie8" lang="en-US"> <![endif]-->
+<!--[if IE 9]><html id="html" class="no-js ie lt-ie10 ie9" lang="en-US"> <![endif]-->
+<!--[if gt IE 9]><!-->
+<html id="html" class="no-js no-ie" lang="en-US">
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8">
+    <title>NLT.TO API</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="ms-tap-highlight" content="no">
+
+    <!--
+      <link rel="shortcut icon" href="https://nlt.to/content/css/img/favicon.ico" type="image/x-icon" />
+      <link rel="apple-touch-icon" href="https://nlt.to/content/css/img/apple-touch-icon.png" />
+      <link rel="apple-touch-icon" sizes="57x57" href="https://nlt.to/content/css/img/apple-touch-icon-57x57.png" />
+      <link rel="apple-touch-icon" sizes="60x60" href="https://nlt.to/content/css/img/apple-touch-icon-60x60.png" />
+      <link rel="apple-touch-icon" sizes="72x72" href="https://nlt.to/content/css/img/apple-touch-icon-72x72.png" />
+      <link rel="apple-touch-icon" sizes="76x76" href="https://nlt.to/content/css/img/apple-touch-icon-76x76.png" />
+      <link rel="apple-touch-icon" sizes="114x114" href="https://nlt.to/content/css/img/apple-touch-icon-114x114.png" />
+      <link rel="apple-touch-icon" sizes="120x120" href="https://nlt.to/content/css/img/apple-touch-icon-120x120.png" />
+      <link rel="apple-touch-icon" sizes="144x144" href="https://nlt.to/content/css/img/apple-touch-icon-144x144.png" />
+      <link rel="apple-touch-icon" sizes="152x152" href="https://nlt.to/content/css/img/apple-touch-icon-152x152.png" />
+      <link href="https://nlt.to" rel="stylesheet">
+
+      <link href="/Content/css?v=RPjTcbj5GvYczUfzsxiBWu3fy26cUzi7SUgxOojdlBY1" rel="stylesheet"/>
+
+      <script src="/bundles/modernizr?v=wBEWDufH_8Md-Pbioxomt90vm6tJN2Pyy9u9zHtWsPo1"></script>
+
+    -->
+
+    <link href="https://nlt.to/Content/site.css" rel="stylesheet" />
+    <link href="/Content/site.css" rel="stylesheet" />
+    <script src="/scripts/modernizr-2.6.2.js" type="14936aefcf9fdc1c3c4ec987-text/javascript"></script>
+    <link rel="icon" href="/Content/newLiving_color.ico" type="image/x-icon" />
+
+
+</head>
+<script src="/cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="14936aefcf9fdc1c3c4ec987-|49"></script><body onLoad="">
+    <div id="page" class="l-page">
+        <header class="l-page--header">
+            <nav id="nav" class="l-page--nav nav">
+                <ul class="nav--items group">
+                    <li class="nav--item"><a class="nav--link" href="/">API Home</a></li>
+                    <li class="nav--item"><a class="nav--link" href="/Documentation">Usage Documentation</a></li>
+                    <li class="nav--item"><a class="nav--link" href="/Account/Register">Sign Up</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <!-- .l-page-banner -->
+        <div class="l-page--banner">
+            <div class="l-page--logo logo">
+                <h1 class="-assist">New Living Translation</h1>
+                <a class="logo--link" href="/">
+                    <img class="logo--image" src="/Content/logo-complex.png" alt="New Living Translation" title="New Living Translation" />
+                </a>
+            </div>
+        </div>
+
+
+
+        <div class="l-page--columns group">
+
+            <!-- .l-page-side -->
+            <div class="l-page--side">
+                <div class="sidebar">
+                    <h1 class="sidebar--heading">About The New Living Translation</h1>
+                    <p class="sidebar--content">The Holy Bible, New Living Translation, is an authoritative Bible translation, rendered faithfully into today&rsquo;s English from the ancient texts by 90 leading Bible scholars&hellip;</p>
+                    <a class="sidebar--link" target="_blank" href="https://nlt.to/">Read More About The NLT</a>
+                </div>
+            </div>
+
+            <div class="l-page--main">
+                <div class="l-page--searchbox">
+                </div>
+                <div class="l-page--content">
+                    <div id="top-nav">
+
+<a href="/Account/Login" id="loginLink">login</a>                    </div>
+
+                    <div id="main_body">
+                        
+
+
+<h1 id="nlt-api-usage-documentation">NLT API Usage Documentation</h1>
+<p>The NLT API is based on HTTP GET requests with all parameters in the URL (unless noted as POST request). The output format is HTML (unless noted as, e.g., JSON).</p>
+<p>Your API key is included in each request with the key query parameter. If <em>key=TEST</em> or omitted, then your IP address will be used as a key, and you will be limited to 50 verses per request and 500 requests per day.</p>
+<h2 id="httpapinlttopassages">https://api.nlt.to/passages</h2>
+<p>Return the Scripture text for the given passages, ordered by reference, as an HTML excerpt that can readily be included in a web page.</p>
+<ul>
+    <li><strong>Example:</strong> <a href="/api/passages?ref=John.1&amp;key=TEST">https://api.nlt.to/api/passages?ref=John.1&amp;key=TEST</a></li>
+    <li>
+        <strong>Query Parameters:</strong>
+        <table class="parameters">
+            <tr>
+                <th>ref</th>
+                <td>The reference(s) for the passages to be returned. More than one reference can be given, separated by semi-colons or commas.</td>
+            </tr>
+            <tr>
+                <th>version</th>
+                <td>
+                    The Bible version to show. (Default <em>version=NLT</em>.) Available values:
+                    <table>
+                        <tr><td>NLT</td><td>NLT (American English)</td></tr>
+                        <tr><td>NLTUK</td><td>NLT (UK English)</td></tr>
+                        <tr><td>NTV</td><td>Nueva Traducción Viviente</td></tr>
+                        <tr><td>KJV</td><td>King James Version</td></tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <th>key</th>
+                <td>Your API license key.</td>
+            </tr>
+        </table>
+    </li>
+</ul>
+<h2 id="httpapinlttosearch">https://api.nlt.to/api/search</h2>
+<p>Return search results (passages and short context paragraphs) for the given search query terms. <!-- Keyword, exact phrase, and regular expression (pattern match) searches are supported.--></p>
+<ul>
+    <li><strong>Example</strong>: <a href="/api/search?text=mother+and+father&amp;key=TEST">https://api.nlt.to/api/search?text=mother+and+father&amp;key=TEST</a></li>
+    <li>
+        <strong>Query Parameters</strong>:
+        <table class="parameters">
+            <tr><th>text</th><td>The text to search for.</td></tr>
+            <tr><th>version</th><td>The Bible version to search. (Default <em>version=NLT</em>.)</td></tr>
+            <!--
+            <tr>
+                <th>type</th>
+                <td>
+                    The type of search query being done: exact, regexp, or keyword. (Default <em>type=keyword</em>.)
+                    <table>
+                        <tr><td>exact</td><td>the exact query text, as typed</td></tr>
+                        <tr><td>regexp</td><td>treat the query text as a regular expression. See <a href="regular-expressions">Regular Expression Search</a> for more information.</td></tr>
+                        <tr><td>keyword</td><td>use keyword stemming to match the words in the query text</td></tr>
+                    </table>
+                </td>
+            </tr>
+            <tr><th>case</th><td>whether the search is case sensitive — non-keyword search only. true or false. (Default <em>case=false</em>.)</td></tr>
+            <tr><th>config</th><td>which search config to use — keyword search only. (Default <em>config=english</em>.)</td></tr>
+            <tr><th>offset</th><td>the number of search hits to skip at the beginning of the search results (useful when you run up against your verse limit) (Default <em>offset=0</em>.)</td></tr>
+            -->
+            <tr><th>key</th><td>Your API license key.</td></tr>
+        </table>
+    </li>
+</ul>
+<h2 id="httpapinlttoparse">https://api.nlt.to/api/parse</h2>
+<p>Return a parsed list of references for the given reference string. <em>NOTE: the Content-Type for this query is always JSON.</em></p>
+<ul>
+    <li><strong>Example</strong>: <a href="/api/parse?ref=John.1&amp;key=TEST">https://api.nlt.to/api/parse?ref=John.1&amp;key=TEST</a></li>
+    <li>
+        <strong>Query Parameters</strong>:
+        <table class="parameters">
+            <tr><th>ref</th><td>The reference string to parse.</td></tr>
+            <tr><th>key</th><td>Your API license key.</td></tr>
+            <tr><th>language</th><td>The language. (Default <em>language=en</em>.  Spanish is 'es')</td></tr>
+        </table>
+    </li>
+</ul>
+
+<!--
+<h2 id="httpapinlttotag-post-request">https://api.nlt.to/api/tag (POST request)</h2>
+<p>Return the given HTML excerpt with Scripture references tagged as links pointing to the NLT website. (This is very useful for websites that want to link Scripture references.)</p>
+<ul>
+    <li><strong>POST Body</strong>: Contains the HTML excerpt containing Scripture references to be tagged as links pointing to the NLT website. <em><strong>Please note</strong> that the HTML excerpt will be “cleaned up,” and that only a limited number of “safe” tags and attributes are supported.</em></li>
+    <li>
+        <strong>Query Parameters:</strong>
+        <table class="parameters">
+            <tr><th>encoding</th><td>The encoding of the request body. (Default <em>encoding=UTF-8</em>.)</td></tr>
+            <tr><th>book</th><td>The Bible book that is the context for the reference tagging. (Default <em>book=None</em>.)</td></tr>
+            <tr><th>key</th><td>Your API license key.</td></tr>
+        </table>
+    </li>
+</ul>
+    -->
+<h2 id="httpapinlttoplans">https://api.nlt.to/api/plans</h2>
+<p>Return a list of reading plans supported by the API.</p>
+<ul>
+    <li><strong>Example</strong>: <a href="/api/plans?key=TEST">https://api.nlt.to/api/plans?key=TEST</a></li>
+    <li>
+        <strong>Query Parameters</strong>:
+        <table class="parameters">
+            <tr><th>key</th><td>Your API license key.</td></tr>
+        </table>
+    </li>
+</ul>
+
+<h2 id="httpapinlttoreading">https://api.nlt.to/api/reading</h2>
+<p>Return the text for a given date in the given reading plan. (Default <em>date=today</em>.)</p>
+<ul>
+    <li><strong>Example</strong>: <a href="/api/reading?plan=OYB&amp;key=TEST">https://api.nlt.to/api/reading?plan=OYB&amp;key=TEST</a></li>
+    <li>
+        <strong>Query Parameters</strong>:
+        <table class="parameters">
+            <tr><th>plan</th><td>The name of the reading plan from which to retrieve the reading. The plan name should exactly match one of the reading plan names listed in <a href="/api/plans">https://api.nlt.to/plans</a></td></tr>
+            <tr><th>date</th><td>The date of the reading. (Default <em>date=today</em>.)</td></tr>
+            <tr><th>version</th><td>The Bible version in which to provide the reading.</td></tr>
+            <tr><th>key</th><td>Your API license key.</td></tr>
+        </table>
+    </li>
+</ul>
+
+
+
+                    </div>
+
+                </div> <!-- .l-endos-main -->
+            </div> <!-- .l-page-main -->
+        </div> <!-- .l-page-columns -->
+
+
+        <footer class="l-page--footer group">
+            <div class="footer--columns group">
+                <div class="footer--main">
+                    <h1 class="footer--notice">&copy;&nbsp;2026&nbsp;Tyndale&nbsp;House&nbsp;Publishers</h1>
+                    <div class="footer--links">
+                        <a class="footer--link footer--trademark" href="https://www.tyndale.com/trademarks" target="_blank">Trademark</a>
+                        <a class="footer--link" href="https://www.tyndale.com/privacy" target="_blank">Privacy Policy</a>
+                    </div>
+                </div>
+                <div class="footer--visit">
+                    <span>Visit&nbsp;</span><a class="footer--visit--link" href="http://newlivingtranslation.com" target="_blank">NewLivingTranslation.com</a>
+                </div>
+            </div> <!-- .footer-columns -->
+        </footer>
+    </div> <!-- .l-page -->
+
+    <script src="/bundles/jquery?v=FVs3ACwOLIVInrAl5sdzR2jrCDmVOWFbZMY6g6Q0ulE1" type="14936aefcf9fdc1c3c4ec987-text/javascript"></script>
+
+    <script src="/bundles/bootstrap?v=2Fz3B0iizV2NnnamQFrx-NbYJNTFeBJ2GM05SilbtQU1" type="14936aefcf9fdc1c3c4ec987-text/javascript"></script>
+
+    
+
+<script src="/cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="14936aefcf9fdc1c3c4ec987-|49" defer></script></body>
+</html>

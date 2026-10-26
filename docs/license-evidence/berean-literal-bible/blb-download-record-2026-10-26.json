@@ -1,0 +1,46 @@
+{
+ "source": "https://literalbible.com/",
+ "downloads_page": "https://berean.bible/downloads.htm",
+ "files": [
+  {
+   "path": "berean-literal-bible/blb.txt",
+   "url": "https://literalbible.com/blb.txt",
+   "bytes": 4654213,
+   "sha256": "4db24ae985c244ba83538f5e6e39ab7f3a1d027a6ffe8b1292e503f6dcd88054",
+   "last_modified": "Wed, 08 Apr 2026 17:39:02 GMT",
+   "record": "berean-literal-bible/blb-download-record-2026-10-26.json",
+   "status": "first recorded here",
+   "retrieved": "2026-10-26"
+  },
+  {
+   "path": "berean-literal-bible/blb.xlsx",
+   "url": "https://literalbible.com/blb.xlsx",
+   "bytes": 2328165,
+   "sha256": "e850dee63870e21567edf49b5ca51c6cb0d25ae81093dd6e66c3483c8cf2fb93",
+   "last_modified": "Wed, 08 Apr 2026 17:36:28 GMT",
+   "record": "berean-literal-bible/blb-download-record-2026-10-26.json",
+   "status": "first recorded here",
+   "retrieved": "2026-10-26"
+  },
+  {
+   "path": "berean-literal-bible/blb.pdf",
+   "url": "https://literalbible.com/blb.pdf",
+   "bytes": 11087159,
+   "sha256": "1b00857aa83ce2f0cd420cbc52fa2fb9f5fd3e4a09168c5955195f44fdee1944",
+   "last_modified": "Thu, 09 Apr 2026 02:33:54 GMT",
+   "record": "berean-literal-bible/blb-download-record-2026-10-26.json",
+   "status": "first recorded here",
+   "retrieved": "2026-10-26"
+  },
+  {
+   "path": "berean-literal-bible/blb.docx",
+   "url": "https://literalbible.com/blb.docx",
+   "bytes": 3221146,
+   "sha256": "9dab12f9042c9f73b39bfd5afd19a43f3ccc1d0f3322c087940777fc69975034",
+   "last_modified": "Thu, 09 Apr 2026 01:22:57 GMT",
+   "record": "berean-literal-bible/blb-download-record-2026-10-26.json",
+   "status": "first recorded here",
+   "retrieved": "2026-10-26"
+  }
+ ]
+}

@@ -1,0 +1,11 @@
+HTTP/2 200 
+content-type: text/html; charset=UTF-8
+date: Sun, 25 Oct 2026 18:13:20 GMT
+vary: Accept-Encoding
+strict-transport-security: max-age=7776000
+server: nginx
+x-cache: Miss from cloudfront
+via: 1.1 bca1dc60a714c48b15fcb077a041221c.cloudfront.net (CloudFront)
+x-amz-cf-pop: AKL53-P2
+x-amz-cf-id: 8Ph5iCNFq5Ko0Ai2sndn8ajS3qVQxS_EPm6OFaj3qs85638KIQf_mA==
+

@@ -1,0 +1,34 @@
+HTTP/2 200 
+server: nginx
+date: Sun, 25 Oct 2026 17:11:54 GMT
+content-type: text/html; charset=UTF-8
+x-archive-orig-date: Fri, 17 May 2013 06:30:17 GMT
+x-archive-orig-server: Apache
+x-archive-orig-x-pingback: http://opensiddur.org/xmlrpc.php
+x-archive-orig-link: <http://wp.me/p1JV3h-hs>; rel=shortlink
+x-archive-orig-set-cookie: wfvt_-1858862241=5195ce7cbc911; expires=Fri, 17-May-2013 07:00:20 GMT; path=/
+x-archive-orig-set-cookie: advtag_idx=2; path=/
+x-archive-orig-connection: close
+x-archive-guessed-content-type: text/html
+x-archive-guessed-charset: utf-8
+memento-datetime: Fri, 17 May 2013 06:30:22 GMT
+link: <http://opensiddur.org:80/2010/08/%25D7%25AA%25D7%25A0%25D7%25B4%25D7%259A-the-holy-scriptures-a-new-translation-jps-1917/>; rel="original", <https://web.archive.org/web/timemap/link/http://opensiddur.org:80/2010/08/%25D7%25AA%25D7%25A0%25D7%25B4%25D7%259A-the-holy-scriptures-a-new-translation-jps-1917/>; rel="timemap"; type="application/link-format", <https://web.archive.org/web/http://opensiddur.org:80/2010/08/%25D7%25AA%25D7%25A0%25D7%25B4%25D7%259A-the-holy-scriptures-a-new-translation-jps-1917/>; rel="timegate"
+content-security-policy: default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob: archive.org web.archive.org web-static.archive.org wayback-api.archive.org athena.archive.org analytics.archive.org pragma.archivelab.org wwwb-events.archive.org
+x-archive-src: alexa20130517-22/52_34_20130517062938_crawl100.arc.gz
+server-timing: captures_list;dur=0.656512, exclusion.robots;dur=0.073441, exclusion.robots.policy;dur=0.058322, esindex;dur=0.011080, cdx.remote;dur=39.495444, LoadShardBlock;dur=139.011509, PetaboxLoader3.datanode;dur=77.741733, PetaboxLoader3.resolve;dur=372.104487, load_resource;dur=410.474339
+x-app-server: wwwb-app264-dc8
+x-ts: 200
+x-tr: 717
+server-timing: TR;dur=0,Tw;dur=4887,Tc;dur=1
+set-cookie: wb-p-SERVER=wwwb-app264; path=/
+x-location: All
+x-as: 45177
+x-rl: 0
+x-na: 0
+x-page-cache: HIT
+server-timing: HIT
+x-nid: Devoli
+referrer-policy: no-referrer-when-downgrade
+permissions-policy: interest-cohort=()
+x-sd: 0
+

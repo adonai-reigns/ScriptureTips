@@ -1,0 +1,518 @@
+{
+  "description": "Source files for the texts in license-evidence. Files are kept outside git; this manifest identifies each one exactly.",
+  "storage": "source-texts/ (outside the repositories; to move to cloud storage later)",
+  "files": [
+    {
+      "path": "american-standard-version/eng-asv_usfm.zip",
+      "url": "https://ebible.org/Scriptures/eng-asv_usfm.zip",
+      "bytes": 2875813,
+      "sha256": "5e385a1a89887849cb07c88ddf4df37708e0fa901b1f1b7f0b8204c153f0a901",
+      "last_modified": "Wed, 21 Oct 2026 00:44:50 GMT",
+      "record": "american-standard-version/eng-asv-usfm-archive-record.json",
+      "status": "matches record",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "berean-standard-bible/engbsb_usfm.zip",
+      "url": "https://ebible.org/Scriptures/engbsb_usfm.zip",
+      "bytes": 3021758,
+      "sha256": "ce8bb27e62ab433e9eae460b65bf10710fabfd74017a9535aa8904343866e257",
+      "last_modified": "Wed, 21 Oct 2026 00:44:31 GMT",
+      "record": "berean-standard-bible/engbsb-usfm-archive-record.json",
+      "status": "matches record",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "berean-standard-bible/bsb_usfm.zip",
+      "url": "https://bereanbible.com/bsb_usfm.zip",
+      "bytes": 1598038,
+      "sha256": "f0c56438eb89c98e8f62c5c00461e25cc35b098ad5b179bc350cede759ee5f87",
+      "last_modified": "Fri, 02 Oct 2026 17:30:01 GMT",
+      "record": "berean-standard-bible/official-bsb-usfm-archive-record.json",
+      "status": "matches record",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "brenton-septuagint/eng-Brenton_usfm.zip",
+      "url": "https://ebible.org/Scriptures/eng-Brenton_usfm.zip",
+      "bytes": 1442696,
+      "sha256": "ce098084f168f8bb67081ab48061588f7074d4f68d88dec2ab3edbcc10607a7a",
+      "last_modified": "Tue, 20 Oct 2026 22:02:04 GMT",
+      "record": "brenton-septuagint/eng-Brenton-usfm-archive-record.json",
+      "status": "matches record",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "brenton-septuagint/eng-lxx2012_usfm.zip",
+      "url": "https://ebible.org/Scriptures/eng-lxx2012_usfm.zip",
+      "bytes": 1395124,
+      "sha256": "3118170e393122e24cb1b1b2bc0fe883e51e0753601f98f91313701b62193153",
+      "last_modified": "Tue, 20 Oct 2026 20:32:29 GMT",
+      "record": "brenton-septuagint/eng-lxx2012-usfm-archive-record.json",
+      "status": "matches record",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "brenton-septuagint/englxxup_usfm.zip",
+      "url": "https://ebible.org/Scriptures/englxxup_usfm.zip",
+      "bytes": 1353131,
+      "sha256": "2bca3a239561a69ec001c3ca75a3d48dda0c1c715bb5b5dbe6dded117607441e",
+      "last_modified": "Tue, 20 Oct 2026 22:03:11 GMT",
+      "record": "brenton-septuagint/englxxup-usfm-archive-record.json",
+      "status": "matches record",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "darby-translation/engDBY_usfm.zip",
+      "url": "https://ebible.org/Scriptures/engDBY_usfm.zip",
+      "bytes": 2798365,
+      "sha256": "9593bb6db5d2d1de66f37d9470fb86bfd13a38f3e5caead225d59b3b32c5b6b5",
+      "last_modified": "Tue, 20 Oct 2026 22:04:34 GMT",
+      "record": "darby-translation/engDBY-usfm-archive-record.json",
+      "status": "matches record",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "douay-rheims-1899/engDRA_usfm.zip",
+      "url": "https://ebible.org/Scriptures/engDRA_usfm.zip",
+      "bytes": 2942946,
+      "sha256": "2f991375420fcbff9a8000912920a8d4c1b665d766fdd23f22c9d433e53444eb",
+      "last_modified": "Tue, 20 Oct 2026 22:06:23 GMT",
+      "record": "douay-rheims-1899/engDRA-usfm-archive-record.json",
+      "status": "matches record",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "free-bible-version/engfbv_usfm.zip",
+      "url": "https://ebible.org/Scriptures/engfbv_usfm.zip",
+      "bytes": 3081759,
+      "sha256": "e32a1cc9b1ef2fb8283ba64f7ca5e18b51477de2974a1878d63e5e4b43b248b0",
+      "last_modified": "Wed, 21 Oct 2026 00:44:30 GMT",
+      "record": "free-bible-version/engfbv-usfm-archive-record.json",
+      "status": "matches record",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "geneva-bible-1599/enggnv_usfm.zip",
+      "url": "https://ebible.org/Scriptures/enggnv_usfm.zip",
+      "bytes": 1410480,
+      "sha256": "9c0afd6a9848aa886810ae0d360e50a3308a1b50d6a1aec03941f5e6ffdcb62c",
+      "last_modified": "Tue, 20 Oct 2026 22:02:34 GMT",
+      "record": "geneva-bible-1599/enggnv-usfm-archive-record.json",
+      "status": "matches record",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "jps-tanakh-1917/engjps_usfm.zip",
+      "url": "https://ebible.org/Scriptures/engjps_usfm.zip",
+      "bytes": 1052469,
+      "sha256": "952033091b8637befd49818f2daa412dcccce630e518c5a9aa05b072129879c4",
+      "last_modified": "Tue, 20 Oct 2026 22:00:49 GMT",
+      "record": "jps-tanakh-1917/engjps-usfm-archive-record.json",
+      "status": "matches record",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "king-james-version/eng-kjv_usfm.zip",
+      "url": "https://ebible.org/Scriptures/eng-kjv_usfm.zip",
+      "bytes": 2771083,
+      "sha256": "67561758cf58d9e767e89226a99171dba722579157d3894767c2f27538bcb38e",
+      "last_modified": "Wed, 21 Oct 2026 00:48:13 GMT",
+      "record": "king-james-version/eng-kjv-usfm-archive-record.json",
+      "status": "matches record",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "king-james-version/eng-kjv2006_usfm.zip",
+      "url": "https://ebible.org/Scriptures/eng-kjv2006_usfm.zip",
+      "bytes": 2466538,
+      "sha256": "bf907642b9a37530ebd9cedf08273f62a7c2140e414205fd4b8208be952b4b14",
+      "last_modified": "Tue, 20 Oct 2026 20:41:48 GMT",
+      "record": "king-james-version/eng-kjv2006-usfm-archive-record.json",
+      "status": "matches record",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "king-james-version/engkjvcpb_usfm.zip",
+      "url": "https://ebible.org/Scriptures/engkjvcpb_usfm.zip",
+      "bytes": 1798000,
+      "sha256": "812a92d5ea54308632f2586ee6f2a38a114c33b4823f3c011d030f15fdc20459",
+      "last_modified": "Tue, 20 Oct 2026 22:05:25 GMT",
+      "record": "king-james-version/engkjvcpb-usfm-archive-record.json",
+      "status": "matches record",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "literal-standard-version/englsv_usfm.zip",
+      "url": "https://ebible.org/Scriptures/englsv_usfm.zip",
+      "bytes": 2806756,
+      "sha256": "8ea9837f3fd6b4281cc9f0d0ff27da51a44fdf8379fca88733d7a7bce4bc15ad",
+      "last_modified": "Wed, 21 Oct 2026 00:46:03 GMT",
+      "record": "literal-standard-version/englsv-usfm-archive-record.json",
+      "status": "matches record",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "majority-standard-bible/engmsb_usfm.zip",
+      "url": "https://ebible.org/Scriptures/engmsb_usfm.zip",
+      "bytes": 2790279,
+      "sha256": "55f5ef0269782a892cdc13c479e5ed5df8609135de1dba8309ac30386e154d84",
+      "last_modified": "Wed, 21 Oct 2026 00:45:19 GMT",
+      "record": "majority-standard-bible/engmsb-usfm-archive-record.json",
+      "status": "matches record",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "open-english-bible/engoebcw_usfm.zip",
+      "url": "https://ebible.org/Scriptures/engoebcw_usfm.zip",
+      "bytes": 1285524,
+      "sha256": "1b116a0ba9269b09c2dd5a3577d63cc2d97dabb5cd4e6e605225f0b93dfe3997",
+      "last_modified": "Wed, 21 Oct 2026 00:39:34 GMT",
+      "record": "open-english-bible/engoebcw-usfm-archive-record.json",
+      "status": "matches record",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "open-english-bible/engoebus_usfm.zip",
+      "url": "https://ebible.org/Scriptures/engoebus_usfm.zip",
+      "bytes": 1285918,
+      "sha256": "ab17ba5f7f18daecda28fa1926daf732dab180565fe58174927d131ef7943f15",
+      "last_modified": "Wed, 21 Oct 2026 00:39:43 GMT",
+      "record": "open-english-bible/engoebus-usfm-archive-record.json",
+      "status": "matches record",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "revised-version-1895/eng-rv_usfm.zip",
+      "url": "https://ebible.org/Scriptures/eng-rv_usfm.zip",
+      "bytes": 3166778,
+      "sha256": "8eee566b1e4a6a77363221b450bb00fb2f7a9afb98dd6981f094e6c24a6040d5",
+      "last_modified": "Wed, 21 Oct 2026 00:49:30 GMT",
+      "record": "revised-version-1895/eng-rv-usfm-archive-record.json",
+      "status": "matches record",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "tyndale-new-testament/engtnt_usfm.zip",
+      "url": "https://ebible.org/Scriptures/engtnt_usfm.zip",
+      "bytes": 372433,
+      "sha256": "b6768709a1d58e8d0013234a6b0f73d4af8810bfdd1e0a2a397b0d995eb53cdc",
+      "last_modified": "Tue, 20 Oct 2026 22:03:46 GMT",
+      "record": "tyndale-new-testament/engtnt-usfm-archive-record.json",
+      "status": "matches record",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "webster-bible-1833/engwebster_usfm.zip",
+      "url": "https://ebible.org/Scriptures/engwebster_usfm.zip",
+      "bytes": 1424702,
+      "sha256": "f84ad11f331ac7cd644b0a0e6045ed96afbca39d3648ce516810ab91a4729da3",
+      "last_modified": "Tue, 20 Oct 2026 22:09:33 GMT",
+      "record": "webster-bible-1833/engwebster-usfm-archive-record.json",
+      "status": "matches record",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "world-english-bible/eng-web_usfm.zip",
+      "url": "https://ebible.org/Scriptures/eng-web_usfm.zip",
+      "bytes": 3249632,
+      "sha256": "1298c07ccd62fe8ebab6d0cc94ab75a88dd95272d7fe618faeb7a8f6d632c6e0",
+      "last_modified": "Thu, 22 Oct 2026 03:51:49 GMT",
+      "record": "world-english-bible/eng-web-usfm-archive-record.json",
+      "status": "matches record",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "world-english-bible/engwebp_usfm.zip",
+      "url": "https://ebible.org/Scriptures/engwebp_usfm.zip",
+      "bytes": 2908005,
+      "sha256": "d2a7c9640820003d8ed475ce6d92cc990b0447fe96ce72fd0df17c0dac9d95fe",
+      "last_modified": "Thu, 22 Oct 2026 04:05:20 GMT",
+      "record": "world-english-bible/engwebp-usfm-archive-record.json",
+      "status": "matches record",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "world-english-bible/engwebu_usfm.zip",
+      "url": "https://ebible.org/Scriptures/engwebu_usfm.zip",
+      "bytes": 3267413,
+      "sha256": "27e550351da84ab5dcbcbbe8f9cfd6fb82d3cf4549b4aa9d8a6fb360327c432c",
+      "last_modified": "Thu, 22 Oct 2026 04:13:31 GMT",
+      "record": "world-english-bible/engwebu-usfm-archive-record.json",
+      "status": "matches record",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "wycliffe-bible/engWycliffe_usfm.zip",
+      "url": "https://ebible.org/Scriptures/engWycliffe_usfm.zip",
+      "bytes": 421971,
+      "sha256": "aa466ed42f1fa9a06aa5ea1c7ffeb8f4b0d757a4c1be66d9e88961b36e48d0e5",
+      "last_modified": "Tue, 20 Oct 2026 22:05:22 GMT",
+      "record": "wycliffe-bible/engWycliffe-usfm-archive-record.json",
+      "status": "matches record",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "youngs-literal-translation/engylt_usfm.zip",
+      "url": "https://ebible.org/Scriptures/engylt_usfm.zip",
+      "bytes": 1386202,
+      "sha256": "5f91332f6e97c7925d3266f9c321a242f44a1dcec47541582f137a575d9df181",
+      "last_modified": "Tue, 20 Oct 2026 22:10:15 GMT",
+      "record": "youngs-literal-translation/engylt-usfm-archive-record.json",
+      "status": "matches record",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "unfoldingword-literal-text/en_ult-v91.zip",
+      "url": "https://git.door43.org/unfoldingWord/en_ult/archive/v91.zip",
+      "bytes": 7543879,
+      "sha256": "f5c08f7a50ef88afe7b4811acdee352b0302e9f0bf1269f217d97121d2113d44",
+      "last_modified": null,
+      "record": "unfoldingword-literal-text/release-record.json",
+      "status": "matches record",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "unfoldingword-simplified-text/en_ust-v91.zip",
+      "url": "https://git.door43.org/unfoldingWord/en_ust/archive/v91.zip",
+      "bytes": 8879975,
+      "sha256": "0c7c3f9747f58a08a9901d1acfc26cd1356aebdb161671a3becfc403dca3d28c",
+      "last_modified": null,
+      "record": "unfoldingword-simplified-text/release-record.json",
+      "status": "matches record",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "open-english-bible/Open-English-Bible-1965127de5c3.zip",
+      "url": "https://github.com/openenglishbible/Open-English-Bible/archive/1965127de5c3c103af3fdbc9288c1abec5f39994.zip",
+      "bytes": 36388165,
+      "sha256": "16a2cbd16c89894e0feb399c74cdf27be87323598542c77bf35119b1961d9da4",
+      "last_modified": null,
+      "record": "open-english-bible/github-commit-record.json",
+      "status": "new (no earlier hash)",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "lexham-english-bible/LEB.xml",
+      "url": "https://lexhamenglishbible.com/download/ (2020-02-09; host no longer exists)",
+      "bytes": 8645383,
+      "sha256": "65aaf39c0ffab06196eb8189aad45359a3dfdab40b53e2f387990023d41932d2",
+      "last_modified": null,
+      "record": "lexham-english-bible/README.md",
+      "status": "from tex-bible git 2ef97e4",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "lexham-english-bible/LEB.txt",
+      "url": "https://lexhamenglishbible.com/download/ (2020-02-09; host no longer exists)",
+      "bytes": 5673101,
+      "sha256": "db707c2e04a9fa40e8f48b8384e6439b3452439197745540f0ac983559bb5107",
+      "last_modified": null,
+      "record": "lexham-english-bible/README.md",
+      "status": "from tex-bible git 2ef97e4",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "lexham-english-bible/LEB.epub",
+      "url": "https://lexhamenglishbible.com/download/ (2020-02-09; host no longer exists)",
+      "bytes": 3256023,
+      "sha256": "18e234541a89a6bd2f437a500811763a4b1869ad9902a8f389f58a0507db0d8b",
+      "last_modified": null,
+      "record": "lexham-english-bible/README.md",
+      "status": "from tex-bible git 2ef97e4",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "net-bible/engnet_usfm.zip",
+      "url": "https://ebible.org/Scriptures/engnet_usfm.zip",
+      "bytes": 2917648,
+      "sha256": "38bcf7c93f5c1b7d5c5aefbcbddaec1a6b80d0a6f9b79e363866ed0cce016595",
+      "last_modified": "Wed, 21 Oct 2026 00:45:09 GMT",
+      "record": "net-bible/engnet-usfm-archive-record.json",
+      "status": "new (evaluation only)",
+      "retrieved": "2026-10-25"
+    },
+    {
+      "path": "jps-tanakh-1917/archive-org-jps1917/JPS 1917.djvu",
+      "url": "https://archive.org/download/jps1917/JPS%201917.djvu",
+      "bytes": 63168790,
+      "sha256": "670c9f8a80a8c6026f5ca49ef1696262bec3abcdc68a89fbfd2ee72c32d3d754",
+      "last_modified": "Sat, 11 Jan 2020 22:09:01 GMT",
+      "record": "jps-tanakh-1917/archive-org-jps1917-download-record-2026-10-26.json",
+      "status": "matches archive.org SHA-1",
+      "retrieved": "2026-10-26",
+      "archive_org_sha1": "1abfd09c83d8b28e375f209b364d4a94fc009f43"
+    },
+    {
+      "path": "jps-tanakh-1917/archive-org-jps1917/JPS 1917.epub",
+      "url": "https://archive.org/download/jps1917/JPS%201917.epub",
+      "bytes": 429749531,
+      "sha256": "9d807865f526deaa493827ac2054ac92c143e86d5e3a8b2d43e699023fa8bb53",
+      "last_modified": "Tue, 21 Nov 2023 07:38:39 GMT",
+      "record": "jps-tanakh-1917/archive-org-jps1917-download-record-2026-10-26.json",
+      "status": "matches archive.org SHA-1",
+      "retrieved": "2026-10-26",
+      "archive_org_sha1": "1e478e5d6462441878466330280941cc3797b53c"
+    },
+    {
+      "path": "jps-tanakh-1917/archive-org-jps1917/JPS 1917.pdf",
+      "url": "https://archive.org/download/jps1917/JPS%201917.pdf",
+      "bytes": 92186582,
+      "sha256": "f0aed7498138afa5fb22585201eeb9f61dd1a7cf26193d0812cb8519038fefb0",
+      "last_modified": "Sun, 12 Jan 2020 11:48:05 GMT",
+      "record": "jps-tanakh-1917/archive-org-jps1917-download-record-2026-10-26.json",
+      "status": "matches archive.org SHA-1",
+      "retrieved": "2026-10-26",
+      "archive_org_sha1": "be99fa7b8d3722a5069b0893903a4fc9b1078ce6"
+    },
+    {
+      "path": "jps-tanakh-1917/archive-org-jps1917/JPS 1917_abbyy.gz",
+      "url": "https://archive.org/download/jps1917/JPS%201917_abbyy.gz",
+      "bytes": 54785566,
+      "sha256": "a99fbc4d025289233831d9340f2710cddab6789a2b79fadea8a2c44c5b74861c",
+      "last_modified": "Sun, 12 Jan 2020 00:33:17 GMT",
+      "record": "jps-tanakh-1917/archive-org-jps1917-download-record-2026-10-26.json",
+      "status": "matches archive.org SHA-1",
+      "retrieved": "2026-10-26",
+      "archive_org_sha1": "13ebd6c9b8435fcd10052586526448488944eb39"
+    },
+    {
+      "path": "jps-tanakh-1917/archive-org-jps1917/JPS 1917_djvu.txt",
+      "url": "https://archive.org/download/jps1917/JPS%201917_djvu.txt",
+      "bytes": 3485435,
+      "sha256": "80f33c1b29fdd4d79e9cef46be1fea22e9f0b9588f7e3abf7c5a06ebc3052a5b",
+      "last_modified": "Sun, 12 Jan 2020 01:04:48 GMT",
+      "record": "jps-tanakh-1917/archive-org-jps1917-download-record-2026-10-26.json",
+      "status": "matches archive.org SHA-1",
+      "retrieved": "2026-10-26",
+      "archive_org_sha1": "b7bdb9b91bbd4c854f237f275ce82aea8f0381b9"
+    },
+    {
+      "path": "jps-tanakh-1917/archive-org-jps1917/JPS 1917_djvu.xml",
+      "url": "https://archive.org/download/jps1917/JPS%201917_djvu.xml",
+      "bytes": 36979007,
+      "sha256": "320f5d00c42794ebab6a6c2b773fccf9b6b07f88c3cba383664d96cbb718c6c8",
+      "last_modified": "Sun, 12 Jan 2020 01:04:25 GMT",
+      "record": "jps-tanakh-1917/archive-org-jps1917-download-record-2026-10-26.json",
+      "status": "matches archive.org SHA-1",
+      "retrieved": "2026-10-26",
+      "archive_org_sha1": "b392e2d619f82d6580d8bcb71e38265273ae7a3c"
+    },
+    {
+      "path": "jps-tanakh-1917/archive-org-jps1917/JPS 1917_jp2.zip",
+      "url": "https://archive.org/download/jps1917/JPS%201917_jp2.zip",
+      "bytes": 302051540,
+      "sha256": "9aef4720b7b19fb099216c9f7232028d51d762e94c09e23a8f740eb0a9c4300c",
+      "last_modified": "Sat, 11 Jan 2020 23:04:25 GMT",
+      "record": "jps-tanakh-1917/archive-org-jps1917-download-record-2026-10-26.json",
+      "status": "matches archive.org SHA-1",
+      "retrieved": "2026-10-26",
+      "archive_org_sha1": "c7b68d758f8e3ac257555e3dbec0abfcb3e343cd"
+    },
+    {
+      "path": "jps-tanakh-1917/archive-org-jps1917/JPS 1917_scandata.xml",
+      "url": "https://archive.org/download/jps1917/JPS%201917_scandata.xml",
+      "bytes": 348572,
+      "sha256": "f225a7ce28fc5e81c9f38b4530b0bc250dfe0ef5c473ffbd73596c69aa1bc38b",
+      "last_modified": "Sun, 12 Jan 2020 01:25:05 GMT",
+      "record": "jps-tanakh-1917/archive-org-jps1917-download-record-2026-10-26.json",
+      "status": "matches archive.org SHA-1",
+      "retrieved": "2026-10-26",
+      "archive_org_sha1": "2b94276a3aa8df801fcf85fd15a70a07c69f23f9"
+    },
+    {
+      "path": "jps-tanakh-1917/archive-org-jps1917/jps1917_files.xml",
+      "url": "https://archive.org/download/jps1917/jps1917_files.xml",
+      "bytes": 4318,
+      "sha256": "125f9a1cce4267e3892afc264a9fd3eea10c01c1106ec413d8b5e0494203a9a5",
+      "last_modified": "Sun, 04 Jan 2026 12:04:04 GMT",
+      "record": "jps-tanakh-1917/archive-org-jps1917-download-record-2026-10-26.json",
+      "status": "first recorded here (no SHA-1 published)",
+      "retrieved": "2026-10-26"
+    },
+    {
+      "path": "jps-tanakh-1917/archive-org-jps1917/jps1917_meta.xml",
+      "url": "https://archive.org/download/jps1917/jps1917_meta.xml",
+      "bytes": 1497,
+      "sha256": "96e42068cd3e89c33e64c4d21bc89d6426ca23f9d8a93ea1cde99133097320cd",
+      "last_modified": "Sun, 04 Jan 2026 12:03:54 GMT",
+      "record": "jps-tanakh-1917/archive-org-jps1917-download-record-2026-10-26.json",
+      "status": "matches archive.org SHA-1",
+      "retrieved": "2026-10-26",
+      "archive_org_sha1": "d3c6af5868df20b0f9d8583d5d071784ff3c4e6b"
+    },
+    {
+      "path": "jps-tanakh-1917/opensiddur-wayback/Tanakh1917.txt",
+      "url": "https://web.archive.org/web/20110507031513id_/http://opensiddur.org:80/wp-content/uploads/2010/08/Tanakh1917.txt",
+      "original_url": "http://opensiddur.org/wp-content/uploads/2010/08/Tanakh1917.txt",
+      "wayback_timestamp": "20110507031513",
+      "bytes": 3558939,
+      "sha256": "5c31b46fb758ff6ee39aa7d50feac8548955b6cbc670919b4bb24f12a541568d",
+      "last_modified": null,
+      "encoding": "Windows-1252, CRLF line endings",
+      "record": "jps-tanakh-1917/opensiddur-tanakh1917-txt-download-record-2026-10-26.json",
+      "status": "first recorded here",
+      "retrieved": "2026-10-26"
+    },
+    {
+      "path": "berean-literal-bible/blb.txt",
+      "url": "https://literalbible.com/blb.txt",
+      "bytes": 4654213,
+      "sha256": "4db24ae985c244ba83538f5e6e39ab7f3a1d027a6ffe8b1292e503f6dcd88054",
+      "last_modified": "Wed, 08 Apr 2026 17:39:02 GMT",
+      "record": "berean-literal-bible/blb-download-record-2026-10-26.json",
+      "status": "first recorded here",
+      "retrieved": "2026-10-26"
+    },
+    {
+      "path": "berean-literal-bible/blb.xlsx",
+      "url": "https://literalbible.com/blb.xlsx",
+      "bytes": 2328165,
+      "sha256": "e850dee63870e21567edf49b5ca51c6cb0d25ae81093dd6e66c3483c8cf2fb93",
+      "last_modified": "Wed, 08 Apr 2026 17:36:28 GMT",
+      "record": "berean-literal-bible/blb-download-record-2026-10-26.json",
+      "status": "first recorded here",
+      "retrieved": "2026-10-26"
+    },
+    {
+      "path": "berean-literal-bible/blb.pdf",
+      "url": "https://literalbible.com/blb.pdf",
+      "bytes": 11087159,
+      "sha256": "1b00857aa83ce2f0cd420cbc52fa2fb9f5fd3e4a09168c5955195f44fdee1944",
+      "last_modified": "Thu, 09 Apr 2026 02:33:54 GMT",
+      "record": "berean-literal-bible/blb-download-record-2026-10-26.json",
+      "status": "first recorded here",
+      "retrieved": "2026-10-26"
+    },
+    {
+      "path": "berean-literal-bible/blb.docx",
+      "url": "https://literalbible.com/blb.docx",
+      "bytes": 3221146,
+      "sha256": "9dab12f9042c9f73b39bfd5afd19a43f3ccc1d0f3322c087940777fc69975034",
+      "last_modified": "Thu, 09 Apr 2026 01:22:57 GMT",
+      "record": "berean-literal-bible/blb-download-record-2026-10-26.json",
+      "status": "first recorded here",
+      "retrieved": "2026-10-26"
+    },
+    {
+      "path": "berean-interlinear-bible/bib.pdf",
+      "url": "https://interlinearbible.com/bib.pdf",
+      "bytes": 12973694,
+      "sha256": "e592d57cd13a371f3cfbf1f56c23e88b724e12a5235a87b04313018d4f57d6fb",
+      "last_modified": "Thu, 05 May 2016 06:12:58 GMT",
+      "record": "berean-interlinear-bible/bib-download-record-2026-10-26.json",
+      "status": "first recorded here",
+      "retrieved": "2026-10-26"
+    },
+    {
+      "path": "berean-interlinear-bible/bib.docx",
+      "url": "https://interlinearbible.com/bib.docx",
+      "bytes": 7273311,
+      "sha256": "2d969f0a3831a2edd0e374677fd793dc02808575cf9ed9ba555b6970a3e99352",
+      "last_modified": "Thu, 05 May 2016 06:05:41 GMT",
+      "record": "berean-interlinear-bible/bib-download-record-2026-10-26.json",
+      "status": "first recorded here",
+      "retrieved": "2026-10-26"
+    }
+  ]
+}

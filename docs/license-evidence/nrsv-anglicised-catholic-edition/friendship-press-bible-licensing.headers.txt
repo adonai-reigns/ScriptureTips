@@ -1,0 +1,69 @@
+HTTP/2 301 
+date: Sun, 25 Oct 2026 10:13:53 GMT
+content-type: text/html; charset=utf-8
+content-length: 0
+location: https://www.friendshippress.org/pages/nrsvue-quick-faq
+x-download-options: noopen
+x-redirect-reason: combined_host_and_shop_redirect
+shopify-complexity-score: 130
+shopify-complexity-score-v2: 13
+set-cookie: _shopify_essential=:AaFyjW3oAAEAdQ2tsbADhbmGsomtROwfFWf7qhSIsWWt_sroHr7Z2G4pO2b4uVgogjDFEXsAB69GURZVCyYQ6ejaFcI:; Max-Age=31536000; Path=/; HttpOnly; Secure; Priority=High; SameSite=Lax
+x-frame-options: DENY
+content-security-policy: block-all-mixed-content; frame-ancestors 'none'; upgrade-insecure-requests;
+strict-transport-security: max-age=7889238
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=06aswIf%2F9QT%2FXz8kRr%2FEGba%2BOrfUXwPiGU4SnU8sPlQ5J3oac51v4ni7Rh7MtNoK3WFxRnCPDVzXWemx04WjCzbssrPrGcyO49oDdIDuG2nLC4VouUAK5nVNn2NVH7xpbP7TIKw%3D"}]}
+vary: Accept
+cdn-cache-control: no-cache, no-store
+cache-control: private, no-store
+link: </.well-known/ucp>; rel="ucp"; version="2026-08-25"
+powered-by: Shopify
+server-timing: processing;dur=18, db;dur=4, db_async;dur=3.479, asn;desc="45177", edge;desc="AKL", country;desc="NZ", pageType;desc="404", servedBy;desc="8kzf", requestID;desc="ead228d3-9c33-45b2-b999-027dddc745a1-1792923233", _y;desc="1368829d-9045-4ab1-ade2-8621fffdac03", _s;desc="63e0c0f7-cccc-4b6e-b9bf-31679d1203ce", _cmp;desc="3.AMPS_NZOTA_f_f_LFbixlSgTWimoOX3Fodrzg", _ye;desc="1824480833", _se;desc="1792925033"
+server: cloudflare
+cf-cache-status: DYNAMIC
+alt-svc: h3=":443"; ma=86400
+nel: {"report_to":"cf-nel","success_fraction":0.01,"max_age":604800}
+x-content-type-options: nosniff
+x-xss-protection: 1; mode=block
+x-permitted-cross-domain-policies: none
+x-dc: gcp-australia-southeast2,gcp-asia-southeast1,gcp-asia-southeast1
+x-request-id: ead228d3-9c33-45b2-b999-027dddc745a1-1792923233
+cf-ray: a50073824f6528c3-AKL
+
+HTTP/2 200 
+date: Sun, 25 Oct 2026 10:13:54 GMT
+content-type: text/html; charset=utf-8
+x-download-options: noopen
+product-filtering-backend: bitset_roaring
+cf-cache-status: DYNAMIC
+set-cookie: localization=US; path=/; expires=Mon, 25 Oct 2027 10:13:54 GMT; SameSite=Lax
+set-cookie: cart_currency=USD; path=/; expires=Sun, 08 Nov 2026 10:13:54 GMT; SameSite=Lax
+set-cookie: _shopify_essential=:AaFyjW8-AAEASmZrM0ghd6jMB1Q2D11JpftoPQNOqdRIJ9ecxuGWAaxlnGq3Mu8S7XH2ser_58dfhdNzBy-hlBQypHc:; Max-Age=31536000; Path=/; HttpOnly; Secure; Priority=High; SameSite=Lax
+set-cookie: _shopify_analytics=:AaFyjW-5AAEA7dg-TGnN3j6s1jQGDjyLfWFCLdvYDN5366e3O8_sirF1itLOPiWXYd89CJdjpgGPi08MKW-BX73SXRI:; Max-Age=31536000; Path=/; HttpOnly; Secure; Priority=High; SameSite=Lax
+set-cookie: _shopify_marketing=:AaFyjW-5AAEAqiNFs_bdApKEeSMBeKrSZtisP4jnFxspaavnurqn5V32A8r8jKLvvqwpqzlqjiLeWh7R5Hyfoh68B38:; Max-Age=31536000; Path=/; HttpOnly; Secure; Priority=High; SameSite=Lax
+link: <https://cdn.shopify.com>; rel="preconnect", <https://cdn.shopify.com>; rel="preconnect"; crossorigin, <//www.friendshippress.org/cdn/shop/t/14/assets/base.css?v=179543140946678485911772134486>; as="style"; rel="preload", <//www.friendshippress.org/cdn/shop/t/14/assets/overflow-list.css?v=13500019909476584571772134486>; as="style"; rel="preload", <https://www.friendshippress.org/cdn/shopifycloud/portable-wallets/latest/accelerated-checkout-backwards-compat.css>; as="style"; rel="preload"; crossorigin, <//www.friendshippress.org/cdn/shop/t/14/compiled_assets/styles.css?v=100145935658204082601781278740>; as="style"; rel="preload", </.well-known/ucp>; rel="ucp"; version="2026-08-25"
+x-permitted-cross-domain-policies: none
+etag: W/"page_cache:55569908000:PageDetailsController:749cbeb21a44883021b15013fae1cef1:7a866098b36c9a195bba133c0a3cacad"
+nel: {"report_to":"cf-nel","success_fraction":0.01,"max_age":604800}
+shopify-complexity-score: 1240
+shopify-complexity-score-v2: 124
+x-frame-options: DENY
+content-security-policy: block-all-mixed-content; frame-ancestors 'none'; upgrade-insecure-requests;
+access-control-allow-origin: *
+strict-transport-security: max-age=7889238
+vary: Accept
+vary: accept-encoding
+cdn-cache-control: no-cache, no-store
+content-language: en-US
+accept-ch: Sec-CH-Viewport-Width
+cache-control: private, max-age=0, must-revalidate
+powered-by: Shopify
+server-timing: processing;dur=130;desc="gc:3", db;dur=15, db_async;dur=25.196, render;dur=64, asn;desc="45177", edge;desc="AKL", country;desc="NZ", theme;desc="186659340576", pageType;desc="page", servedBy;desc="rb5r", requestID;desc="cb4bb0e0-ddf8-4a1c-a9ad-ff7fa1ef85ed-1792923233", _y;desc="a9782a11-20bd-42eb-897b-f69ead7f15e0", _s;desc="62e67f81-00a6-4bb0-87d1-060e634f14d8", _cmp;desc="3.AMPS_NZOTA_f_f_GrUr-YgRSB6r2RzJ9bdTnA", _ye;desc="1824480834", _se;desc="1792925034", compressionLevel;desc="5", compressionTime;dur=7.352
+x-dc: gcp-australia-southeast2,gcp-asia-southeast1,gcp-asia-southeast1
+x-xss-protection: 1; mode=block
+alt-svc: h3=":443"; ma=86400
+server: cloudflare
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=xYVvoereQ57pe5cvlzF1TRWLB%2Bb2mAlQiuaJDHS7OGA65Kv5YhuizuxLc1txPypIPIBE0brKtphTN5uiR3jEks%2FyAqWM85BNd8Mj1xfHcqIUbNOztseM1ASucIn6q%2BvSxe%2BYWKTeKXoQ"}]}
+x-content-type-options: nosniff
+x-request-id: cb4bb0e0-ddf8-4a1c-a9ad-ff7fa1ef85ed-1792923233
+cf-ray: a50073843843abdb-AKL
+

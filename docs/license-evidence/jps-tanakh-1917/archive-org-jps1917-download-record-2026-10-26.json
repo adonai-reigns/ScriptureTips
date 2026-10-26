@@ -1,0 +1,114 @@
+{
+ "source": "https://archive.org/details/jps1917",
+ "files": [
+  {
+   "path": "jps-tanakh-1917/archive-org-jps1917/JPS 1917.djvu",
+   "url": "https://archive.org/download/jps1917/JPS%201917.djvu",
+   "bytes": 63168790,
+   "sha256": "670c9f8a80a8c6026f5ca49ef1696262bec3abcdc68a89fbfd2ee72c32d3d754",
+   "last_modified": "Sat, 11 Jan 2020 22:09:01 GMT",
+   "record": "jps-tanakh-1917/archive-org-jps1917-download-record-2026-10-26.json",
+   "status": "matches archive.org SHA-1",
+   "retrieved": "2026-10-26",
+   "archive_org_sha1": "1abfd09c83d8b28e375f209b364d4a94fc009f43"
+  },
+  {
+   "path": "jps-tanakh-1917/archive-org-jps1917/JPS 1917.epub",
+   "url": "https://archive.org/download/jps1917/JPS%201917.epub",
+   "bytes": 429749531,
+   "sha256": "9d807865f526deaa493827ac2054ac92c143e86d5e3a8b2d43e699023fa8bb53",
+   "last_modified": "Tue, 21 Nov 2023 07:38:39 GMT",
+   "record": "jps-tanakh-1917/archive-org-jps1917-download-record-2026-10-26.json",
+   "status": "matches archive.org SHA-1",
+   "retrieved": "2026-10-26",
+   "archive_org_sha1": "1e478e5d6462441878466330280941cc3797b53c"
+  },
+  {
+   "path": "jps-tanakh-1917/archive-org-jps1917/JPS 1917.pdf",
+   "url": "https://archive.org/download/jps1917/JPS%201917.pdf",
+   "bytes": 92186582,
+   "sha256": "f0aed7498138afa5fb22585201eeb9f61dd1a7cf26193d0812cb8519038fefb0",
+   "last_modified": "Sun, 12 Jan 2020 11:48:05 GMT",
+   "record": "jps-tanakh-1917/archive-org-jps1917-download-record-2026-10-26.json",
+   "status": "matches archive.org SHA-1",
+   "retrieved": "2026-10-26",
+   "archive_org_sha1": "be99fa7b8d3722a5069b0893903a4fc9b1078ce6"
+  },
+  {
+   "path": "jps-tanakh-1917/archive-org-jps1917/JPS 1917_abbyy.gz",
+   "url": "https://archive.org/download/jps1917/JPS%201917_abbyy.gz",
+   "bytes": 54785566,
+   "sha256": "a99fbc4d025289233831d9340f2710cddab6789a2b79fadea8a2c44c5b74861c",
+   "last_modified": "Sun, 12 Jan 2020 00:33:17 GMT",
+   "record": "jps-tanakh-1917/archive-org-jps1917-download-record-2026-10-26.json",
+   "status": "matches archive.org SHA-1",
+   "retrieved": "2026-10-26",
+   "archive_org_sha1": "13ebd6c9b8435fcd10052586526448488944eb39"
+  },
+  {
+   "path": "jps-tanakh-1917/archive-org-jps1917/JPS 1917_djvu.txt",
+   "url": "https://archive.org/download/jps1917/JPS%201917_djvu.txt",
+   "bytes": 3485435,
+   "sha256": "80f33c1b29fdd4d79e9cef46be1fea22e9f0b9588f7e3abf7c5a06ebc3052a5b",
+   "last_modified": "Sun, 12 Jan 2020 01:04:48 GMT",
+   "record": "jps-tanakh-1917/archive-org-jps1917-download-record-2026-10-26.json",
+   "status": "matches archive.org SHA-1",
+   "retrieved": "2026-10-26",
+   "archive_org_sha1": "b7bdb9b91bbd4c854f237f275ce82aea8f0381b9"
+  },
+  {
+   "path": "jps-tanakh-1917/archive-org-jps1917/JPS 1917_djvu.xml",
+   "url": "https://archive.org/download/jps1917/JPS%201917_djvu.xml",
+   "bytes": 36979007,
+   "sha256": "320f5d00c42794ebab6a6c2b773fccf9b6b07f88c3cba383664d96cbb718c6c8",
+   "last_modified": "Sun, 12 Jan 2020 01:04:25 GMT",
+   "record": "jps-tanakh-1917/archive-org-jps1917-download-record-2026-10-26.json",
+   "status": "matches archive.org SHA-1",
+   "retrieved": "2026-10-26",
+   "archive_org_sha1": "b392e2d619f82d6580d8bcb71e38265273ae7a3c"
+  },
+  {
+   "path": "jps-tanakh-1917/archive-org-jps1917/JPS 1917_jp2.zip",
+   "url": "https://archive.org/download/jps1917/JPS%201917_jp2.zip",
+   "bytes": 302051540,
+   "sha256": "9aef4720b7b19fb099216c9f7232028d51d762e94c09e23a8f740eb0a9c4300c",
+   "last_modified": "Sat, 11 Jan 2020 23:04:25 GMT",
+   "record": "jps-tanakh-1917/archive-org-jps1917-download-record-2026-10-26.json",
+   "status": "matches archive.org SHA-1",
+   "retrieved": "2026-10-26",
+   "archive_org_sha1": "c7b68d758f8e3ac257555e3dbec0abfcb3e343cd"
+  },
+  {
+   "path": "jps-tanakh-1917/archive-org-jps1917/JPS 1917_scandata.xml",
+   "url": "https://archive.org/download/jps1917/JPS%201917_scandata.xml",
+   "bytes": 348572,
+   "sha256": "f225a7ce28fc5e81c9f38b4530b0bc250dfe0ef5c473ffbd73596c69aa1bc38b",
+   "last_modified": "Sun, 12 Jan 2020 01:25:05 GMT",
+   "record": "jps-tanakh-1917/archive-org-jps1917-download-record-2026-10-26.json",
+   "status": "matches archive.org SHA-1",
+   "retrieved": "2026-10-26",
+   "archive_org_sha1": "2b94276a3aa8df801fcf85fd15a70a07c69f23f9"
+  },
+  {
+   "path": "jps-tanakh-1917/archive-org-jps1917/jps1917_files.xml",
+   "url": "https://archive.org/download/jps1917/jps1917_files.xml",
+   "bytes": 4318,
+   "sha256": "125f9a1cce4267e3892afc264a9fd3eea10c01c1106ec413d8b5e0494203a9a5",
+   "last_modified": "Sun, 04 Jan 2026 12:04:04 GMT",
+   "record": "jps-tanakh-1917/archive-org-jps1917-download-record-2026-10-26.json",
+   "status": "first recorded here (no SHA-1 published)",
+   "retrieved": "2026-10-26"
+  },
+  {
+   "path": "jps-tanakh-1917/archive-org-jps1917/jps1917_meta.xml",
+   "url": "https://archive.org/download/jps1917/jps1917_meta.xml",
+   "bytes": 1497,
+   "sha256": "96e42068cd3e89c33e64c4d21bc89d6426ca23f9d8a93ea1cde99133097320cd",
+   "last_modified": "Sun, 04 Jan 2026 12:03:54 GMT",
+   "record": "jps-tanakh-1917/archive-org-jps1917-download-record-2026-10-26.json",
+   "status": "matches archive.org SHA-1",
+   "retrieved": "2026-10-26",
+   "archive_org_sha1": "d3c6af5868df20b0f9d8583d5d071784ff3c4e6b"
+  }
+ ]
+}

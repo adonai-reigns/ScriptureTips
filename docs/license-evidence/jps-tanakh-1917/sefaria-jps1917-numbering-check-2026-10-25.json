@@ -1,0 +1,23 @@
+{
+ "retrieved": "2026-10-25",
+ "checks": {
+  "Malachi.3": {
+   "url": "https://www.sefaria.org/api/texts/Malachi.3?ven=The_Holy_Scriptures%3A_A_New_Translation_%28JPS_1917%29&lang=en&context=0",
+   "verse_count": 24,
+   "first_verse": "Behold, I send My messenger, and he shall clear the way before Me; and the Lord, whom ye seek, will suddenly come to His temple, and the messenger of the covenant, Whom ye delight in, Behold, he cometh, Saith the LORD of hosts.",
+   "last_verse": "And he shall turn the heart of the fathers to the children, and the heart of the children to their fathers; lest I come and smite the land with utter destruction.<br><small>[Behold, I will send you Elijah the prophet before the coming of the great and terrible day of the LORD.]</small>"
+  },
+  "Joel.4": {
+   "url": "https://www.sefaria.org/api/texts/Joel.4?ven=The_Holy_Scriptures%3A_A_New_Translation_%28JPS_1917%29&lang=en&context=0",
+   "verse_count": 21,
+   "first_verse": "For, behold, in those days, and in that time, When I shall bring back the captivity of Judah and Jerusalem,",
+   "last_verse": "And I will hold as innocent their blood that I have not held as innocent; And the LORD dwelleth in Zion."
+  },
+  "Psalms.3": {
+   "url": "https://www.sefaria.org/api/texts/Psalms.3?ven=The_Holy_Scriptures%3A_A_New_Translation_%28JPS_1917%29&lang=en&context=0",
+   "verse_count": 9,
+   "first_verse": "A Psalm of David, when he fled from Absalom his son.",
+   "last_verse": "Salvation belongeth unto the LORD; Thy blessing be upon Thy people. Selah"
+  }
+ }
+}
