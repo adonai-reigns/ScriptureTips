@@ -1,0 +1,28 @@
+HTTP/2 308 
+date: Mon, 26 Oct 2026 01:07:35 GMT
+content-length: 0
+referrer-policy: strict-origin-when-cross-origin
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=oRRKVpzO2Zn8rKyHf0vinpaNJgb%2FdYn3LpIaBpUTphf4ruZi7SPhzHk6urQ8u2CRXvmzNPSc52%2BS%2Fu5dOuKhnvh66L%2B5ha%2Fb3ju%2BhEQ63NgvTuqYZ%2BVxQSEbVTU%3D"}]}
+location: /About/Licence/
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+access-control-allow-origin: *
+server: cloudflare
+cf-cache-status: DYNAMIC
+cf-ray: a50590a0bbc7c11a-AKL
+alt-svc: h3=":443"; ma=86400
+
+HTTP/2 200 
+date: Mon, 26 Oct 2026 01:07:35 GMT
+content-type: text/html; charset=utf-8
+x-content-type-options: nosniff
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=WCgVR8sicDtAWrYQJKfKdJAgF%2F%2BDxLTATYFvbXfGDkDK4kESFPC%2BjOlnynMYyEymYuPd70E9aG2THMWFXWpgrU8kVAejUkWz6i6RMK1ufZg0HxN0pGhzwPsbaSs%3D"}]}
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+access-control-allow-origin: *
+cache-control: public, max-age=0, must-revalidate
+referrer-policy: strict-origin-when-cross-origin
+link: <https://fonts.googleapis.com>; rel="preconnect"
+server: cloudflare
+cf-cache-status: DYNAMIC
+cf-ray: a50590a0dbdec11a-AKL
+alt-svc: h3=":443"; ma=86400
+

@@ -30,6 +30,9 @@ A record of the license and distribution terms for every text ScriptureTips obta
 | [`world-english-bible`](world-english-bible/) | World English Bible | Ready (public domain; trademark conditions) |
 | [`wycliffe-bible`](wycliffe-bible/) | Wycliffe Bible (c. 1395; Pentateuch and Gospels only) | Ready (public domain; partial) |
 | [`stepbible-data`](stepbible-data/) | STEPBible-Data: TVTMS versification mappings (other datasets not held yet) | Ready (CC BY 4.0; credit "STEP Bible"; record changes; don't republish the files) |
+| [`macula`](macula/) | MACULA Hebrew and Greek linguistic datasets (terms only; files not held) | Ready with exclusions (CC BY 4.0; leave out the UBS-derived fields and the SIL glosses, listed in `SOURCE.md`) |
+| [`translation-for-translators`](translation-for-translators/) | Translation for Translators (T4T) (terms only; files not held) | Ready (CC BY-SA 4.0, share-alike) |
+| [`open-english-translation`](open-english-translation/) | Open English Translation (OET) | Not for now: CC BY-SA 4.0, but its translators don't yet recommend it for Bible sites |
 | [`youngs-literal-translation`](youngs-literal-translation/) | Young's Literal Translation (1898) | Ready (public domain) |
 
 ## Publisher policies
@@ -54,6 +57,15 @@ Copyrighted translations the project owner wants. Their terms are captured, but 
 | [`the-message`](the-message/) | The Message (MSG) | 500 verses in print or eBook form; **any online use** needs Tyndale's Permissions Questionnaire |
 | [`new-american-standard-bible`](new-american-standard-bible/) | New American Standard Bible (NASB 2020, 1995) | 1,000 verses without permission, and no more than 1,000 stored electronically; full text needs written permission from The Lockman Foundation |
 | [`nrsv-anglicised-catholic-edition`](nrsv-anglicised-catholic-edition/) | NRSV, Anglicised Catholic Edition (NRSVACE) | **Deferred:** websites and apps need a license, and the NRSV is closed to new licenses except the NRSV-CE. Also holds the NRSV family comparison captures (`sources.md` §4.2) |
+
+## Quotation only, for reference
+
+Copyrighted translations that aren't wanted, captured because their terms show what the license engine and the scripture cache must handle.
+
+| Folder | Text | Status (2026-10-26) |
+|---|---|---|
+| [`english-standard-version`](english-standard-version/) | English Standard Version (ESV): the ESV API terms | Free API for non-commercial sites; no more than 500 verses (or half a book) stored or shown per page |
+| [`legacy-standard-bible`](legacy-standard-bible/) | Legacy Standard Bible (LSB) | 1,000 verses, no more than 1,000 stored electronically; separate terms for AI assistants' answers |
 
 ## Not captured, on purpose
 
@@ -101,4 +113,4 @@ Retrieved 2026-10-26 (TVTMS): 2 files from STEPBible-Data at commit `be4191f`, a
 
 ## Not yet done
 
-The original-language texts and data sets (OSHB, SBLGNT, the rest of STEPBible-Data, Strong's and the others in `sources.md` §5) are not in this folder yet. They need the same treatment before they are imported.
+The original-language texts and data sets (OSHB, SBLGNT, the rest of STEPBible-Data, Strong's and the others in `sources.md` §5) are not in this folder yet; MACULA's terms are captured, but its files aren't held. They need the same treatment before they are imported.

@@ -23,7 +23,7 @@ The 2023 dedication is later and comes from the same publisher, so it should pre
 
 New Testament only. "The interlinear gloss is a word for word, Greek / Hebrew word order rendering based on the most reliable sources. This text also contains complete parsing tags, as well as Strong's numbers for easy reference to Greek lexicons." (interlinearbible.com). The Greek base is the **Berean Greek Bible (BGB)**: "The Nestle 1904 was chosen, as we believe it is the most accurate critical text currently in the public domain. Paragraph and poetry formatting for the Greek Text has been adapted from Westcott and Hort, 1881." The page also lists NA28 (© 2012 Deutsche Bibelgesellschaft) among the texts it compares against; that's a reference, not the base text.
 
-The separate Berean Greek Bible files (`greekbible.org/bgb.pdf`, `bgb.docx`) aren't held ([sources.md](../../sources.md) §8 item 11).
+The separate Berean Greek Bible files (`greekbible.org/bgb.pdf`, `bgb.docx`) aren't held ([sources.md](../../sources.md) §8 item 8).
 
 ## Origin of the files
 

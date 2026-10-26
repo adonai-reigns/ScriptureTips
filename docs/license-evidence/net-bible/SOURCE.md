@@ -1,7 +1,7 @@
 # NET Bible: license evidence
 
 **Verdict:** **Ready, give away only.** The terms permit copying and printing the NET for others as long as it is given away, so ScriptureTips may host it and users may print free copies. This depends on ScriptureTips never being monetized ([vision.md](../../vision.md) §1.1). Editions users sell may contain it only within HarperCollins's gratis limits (see below).
-**Evidence gathered:** 2026-10-25 (NZ time).
+**Evidence gathered:** 2026-10-25 (NZ time); edition check and change lists 2026-10-26.
 
 ## License as stated by the rights holder
 
@@ -22,9 +22,34 @@
 
 The bible.org site's own copyright statement covers bible.org articles. It refers to netbible.com/copyright for the NET.
 
-**Content control guidelines:** the free-copy permission requires compliance with "our guidelines for content control including current valid copyright and organizational acknowledgments". The page doesn't define these guidelines beyond the acknowledgments, and no other published guidelines were found.
+**Content control guidelines:** the free-copy permission requires compliance with "our guidelines for content control including current valid copyright and organizational acknowledgments". The page doesn't define these guidelines beyond the acknowledgments, and no other published guidelines were found, so we comply by showing the current copyright and organizational acknowledgments.
 
-**Copyright year:** the license asks for the "current valid copyright" acknowledgment, which is "©1996, 2019" on netbible.com and on the HarperCollins page. The eBible.org file carries "© 1996-2016". Use the 2019 wording in notices. Which NET edition the eBible text is (2.0 or 2.1) hasn't been identified. The FAQ links change lists (v1 to v2, v2 to v2.1) that could be used to check.
+**Copyright year:** the license asks for the "current valid copyright" acknowledgment, which is "©1996, 2019" on netbible.com and on the HarperCollins page. The eBible.org file carries "© 1996-2016". We show the current "©1996, 2019" acknowledgment, as the license asks.
+
+## Which edition the eBible file is
+
+**The eBible `engnet` text is the NET First Edition** (the text before the 2019 Second Edition), not 2.0 or 2.1. Checked on 2026-10-26 against the publisher's two change lists linked from the FAQ (strike-through shows the old wording, red the new):
+
+| Verse | Change list | Old wording → new | eBible text |
+|---|---|---|---|
+| Gen 3:5 | v1 → v2 | "who know good and evil" → "who know God, knowing good and evil" | old |
+| Gen 4:1 | v1 → v2 | "had marital relations with" → "was intimate with" | old |
+| Gen 6:3 | v1 → v2 | "My spirit" → "My Spirit" | old |
+| Gen 10:3 | v1 → v2 | "Askenaz" → "Ashkenaz" | old |
+| Gen 15:2 | v1 → v2 | "O sovereign Lord" → "Sovereign Lord" | old |
+| Gen 16:7 | v1 → v2 | "in the desert" → "in the wilderness" | old |
+| Matt 1:23 | v1 → v2 | "bear a son, and they will call him" → "give birth to a son, and they will name him" | old |
+| Luke 2:41 | v1 → v2 | "feast of the Passover" → "Feast of the Passover" | old |
+| Gen 2:24 | v2 → v2.1 | "a new family" → "one family" | old |
+| Gen 3:15 | v2 → v2.1 | "her offspring will attack your head" → "he will strike your head" | old |
+| Gen 7:20 | v2 → v2.1 | "twenty feet" → "20 feet" | old |
+| Gen 10:19 | v2 → v2.1 | "Zeboiim" → "Zeboyim" | old |
+| Gen 14:7 | v2 → v2.1 | "Hazazon Tamar" → "Hazezon Tamar" | old |
+| Gen 15:13 | v2 → v2.1 | "four hundred years" → "400 years" | old |
+
+Others checked with the same result: Gen 4:23, 13:10 and 16:9. The archive's own `copr.htm` says "copyright © 1996-2016", which fits the First Edition (released 2001 and revised in 2003 and 2005, according to the FAQ).
+
+**Decision (project owner, 2026-10-26):** the license permits giving the NET text away and places no limit on the edition, so we use this copy as it is, with the current acknowledgment. The edition is recorded here for accuracy only. bible.org offers the 2.1 text only as a full-notes ePub, with no noteless plain text or USFM; if a noteless 2.1 file becomes available, importing it is a normal update.
 
 ## Commercial use and the meaning of "non-commercial" (HarperCollins)
 
@@ -60,5 +85,8 @@ The FAQ it points to (captured here) repeats the quotation permission and sends 
 | `engnet-catalog-entry.json` | eBible.org catalog row for `engnet` |
 | `engnet-copr-inside-archive.htm` | The copyright page shipped inside the USFM archive |
 | `engnet-usfm-archive-record.json` | URL, size, SHA-256 and date of the exact USFM archive |
+| `net-change-lists-2026-10-26/NET_v1_to_v2_changes-1.pdf` | The publisher's change list from NET v1 to v2 (https://netbible.com/wp-content/uploads/2026/04/NET_v1_to_v2_changes-1.pdf, linked from the FAQ), 158 pages, 2,896,516 bytes, last modified 2026-04-15, retrieved 2026-10-26 01:13 GMT. SHA-256 `1fd0144ae498902e6cf6d3de794311837157dad39cdbbc14dfa7967e7dffc48a` |
+| `net-change-lists-2026-10-26/NET_v2_to_v2.1_changes.pdf` | The change list from v2 to v2.1 (same folder on netbible.com), 169 pages, 2,963,845 bytes, last modified 2026-04-15. SHA-256 `417d82961751441dba00a944905f46380ddddc570902e65ab63f10525eafef2e` |
+| `net-change-lists-2026-10-26/*.headers.txt` | HTTP response headers of both downloads |
 
 bible.org refuses automated access (HTTP 403), so its pages were printed in a person's browser.

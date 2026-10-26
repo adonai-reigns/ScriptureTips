@@ -17,7 +17,7 @@
 | **Public domain** | KJV (except UK), ASV, YLT, Darby, Webster, Douay-Rheims, Geneva 1599, Bishops, Tyndale NT, Wycliffe, JPS 1917, Weymouth, Brenton LXX (English), **WEB**, **BSB**, MSB | **Yes** |
 | **Public domain unconfirmed** | Bible in Basic English (public domain only in the US) | **Not for now** ([sources.md](sources.md) §4) |
 | **Public domain-like open licenses** | OEB (CC0) | **Yes** |
-| **Open, share-alike** | LSV, FBV, ULT, UST, T4T, OET (all CC BY-SA 4.0) | **Yes**, but derivatives must also be CC BY-SA (§6) |
+| **Open, share-alike** | LSV, FBV, ULT, UST, T4T, OET (all CC BY-SA 4.0; the OET isn't yet recommended for Bible sites, sources.md §4) | **Yes**, but derivatives must also be CC BY-SA (§6) |
 | **Free custom licenses** | **LEB**, NET (without notes) | **LEB: yes**, as a free service. It can't be sold on its own; a sold work may contain it if it's under 25% (§3.1). **NET: yes**, as a free, never-monetized service; sold works only within HarperCollins's gratis limits (§3.2, §4.1) |
 | **Copyrighted, API available** | ESV (Crossway API, non-commercial) | **Possibly**, through the API on its terms. Needs Stage 3 confirmation |
 | **Copyrighted, quotation only** | NIV, NKJV (HarperCollins rules: §4.1), NLT, NASB, LSB, AMP, CSB, NRSVue, NRSVACE, TLV (NKJV, NLT, TLB, MSG, NASB, TLV and NRSVACE are wanted: sources.md §4.1), TLB, MSG, RSV, CEV, NABRE, CEB, others | **No.** Needs a license agreement (Stage 3) |
@@ -57,8 +57,8 @@ Sources: Bible Gateway LEB page (copy of license, checked 2026-10-25); license c
 - "Free means free": it may not be **bundled with anything sold**, or charged for in any way (not even shipping or handling). ScriptureTips sells nothing, so hosting it and free printed copies are fine. A "free" copy where the recipient pays for printing or postage isn't allowed.
 - **Non-commercial means no money at all:** HarperCollins, which handles the NET's commercial use, defines non-commercial use of the NET as "you will not be selling **or receiving donations** for your product", and Biblical Studies Press forbids it being "used as a gift to solicit donations". This is the main reason ScriptureTips is never monetized ([vision.md](vision.md) §1.1).
 - **Editions users sell:** the free-copy permission doesn't cover them, but HarperCollins's gratis policy does, within limits: up to 500 verses, no more than 25% of the work, no more than 50% of any book, and not in a commentary or biblical reference work (§4.1).
-- **Content control:** the free-copy permission requires compliance with "our guidelines for content control including current valid copyright and organizational acknowledgments". Nothing beyond the acknowledgments is defined.
-- **Copyright notice:** use the current wording, "©1996, 2019 by Biblical Studies Press, L.L.C.", even though the eBible.org file says 1996–2016. Which NET edition that file contains hasn't been identified yet.
+- **Content control:** the free-copy permission requires compliance with "our guidelines for content control including current valid copyright and organizational acknowledgments". Nothing beyond the acknowledgments is defined, so showing them is how we comply.
+- **Copyright notice:** the publisher's current wording is "©1996, 2019 by Biblical Studies Press, L.L.C." (edition 2.1). We use it with the eBible.org file, which is the First Edition text (its own notice says 1996–2016); the license doesn't limit the edition.
 - **Who administers it:** netbible.com is now run by Thomas Nelson Bibles (HarperCollins Christian Publishing). The copyright stays with Biblical Studies Press.
 - The notes are copyrighted and not included.
 - **Software and apps:** "(NET)" must follow quotations, and in software with internet access "NET" must link to netbible.org (captured in `license-evidence/net-bible/`).
@@ -82,7 +82,7 @@ Sources: berean.bible/licensing.htm (checked 2026-10-25); freely-given.org Open 
 - Public domain everywhere **except the United Kingdom**, where rights are vested in the Crown. Printing in, or importing printed copies into, the UK requires permission: letters patent are held by Cambridge University Press (England, Wales, Northern Ireland) and the Scottish Bible Board (Scotland). Oxford University Press and Collins are also licensed.
 - Sources conflict on whether UK protection is perpetual or ends in 2039.
 - **Cambridge's own terms** ("Bibles rights and permissions", captured 2026-10-25) claim UK rights over "reproduction by any means", not only printing. Free use: up to 500 verses for liturgical and non-commercial educational use, not a complete book, under 25% of the work, with a set acknowledgment. Beyond that: written permission from permissions@cambridge.org.
-- **Effect on ScriptureTips:** **printed editions shipped to UK users** containing the KJV are affected, and the book designer must warn about this. On Cambridge's reading, online display of the full text to UK users would be affected too. That's an open decision (sources.md §8 item 3).
+- **Effect on ScriptureTips:** **printed editions shipped to UK users** containing the KJV are affected, and the book designer must warn about this. On Cambridge's reading, online display of the full text to UK users would be affected too. That's an open decision (sources.md §8 item 2).
 
 Sources: ebible.org KJV copyright pages (secondary, checked 2026-10-25); Cambridge University Press "Bibles rights and permissions" (primary, captured 2026-10-25; the old Queen's Printer's Patent URL now redirects to a page with no rights information).
 
@@ -93,13 +93,13 @@ None of these allowances permits hosting a full Bible. They are listed so that (
 | Translation | Rights holder | Without permission | Other conditions | Source (checked 2026-10-25) |
 |---|---|---|---|---|
 | **NIV** | Biblica (Zondervan in US/Canada; Hodder & Stoughton in UK/EU) | Up to 500 verses | No more than 50% of a book; under 25% of the work; not in commentaries/reference works; latest edition (2011) only; online license is personal, non-commercial and revocable. See §4.1 | biblica.com permissions & terms (via search); HarperCollins page (captured) |
-| **ESV** | Crossway | Up to 500 verses | Not more than half of any one book; under 25%; not in commentaries/reference works; **not in any work published under a Creative Commons license**; may not be translated; trademark needs permission. **Website/app use through the ESV API, free for non-commercial use.** | crossway.org/permissions |
+| **ESV** | Crossway | Up to 500 verses | Not more than half of any one book; under 25%; not in commentaries/reference works; **not in any work published under a Creative Commons license**; may not be translated; trademark needs permission. **Website/app use through the ESV API, free for non-commercial use:** no more than 500 verses (or half a book) stored locally, the same per page, a link to esv.org on each page, and use consistent with Crossway's statement of faith ([license-evidence/english-standard-version](license-evidence/english-standard-version/SOURCE.md)). | crossway.org/permissions, api.esv.org |
 | **NKJV**, NCV, ICB, The Voice, The Expanded Bible | HarperCollins Christian (Thomas Nelson) | Up to 500 verses | No more than 50% of a book; no more than 25% of the work; not in commentaries/reference works. See §4.1 | HarperCollins Christian permissions page (captured) |
 | **NLT** | Tyndale House | Up to 500 verses, **print or eBook only** | Not a complete book; no more than 25%; text must be exact; commercial commentaries/reference works need permission; online recordings 50 verses per sermon, or 250 per recording with at most 30 posts up, never monetized; permission not transferable. **Our online use (project decision):** the sermon rule applied to web pages: 50 verses per page displayed, NLT words no more than 25% of the work | tyndale.com/permissions; source route: Tyndale's NLT API, api.nlt.to (captured: `license-evidence/new-living-translation/`) |
 | **TLB** (The Living Bible) | Tyndale House | Same as the NLT | Same as the NLT, including the online sermon rule; our online use follows the NLT decision | tyndale.com/permissions (captured: `license-evidence/the-living-bible/`) |
 | **MSG** (The Message) | Eugene H. Peterson; NavPress, represented by Tyndale House | Up to 500 verses, **print or eBook only** | Not a complete book; no more than 25%; text must be exact; "(The Message)" after each verse in mixed works; **any online/audio use needs the Permissions Questionnaire** | tyndale.com/permissions (captured: `license-evidence/the-message/`) |
 | **NASB / NASB1995 / AMP** | The Lockman Foundation | Up to 1,000 verses | Not a complete book; under 50%; **no more than 1,000 verses stored in an electronic retrieval system**; full notice with clickable link on web pages and apps; AI quoting allowed up to 1,000 verses per response, no training or datasets | lockman.org (captured: `license-evidence/new-american-standard-bible/`) |
-| **LSB** | Lockman Foundation / Three Sixteen Publishing | Up to 1,000 verses | Not a complete book; under 50%; max 1,000 verses stored electronically; the page has an "AI Usage & Attribution" section (to read) | lsbible.org |
+| **LSB** | Lockman Foundation / Three Sixteen Publishing | Up to 1,000 verses | Not a complete book; under 50%; max 1,000 verses stored electronically. Its "AI Usage & Attribution" section covers AI assistants' answers only ([license-evidence/legacy-standard-bible](license-evidence/legacy-standard-bible/SOURCE.md)) | lsbible.org |
 | **CSB** | Holman Bible Publishers | Up to 1,000 verses | No more than 50%; not a complete book | Third-party copy only (Sermonary); confirm with Holman |
 | **NRSVue / NRSV / RSV** | National Council of Churches (Friendship Press) | Fewer than 500 verses | Sources conflict: 25% (Friendship Press) vs 50% (publisher notice); **text must not be altered**; NRSV no longer licensed except NRSV-CE | friendshippress.org/bible-licensing |
 | **CEV** | American Bible Society | Up to 500 verses | Under 50% of a book and 25% of the work; non-commercial only | freely-given.org (secondary) |
@@ -147,7 +147,7 @@ Other points on the page:
 | **SBL Greek New Testament** | Critical Greek NT | **CC BY 4.0**, confirmed 2026-10-25 on sblgnt.com/license and in the LogosBible/SBLGNT repo | Keep notices; indicate modifications. Older catalogs (CrossWire) still show the retired EULA. See [sources.md](sources.md) §5. |
 | **MorphGNT** | Morphology + lemmas for SBLGNT | **CC BY-SA 3.0** (morphology only; the README's "SBLGNT EULA" line for the text is outdated) | Share-alike |
 | **Robinson-Pierpont Byzantine, Nestle 1904, Scrivener TR** | Greek NT | Public domain | |
-| **MACULA Hebrew & Greek (Clear Bible)** | Syntax trees, glosses, word senses | **CC BY 4.0, but it embeds data "used with permission"** from the United Bible Societies (Semantic Dictionary of Biblical Hebrew; MARBLE/Louw-Nida word senses) | **Leave out the UBS-derived fields.** Read 2026-10-25; details in [sources.md](sources.md) §6. |
+| **MACULA Hebrew & Greek (Clear Bible)** | Syntax trees, glosses, word senses | **CC BY 4.0, but it embeds data "used with permission"** from the United Bible Societies (Semantic Dictionary of Biblical Hebrew; MARBLE/Louw-Nida word senses) | **Leave out the UBS-derived fields and the SIL glosses** (Hebrew `gloss` column, © SIL International under its own license). Exclusion list in [license-evidence/macula](license-evidence/macula/SOURCE.md); summary in [sources.md](sources.md) §6. |
 | **Septuagint: Rahlfs 1935** | Greek OT | The edition is generally treated as public domain, **but the only digital copy found (eliranwong/LXX-Rahlfs-1935) is CC BY-NC-SA 4.0** and derived from restricted CCAT data | **Not usable.** No clean digital Rahlfs found. |
 | **Septuagint: Swete (1901 and others)** | Greek OT | Public domain edition; the First1KGreek digital text is **CC BY-SA 4.0** | **Chosen clean source** (56 works; Isaiah from Ottley, Ecclesiasticus from Hart). Text only, no morphology. [sources.md](sources.md) §5. |
 | **CATSS LXX morphology** | LXX morphology | Restricted (CCAT user declaration; no commercial use) | **Not usable.** |
@@ -185,14 +185,14 @@ The license engine (domain model §7) must be able to express all of these:
 |---|---|
 | `public_domain` (+ jurisdiction exceptions) | KJV: not in the UK (printing/import) |
 | `attribution` (short form under N verses, full notice above; link requirements for electronic use) | LEB (100 verses), SBLGNT, NASB (clickable link) |
-| `share_alike` | LSV, ULT, MorphGNT, OpenBibleImages |
+| `share_alike` | LSV, ULT, T4T, OET, MorphGNT, OpenBibleImages |
 | `non_commercial` (with the rights holder's definition, e.g. HarperCollins counts receiving donations as commercial) | CEV, AWMC maps, CATSS, NET (HarperCollins definition) |
 | `give_away_only` (no sale of any kind, not even inside a larger sold work) | NET (Biblical Studies Press terms) |
 | `no_standalone_sale` (may be sold only as part of a larger work, within `max_share_of_work`) | LEB |
 | `max_share_of_work` (percent, unit, context such as commercial / non-profit) | LEB 25% / 50%, NIV 25%, Thomas Nelson 25%, NASB 50%, NLT 25% (verses on export; words on online pages) |
 | `max_share_of_bible` | Thomas Nelson: permission needed above 50% of the Bible |
 | `max_verses_quoted` (counted per translation, or across a publisher policy's translations) | NIV 500, Thomas Nelson 500 in total, NASB 1,000, NLT 500 |
-| `max_verses_stored_electronically` | NASB, LSB: 1,000 |
+| `max_verses_stored_electronically` (across the whole platform, so it caps the scripture cache) | NASB, LSB: 1,000; ESV API: 500 or half a book |
 | `no_complete_book` / `max_share_of_book` | NLT, NIV, NKJV and other Thomas Nelson translations (50% of a book), ESV (half a book), CEV (50% of a book) |
 | `excluded_work_types` | ESV, NKJV, NIV: commentaries/reference works |
 | `excluded_product_types` | Thomas Nelson, Zondervan: standalone-verse products (artwork, cards, jewelry), lyrics and music |
@@ -201,10 +201,10 @@ The license engine (domain model §7) must be able to express all of these:
 | `no_modification` | NRSVue, NLT, TLB, MSG (exact punctuation and italics), openbible.com texts, BLB site content |
 | `no_translation` | ESV |
 | `incompatible_with` (license families) | ESV: not in Creative Commons-licensed works |
-| `name_restriction` (trademark) | WEB (faithful copies only), "Lexham" not in titles |
+| `name_restriction` (trademark) | WEB (faithful copies only), "Lexham" not in titles, OET (an adapted text must be renamed) |
 | `reporting_obligation` | LEB annual reporting |
 | `notes_excluded` | NET (text only) |
-| `access_via_api_only` (with caching/storage terms) | ESV API |
+| `access_via_api_only` (with caching/storage terms) | ESV API (cache at most 500 verses; clear it periodically) |
 | `max_cache_lifetime` (how long content from a source may be kept; sets the cache entry's `storage_expires_at`, domain model §2.5) | None found yet; for API terms that allow only temporary caching |
 | `not_as_base` (can't be the base of a compilation; only single verses can be picked in) | NLT, TLB (follows from their 500-verse and no-complete-book limits) |
 | `max_verses_per_display` (verses shown on any one page: a note, a link, a published compilation page) | NLT, TLB: 50 (from their online platforms rule, applied to web pages by project decision) |
@@ -232,13 +232,13 @@ Stage 2 results are in [sources.md](sources.md) (checked 2026-10-25).
 1. Confirm the current LEB rights holder and license after the Baker acquisition; ask about the unit of measure. **Resolved:** used under the 2020 license it was obtained with, which we hold in full in `tex-bible` git history with its FAQ rulings on advertising, printing and trademark (sources.md §3.4), so no re-confirmation is needed. The unit is verses, because every license restriction found names verses as its unit (§8).
 2. Read the full current NET Bible copyright page. **Done** (free giving-away allowed, not selling; commercial use via HarperCollins). Free use is permitted, with the conditions in §3.2, because ScriptureTips is never monetized.
 3. Confirm whether the BLB is public domain. **Resolved 2026-10-26:** yes, under the 2023 Berean dedication (sources.md §3.1).
-4. Read the ESV API terms (storage, caching, compilation and printing of API text). Not done in Stage 2.
+4. Read the ESV API terms (storage, caching, compilation and printing of API text). **Done 2026-10-26:** no more than 500 verses or half a book stored or shown per page, a link to esv.org on each page, no Creative Commons works, non-commercial use consistent with Crossway's statement of faith ([license-evidence/english-standard-version](license-evidence/english-standard-version/SOURCE.md)).
 5. Confirm the SBLGNT license. **Resolved: CC BY 4.0.**
 6. Confirm the license of the Open Scriptures Strong's digitization. **Resolved: public domain**, stated in the files.
-7. Read the MACULA LICENSE files. **Done:** CC BY 4.0 with UBS-derived fields to leave out.
+7. Read the MACULA LICENSE files. **Done:** CC BY 4.0, with the UBS-derived fields and SIL glosses to leave out.
 8. Find a clean public-domain Septuagint source. **Resolved for the Greek text** (Swete via First1KGreek, CC BY-SA 4.0). No clean morphology yet.
-9. Read Cambridge University Press's Queen's Printer's Patent page. **Done** (via its "Bibles rights and permissions" page): UK rights are claimed over any reproduction, beyond the free allowance. **Still open:** how to treat UK users (sources.md §8 item 3).
-10. Read the LSB page's AI usage section. Not done in Stage 2.
+9. Read Cambridge University Press's Queen's Printer's Patent page. **Done** (via its "Bibles rights and permissions" page): UK rights are claimed over any reproduction, beyond the free allowance. **Still open:** how to treat UK users (sources.md §8 item 2).
+10. Read the LSB page's AI usage section. **Done 2026-10-26:** it lets AI assistants quote up to 1,000 verses per answer (no complete book, no datasets) and doesn't widen what ScriptureTips may do ([license-evidence/legacy-standard-bible](license-evidence/legacy-standard-bible/SOURCE.md)).
 11. **New:** STEPBible-Data caveats (redistribution wording, Online Bible permission for the Hebrew brief lexicon, NA28/BHS content, Marvel fields, AI-generated names). See [sources.md](sources.md) §6 and §8.
 
 ## Sources

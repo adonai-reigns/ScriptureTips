@@ -59,7 +59,7 @@ From Open Siddur's page (Wayback snapshot of 2013-05-17): "We are grateful to JP
 
 opensiddur.org now refuses automated requests (HTTP 403), so the TXT was taken from the **Wayback Machine snapshot of 2011-05-07** (the `id_` raw-file URL) into `source-texts/jps-tanakh-1917/opensiddur-wayback/`. Encoding: Windows-1252 with CRLF line endings, left as downloaded. Not checked yet against the scan.
 
-JPS's own free e-book of the 1917 edition isn't held ([sources.md](../../sources.md) §8 item 10).
+JPS's own free e-book of the 1917 edition isn't held ([sources.md](../../sources.md) §8 item 7).
 
 ### Files added on 2026-10-25 and 2026-10-26
 

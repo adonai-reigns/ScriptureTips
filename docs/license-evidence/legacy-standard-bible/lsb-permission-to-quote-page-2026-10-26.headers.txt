@@ -1,0 +1,20 @@
+HTTP/2 200 
+server: nginx
+date: Mon, 26 Oct 2026 01:11:34 GMT
+content-type: text/html; charset=UTF-8
+content-length: 50960
+vary: Accept-Encoding
+vary: Accept-Encoding
+vary: Accept-Encoding
+link: <https://lsbible.org/wp-json/>; rel="https://api.w.org/"
+link: <https://lsbible.org/wp-json/wp/v2/pages/997>; rel="alternate"; title="JSON"; type="application/json"
+link: <https://lsbible.org/?p=997>; rel=shortlink
+set-cookie: _fbp=fb.1.1.7929770297E%2B12.716094087.AQECAQIB; expires=Sun, 24-Jan-2027 01:10:29 GMT; Max-Age=7776000; path=/; domain=lsbible.org; secure; SameSite=Lax
+x-powered-by: WP Engine
+x-cacheable: SHORT
+vary: Accept-Encoding,Cookie
+cache-control: max-age=600, must-revalidate
+accept-ranges: bytes
+x-cache: HIT: 2
+x-cache-group: normal
+

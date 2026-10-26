@@ -1,0 +1,193 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>
+      
+  ESV API
+ | ESV.org
+    </title>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-itunes-app" content="app-id=361797273">
+
+    <meta name="twitter:card" content="summary"/>
+    <meta name="twitter:site" content="@esvbible"/>
+    <meta name="twitter:image" content="https://dch8lckz6x8ar.cloudfront.net/static/img/logo-x.6877ff184cb8.png"/>
+
+    <meta property="og:type" content="website"/>
+    <meta property="og:site_name" content="ESV Bible"/>
+    <meta property="og:image" content="https://dch8lckz6x8ar.cloudfront.net/static/img/logo-facebook.dbab05d37e79.png"/>
+    <meta property="og:image:width" content="600"/>
+    <meta property="og:image:height" content="530"/>
+
+    <link rel="apple-touch-icon" href="https://dch8lckz6x8ar.cloudfront.net/static/img/apple-touch-icon.a1ed3d10db96.png">
+    <link rel="shortcut icon" href="https://dch8lckz6x8ar.cloudfront.net/static/img/favicon.7e14cbe1912e.ico" type="image/x-icon">
+
+    <link rel="stylesheet" href="https://dch8lckz6x8ar.cloudfront.net/static/css/output.cc12138857b4.css" type="text/css">
+
+    
+  </head>
+  <body class="not-bible api-page theme-white">
+    <div class="container">
+      <nav class="top-nav">
+        <a href="/"><img src="https://dch8lckz6x8ar.cloudfront.net/static/img/logo.15c3f5a870ee.svg" height="30" width="33" alt="ESV logo"></a>
+        <a href="/login/" id="personal-button">
+          <span class="account-icon icon large"></span>
+        </a>
+      </nav>
+      <div class="full-page-container">
+        <div class="full-page-content has-sidebar">
+          <div class="sidebar">
+            <ul>
+              <li class="section-heading"><a href="/">ESV API</a></li>
+              <li><a href="/docs/">Overview</a></li>
+              <li><a href="/docs/samples/">Sample Projects</a></li>
+              <li><a href="/docs/changelog/">Changelog</a></li>
+            </ul>
+
+            <ul>
+              <li class="section-heading"><a href="/">Endpoints</a></li>
+              <li><a href="/docs/passage-text/">Passage Text</a></li>
+              <li><a href="/docs/passage-html/">Passage HTML</a></li>
+              <li><a href="/docs/passage-audio/">Passage Audio</a></li>
+              <li><a href="/docs/passage-search/">Passage Search</a></li>
+            </ul>
+          </div>
+
+          <div class="content-container">
+            
+  <style>
+blockquote { border-left: 3px solid var(--main-border-color); margin-left: 0; padding-left: 2rem; }
+</style>
+
+<h1>Introduction to the ESV API</h1>
+
+<h2>Want to use the text of the ESV on your website?</h2>
+<p>Crossway allows you to access the ESV Bible text from our server and include it on your website, free of charge for non-commercial use.</p>
+
+<h2>How does it work?</h2>
+<p>This service, like most web services, requires that you have access to a programming language on your web server, such as Python, Perl, PHP, or ASP, as well as basic knowledge of how to program in that language. You won&#8217;t be able to access the service using only HTML.</p>
+
+<h2 id="conditions">What are the conditions of use for the text?</h2>
+<ul>
+  <li>You may request up to 500 verses per query, or half a book, whichever is less (excepting single-chapter and double-chapter books).</li>
+  <li>You may only perform 5,000 queries per day, with no more than 1,000 requests in an hour and no more than 60 requests per minute. If you exceed these limits, your application will be throttled.</li>
+  <li>You may not locally store more than 500 verses or one-half of any book of the Bible (whichever is less).</li>
+  <li>The text may be redistributed further (for example, via email or an RSS feed). You may distribute up to 500 verses, as long as the verses quoted do not amount to 50% of a complete book of the Bible and do not make up 50% or more of the total text of the work in which they are quoted.</li>
+  <li>You may not display more than 500 verses or one-half of any book (whichever is less) on any page.</li>
+  <li>You must use the text for non-commercial purposes, and your website must be non-commercial. (For a definition of &#8220;non-commercial,&#8221; please <a href="#commercial">see below</a>.) This service is intended primarily for personal, church, and Christian ministry organization use. For other purposes, <a href="#expanded">see below</a>.</li>
+  <li>Your website must not be engaged in illegal or immoral activity. Crossway is not responsible for any copyrights infringed by the service&#8217;s users (for example, if a copyrighted reading plan is used without permission. Reading plans offered directly through the service are used with permission).</li>
+  <li>You must include the standard ESV copyright notice on your site (<a href="#copyright">see below</a>) and identify the passages as coming from the ESV. Each page on which you use the text must include a link to <a href="http://www.esv.org/">www.esv.org</a>.</li>
+  <li>You may not sell, share, or publish your access key.</li>
+  <li>We reserve the right to cancel your access to the service at any time for any reason.</li>
+  <li id="faith">This service is available for use only by individuals and non-commercial organizations that use the service in ways consistent with the historic Christian understanding of doctrine and the Bible, as summarized in the following foundational doctrines. (See our <a href="https://www.crossway.org/statement-of-faith/">statement of faith</a>.)
+    <ul>
+      <li>The Bible is the inspired, inerrant Word of God.</li>
+      <li>There is one God, the Creator of all things, who exists eternally in three persons--Father, Son, and Holy Spirit.</li>
+      <li>Jesus Christ is fully God and fully man; he died on the cross, rose from the dead, ascended to heaven, and will come again.</li>
+      <li>Salvation is by grace alone, through faith alone, in Christ alone.</li>
+    </ul>
+  </li>
+  <li>You agree to maintain the moral integrity, spirit, fervor, and consistency in message that is inherent in the nature of the ESV Bible. This means that your use is consistent with the above statement of faith and that you give proper attribution.</li>
+</ul>
+
+<h2>Can I cache the text locally?</h2>
+<p>You can cache up to 500 verses. We encourage you to periodically clear out your cache to ensure that you always have the latest version of the text, and that any bug-fixes we&#8217;ve applied to the service will be reflected in the content you receive.</p>
+
+<h2>Can I change the text?</h2>
+<p>You may not change any of the words in the text. You may choose to omit certain features, such as headings, footnotes, cross-references, and verse numbers. You may also omit portions of verses or sections quoted if you include an ellipsis (&#8230;) indicating that you are omitting them, and only if such omissions do not change the meaning of the verses or sections being quoted.</p>
+
+<h2>What if I want to use the text of the ESV in an email devotional? Can I do that?</h2>
+<p>Yes, if the text amounts to fewer than 500 verses or 50% of any book of the Bible, and if the text comprises less than 50% of the email. For example, you could not have a &quot;read through the Bible&quot; email unless you also included other text.</p>
+
+<h2>What interfaces are available?</h2>
+<p>Currently, we have a REST interface. We chose REST because it&#8217;s easy to use and to implement. If we find that demand warrants other interfaces, we may implement them in the future.</p>
+<h2>What formats are available?</h2>
+<p>The ESV is available in plain text and HTML.</p>
+
+<h2 id="copyright">What is the standard copyright notice I need to include on my website?</h2>
+<p>On pages that use the ESV text, you must include any copyright notice that is sent with the text. With each quotation, include the letters &quot;ESV.&quot; (These letters are included by default with each request. They do not have to be a link.) On a &quot;copyright&quot; page of your website, you need to include one of the following:</p>
+
+<blockquote>
+<p>Scripture quotations are from the ESV® Bible (The Holy Bible, English Standard Version®), © 2001 by Crossway, a publishing ministry of Good News Publishers. Used by permission. All rights reserved. The ESV text may not be quoted in any publication made available to the public by a Creative Commons license. The ESV may not be translated into any other language.</p>
+<p>Users may not copy or download more than 500 verses of the ESV Bible or more than one half of any book of the ESV Bible.</p>
+</blockquote>
+
+<blockquote>
+<p>Scripture quotations marked “ESV” are from the ESV® Bible (The Holy Bible, English Standard Version®), © 2001 by Crossway, a publishing ministry of Good News Publishers. Used by permission. All rights reserved. The ESV text may not be quoted in any publication made available to the public by a Creative Commons license. The ESV may not be translated into any other language.</p>
+<p>Users may not copy or download more than 500 verses of the ESV Bible or more than one half of any book of the ESV Bible.</p>
+</blockquote>
+
+<blockquote>
+<p>Unless otherwise indicated, all Scripture quotations are from the ESV® Bible (The Holy Bible, English Standard Version®), © 2001 by Crossway, a publishing ministry of Good News Publishers. Used by permission. All rights reserved. The ESV text may not be quoted in any publication made available to the public by a Creative Commons license. The ESV may not be translated into any other language.</p>
+<p>Users may not copy or download more than 500 verses of the ESV Bible or more than one half of any book of the ESV Bible.</p>
+</blockquote>
+
+<h2 id="expanded">What if I want to include the ESV in a mobile app or other digital medium?</h2>
+<p>While the ESV API is primarily recommended for website integration to ensure optimal user experience, its use in mobile apps or other digital media is permitted without formal permission, provided all general conditions stated above are met.</p>
+<p>For requests that exceed the above guidelines require a formal license. Our policy is to license to organizations, not to individuals or solo developers.</p>
+<p>If your company or organization is interested in acquiring rights to distribute the ESV within your mobile app, please submit your request using this <a href="https://crosswaygnp.formstack.com/forms/esv_digital_licensing_proposal">online form</a>.</p>
+
+<h2 id="commercial">What do you mean by &#8220;non-commercial website&#8221; and &#8220;non-commercial purposes?&#8221;</h2>
+<p>A non-commercial site does not charge for access to any part of the site. Further, no charge is made for access to the ESV text.</p>
+<p>In contrast, a commercial website is primarily designed to motivate visitors to buy something, to pay for a service, or to give a donation, or it accepts advertising or sponsorships.</p>
+<p>This service is designed to be used for personal, church, and ministry organization use.</p>
+
+<h2>If I just want to link to the ESV text (to display a passage, for example), and don't want the text to appear integrated into my website, should I use this service?</h2>
+<p>Although you can use this service, it's much easier simply to link to us.</p>
+
+<h2>What could I use the text for?</h2>
+<p>Some possibilities:</p>
+<ul>
+  <li>A daily devotional.</li>
+  <li>Display the passage that corresponds to this week&#8217;s sermon.</li>
+  <li>Create an application that automatically adds the text of a passage to a webpage when you type its reference.</li>
+  <li>Link to a page on your own website when you want to display a Bible passage instead of linking to an external site.</li>
+  <li>Create your own Bible search engine for use on your own website.</li>
+</ul>
+
+<h2>What guarantees do you offer?</h2>
+<p>We guarantee that the text we send you is the official version of the ESV Bible. We do not guarantee that the service will always be available, nor are we responsible for any damage to your computer systems as a result of this service. You are responsible for maintaining the security and integrity of your systems.</p>
+
+<h2>Can I terminate my access? Can you revoke it?</h2>
+<p>You are free to terminate your relationship with us at any time. Please email <a href="mailto:licensing@crossway.org">licensing@crossway.org</a> to have your application and contact information removed from our system.</p>
+<p>We can revoke your access key if, in our sole judgment, you do not abide by the terms of this agreement or we decide to discontinue the service.</p>
+
+<h2 id="emailfor">What will you use my email address for?</h2>
+<p>We will not share your email address with any organization. We will only use it to contact you about your account and to keep you informed about any news about or changes to the service (e.g., scheduled maintenance or API changes).</p>
+
+<h2>What is the API (Application Program Interface)?</h2>
+<p>For details on the API, please visit <a href="/docs/">our API documentation overview</a>.</p>
+
+          </div>
+        </div>
+      </div>
+      <footer class="general-footer full-page-footer">
+        <p class="left"><strong>&copy; 2001 &ndash; 2026 Crossway</strong></p>
+        <nav class="right">
+          <ul>
+            <li><strong><a href="https://www.esv.org/about/">About</a></strong></li>
+            <li><strong><a href="https://www.esv.org/translation/">Translation</a></strong></li>
+            <li><strong><a href="https://www.esv.org/resources/">Resources</a></strong></li>
+            <li><strong><a href="https://www.crossway.org/donate/">Donate</a></strong></li>
+            <li><strong><a href="https://www.esv.org/help/">Help</a></strong></li>
+          </ul>
+        </nav>
+      </footer>
+    </div>
+
+    
+
+    <script src="https://dch8lckz6x8ar.cloudfront.net/static/js/output.4d347d50e6c3.js"></script>
+
+    <script type="text/javascript">
+      
+    </script>
+  </body>
+</html>

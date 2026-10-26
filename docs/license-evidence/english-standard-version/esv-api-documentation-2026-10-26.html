@@ -1,0 +1,125 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>
+      
+  ESV API Overview
+ | ESV.org
+    </title>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-itunes-app" content="app-id=361797273">
+
+    <meta name="twitter:card" content="summary"/>
+    <meta name="twitter:site" content="@esvbible"/>
+    <meta name="twitter:image" content="https://dch8lckz6x8ar.cloudfront.net/static/img/logo-x.6877ff184cb8.png"/>
+
+    <meta property="og:type" content="website"/>
+    <meta property="og:site_name" content="ESV Bible"/>
+    <meta property="og:image" content="https://dch8lckz6x8ar.cloudfront.net/static/img/logo-facebook.dbab05d37e79.png"/>
+    <meta property="og:image:width" content="600"/>
+    <meta property="og:image:height" content="530"/>
+
+    <link rel="apple-touch-icon" href="https://dch8lckz6x8ar.cloudfront.net/static/img/apple-touch-icon.a1ed3d10db96.png">
+    <link rel="shortcut icon" href="https://dch8lckz6x8ar.cloudfront.net/static/img/favicon.7e14cbe1912e.ico" type="image/x-icon">
+
+    <link rel="stylesheet" href="https://dch8lckz6x8ar.cloudfront.net/static/css/output.5467a2aaea21.css" type="text/css">
+
+    
+  </head>
+  <body class="not-bible api-page theme-white">
+    <div class="container">
+      <nav class="top-nav">
+        <a href="/"><img src="https://dch8lckz6x8ar.cloudfront.net/static/img/logo.15c3f5a870ee.svg" height="30" width="33" alt="ESV logo"></a>
+        <a href="/login/" id="personal-button">
+          <span class="account-icon icon large"></span>
+        </a>
+      </nav>
+      <div class="full-page-container">
+        <div class="full-page-content has-sidebar">
+          <div class="sidebar">
+            <ul>
+              <li class="section-heading"><a href="/">ESV API</a></li>
+              <li><a href="/docs/">Overview</a></li>
+              <li><a href="/docs/samples/">Sample Projects</a></li>
+              <li><a href="/docs/changelog/">Changelog</a></li>
+            </ul>
+
+            <ul>
+              <li class="section-heading"><a href="/">Endpoints</a></li>
+              <li><a href="/docs/passage-text/">Passage Text</a></li>
+              <li><a href="/docs/passage-html/">Passage HTML</a></li>
+              <li><a href="/docs/passage-audio/">Passage Audio</a></li>
+              <li><a href="/docs/passage-search/">Passage Search</a></li>
+            </ul>
+          </div>
+
+          <div class="content-container">
+            
+  <h1>ESV API Overview</h1>
+
+<p>The ESV API provides access to the ESV text, with a customizable presentation in multiple formats. You will need an HTTP client in your programming language of choice to use the API.</p>
+
+<p>To obtain an API key, you will first need to <a href="/account/create-application/">create an API Application</a>.</p>
+
+<h2>Authorization</h2>
+
+<p>When making requests, you will need to include your application's key with each request in the <code>Authorization</code> header like this:</p>
+
+<pre>Authorization: Token YOUR_API_KEY</pre>
+
+<h2>Endpoints</h2>
+
+<p>We provide the following API endpoints:</p>
+
+<ul>
+  <li><code>/v3/passage/text/</code> for <a href="/docs/passage-text">plain text</a></li>
+  <li><code>/v3/passage/html/</code> for <a href="/docs/passage-html">HTML</a></li>
+  <li><code>/v3/passage/audio/</code> for <a href="/docs/passage-audio">audio files</a></li>
+  <li><code>/v3/passage/search/</code> for <a href="/docs/passage-search">searching the ESV text</a></li>
+</ul>
+
+<p>These endpoints support many optional parameters, but <code>q</code> (your passage query) is the only one that's required.</p>
+
+<h2>Sample Projects</h2>
+
+<p>We've created a few sample projects to help you get started with our API. Each is implemented in Python and intended to be run on the command line.</p>
+
+<p>See our <a href="/docs/samples/">API Sample Projects</a> page for details.</p>
+
+          </div>
+        </div>
+      </div>
+      <footer class="general-footer full-page-footer">
+        <p class="left"><strong>&copy; 2001 &ndash; 2026 Crossway</strong></p>
+        <nav class="right">
+          <ul>
+            <li><strong><a href="https://www.esv.org/about/">About</a></strong></li>
+            <li><strong><a href="https://www.esv.org/translation/">Translation</a></strong></li>
+            <li><strong><a href="https://www.esv.org/resources/">Resources</a></strong></li>
+            <li><strong><a href="https://www.crossway.org/donate/">Donate</a></strong></li>
+            <li><strong><a href="https://www.esv.org/help/">Help</a></strong></li>
+          </ul>
+        </nav>
+      </footer>
+    </div>
+
+    
+
+    <script src="https://dch8lckz6x8ar.cloudfront.net/static/js/output.b691dc8c78c6.js"></script>
+
+    <script type="text/javascript">
+      
+  $('pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+
+    </script>
+  </body>
+</html>
