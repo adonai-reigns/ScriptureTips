@@ -8,7 +8,7 @@ The project is being rebuilt from scratch as this monorepo. The legacy repos alo
 
 ## Status
 
-The monorepo is scaffolded. Built so far: the toolbox, `pnpm verify`, and the first core package, [`packages/passage`](packages/passage/AGENTS.md). The rest of the stack below is decided but not yet built. Update this file as parts become real.
+The monorepo is scaffolded. Built so far: the toolbox, `pnpm verify`, the first core package, [`packages/passage`](packages/passage/AGENTS.md), and the source-text converters in [`tools/source-conversion`](tools/source-conversion/AGENTS.md) (JPS 1917 so far). The rest of the stack below is decided but not yet built. Update this file as parts become real.
 
 ## Development environment
 

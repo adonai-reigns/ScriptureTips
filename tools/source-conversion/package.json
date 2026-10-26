@@ -1,0 +1,12 @@
+{
+  "name": "@scripturetips/source-conversion",
+  "version": "0.0.0",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "jps1917": "node src/jps1917/cli.ts"
+  }
+}

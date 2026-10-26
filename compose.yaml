@@ -9,6 +9,8 @@ services:
     working_dir: /workspace
     volumes:
       - .:/workspace
+      # Source texts live outside git, beside the repo (AGENTS.md, Licensing and sources).
+      - ../source-texts:/source-texts
       - pnpm-store:/home/node/.local/share/pnpm/store
     profiles: [tools]
 

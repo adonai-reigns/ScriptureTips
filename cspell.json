@@ -7,7 +7,16 @@
     { "name": "scripture-words", "path": "./cspell/scripture-words.txt" }
   ],
   "dictionaries": ["project-words", "scripture-words"],
-  "ignorePaths": ["node_modules", "pnpm-lock.yaml", "docs/**", ".turbo", "coverage", "**/*.cjs"],
+  "ignoreRegExpList": ["/[\\u0590-\\u05FF]+/g"],
+  "ignorePaths": [
+    "node_modules",
+    "pnpm-lock.yaml",
+    "docs/**",
+    ".turbo",
+    "coverage",
+    "**/*.cjs",
+    "tools/source-conversion/src/jps1917/corrections.ts"
+  ],
   "overrides": [
     {
       "filename": "**/locales/en-NZ/**",

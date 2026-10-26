@@ -1,6 +1,10 @@
 biomejs
 depcruise
+engjps
+eocd
+opensiddur
 pipefail
 scripturetips
 Valkey
 vitest
+wayback
