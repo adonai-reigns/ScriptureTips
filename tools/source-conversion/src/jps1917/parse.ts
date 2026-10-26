@@ -51,12 +51,12 @@ export function noteChar(index: number): string {
 }
 export const NOTE_CHAR = /[-]/;
 
-const VERSE_NUMBER = /(?<!\d)(\d{1,3})(?=\s?[A-Za-z‘’“"'([—-])/g;
-const NOTE_LINE = /^[a-z] [A-Z(‘[]/;
+const VERSE_NUMBER = /(?<!\d)(\d{1,3})(?=\s?[A-Za-z\u2018\u2019\u201c"'([\u2014-])/g;
+const NOTE_LINE = /^[a-z] [A-Z(\u2018[]/;
 const PSALM_BOOK = /^BOOK (I|II|III|IV|V)$/;
 const ACROSTIC = /^\.\s*([A-Z]+)\.$/;
 const LOST_HEBREW = /^[.\s]*\.[.\s]*$/;
-const SENTENCE_END = /[.!?][’”'\])]*$/;
+const SENTENCE_END = /[.!?][\u2019\u201d'\])]*$/;
 const PSALM_TITLE =
   /^(\[?A )?(Psalm|Song|Prayer|Maschil|Michtam|Shiggaion)\b|^For the Leader|^\[?(Of|A Psalm of|A Song of) (David|Solomon|Asaph|the sons of Korah|Moses)/;
 
@@ -267,12 +267,16 @@ export function joinLines(lines: readonly string[]): string {
   for (const line of lines) {
     if (s === "") s = line;
     else if (s.endsWith(SOFT_HYPHEN)) s = s.slice(0, -1) + line;
-    else if (s.endsWith("-") || s.endsWith("—") || (/\d/.test(s.at(-1) ?? "") && /^\d/.test(line)))
+    else if (
+      s.endsWith("-") ||
+      s.endsWith("\u2014") ||
+      (/\d/.test(s.at(-1) ?? "") && /^\d/.test(line))
+    )
       s += line;
     else s += ` ${line}`;
   }
   // A possessive whose following space was lost in the conversion: "sons’wives".
-  return s.replace(/s’(?=[a-z])(?!s\b)/g, "s’ ").replace(/ {2,}/g, " ");
+  return s.replace(/s\u2019(?=[a-z])(?!s\b)/g, "s\u2019 ").replace(/ {2,}/g, " ");
 }
 
 /** Marks poetry: runs of three or more short blocks are poetic lines. */
@@ -313,7 +317,7 @@ function attachNotes(
 
   const findCaller = (joined: string, caller: string) => {
     const pattern = new RegExp(
-      `(?<![A-Za-z’'\\ue000-\\uefff])${caller}(?=([A-Za-z‘“(—\\u05d0-\\u05ea]+|\\d))`,
+      `(?<![A-Za-z\\u2019'\\ue000-\\uefff])${caller}(?=([A-Za-z\\u2018\\u201c(\\u2014\\u05d0-\\u05ea]+|\\d))`,
       "g",
     );
     return [...joined.matchAll(pattern)].filter((m) => {
@@ -321,7 +325,7 @@ function attachNotes(
       // A bracketed passage carries its caller inside the bracket: "[a36And", "[,band".
       if (/\[,?$/.test(joined.slice(0, m.index))) return true;
       if (/^\d/.test(rest)) return false;
-      if (/^[A-Z‘“(—\u05d0-\u05ea]/.test(rest)) return true;
+      if (/^[A-Z\u2018\u201c(\u2014\u05d0-\u05ea]/.test(rest)) return true;
       // Glued to a lower-case word ("athe River"): the glued form must be much rarer than the word.
       const glued = vocabulary.get((caller + rest).toLowerCase()) ?? 0;
       const word = vocabulary.get(rest.toLowerCase()) ?? 0;
@@ -427,7 +431,7 @@ export function parseBook(
     const override = chapterStarts.get(`${info.code} ${chapter + 1}`);
     if (override) {
       const hit = candidates.findLast((i) =>
-        (pending[i] as Pending).text.replace(/^[‘’“"']/, "").startsWith(override),
+        (pending[i] as Pending).text.replace(/^[\u2018\u2019\u201c"']/, "").startsWith(override),
       );
       if (hit !== undefined) return hit;
       issues.push(`${info.code} ${chapter + 1}: chapter-start override "${override}" not found`);
@@ -543,7 +547,7 @@ export function parseBook(
     // A paragraph that only continues across a footnote or a column break isn't a new paragraph.
     // (One that runs across a page break was already joined in toItems.)
     const before = previousBlock.get(block)?.lines.join(" ").trimEnd() ?? "";
-    const midSentence = before !== "" && !/[.!?’”'":;—]$/.test(before);
+    const midSentence = before !== "" && !/[.!?\u2019\u201d'":;\u2014]$/.test(before);
     const continuation =
       /^[a-z]/.test(text) || (midSentence && (block.gap === "note" || !poetic.has(block)));
     const parts = text.split(VERSE_NUMBER);

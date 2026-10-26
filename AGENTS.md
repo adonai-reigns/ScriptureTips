@@ -8,7 +8,7 @@ The project is being rebuilt from scratch as this monorepo. The legacy repos alo
 
 ## Status
 
-The monorepo is scaffolded. Built so far: the toolbox, `pnpm verify`, the core packages [`packages/passage`](packages/passage/AGENTS.md) and [`packages/versification`](packages/versification/AGENTS.md) (mapping tables generated from TVTMS), and the source-text converters in [`tools/source-conversion`](tools/source-conversion/AGENTS.md) (JPS 1917, and the TVTMS versification import). The rest of the stack below is decided but not yet built. Update this file as parts become real.
+The monorepo is scaffolded. Built so far: the toolbox, `pnpm verify`, the core packages [`packages/passage`](packages/passage/AGENTS.md), [`packages/versification`](packages/versification/AGENTS.md) (mapping tables generated from TVTMS) and [`packages/reference`](packages/reference/AGENTS.md) (the reference parser), and the source-text converters in [`tools/source-conversion`](tools/source-conversion/AGENTS.md) (JPS 1917, and the TVTMS versification import). The rest of the stack below is decided but not yet built. Update this file as parts become real.
 
 ## Development environment
 

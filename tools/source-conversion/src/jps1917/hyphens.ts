@@ -61,7 +61,7 @@ export function resolveLineEndHyphens(
   for (let i = 0; i < lines.length; i++) {
     const line = (lines[i] as string).trimEnd();
     const left = TRAILING.exec(line)?.[1];
-    if (!left || line.endsWith("—")) continue;
+    if (!left || line.endsWith("\u2014")) continue;
     // The word goes on in the next line of text (past a page number and form feed if need be).
     let j = i + 1;
     while (j < lines.length && j < i + 8 && !/[A-Za-z]/.test(lines[j] as string)) j++;

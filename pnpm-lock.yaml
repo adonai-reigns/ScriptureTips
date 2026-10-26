@@ -196,6 +196,15 @@ importers:
 
   packages/passage: {}
 
+  packages/reference:
+    dependencies:
+      '@scripturetips/passage':
+        specifier: workspace:*
+        version: link:../passage
+      '@scripturetips/versification':
+        specifier: workspace:*
+        version: link:../versification
+
   packages/versification:
     dependencies:
       '@scripturetips/passage':

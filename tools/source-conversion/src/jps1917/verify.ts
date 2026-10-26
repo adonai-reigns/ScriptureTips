@@ -46,11 +46,11 @@ export interface Word {
 function words(text: string, ref: string, startsVerse: boolean): Word[] {
   const list = text
     .replace(new RegExp(NOTE_CHAR.source, "g"), "")
-    .replace(/[’']/g, "")
+    .replace(/[\u2019']/g, "")
     // Compounds are compared without their hyphens: the witness joins or splits many of them,
     // and the printing's own hyphenation is settled from the scan (HYPHENATED_COMPOUNDS).
     .replace(/(?<=[A-Za-z])-(?=[A-Za-z])/g, "")
-    .replace(/[-—]/g, " ")
+    .replace(/[-\u2014]/g, " ")
     .toLowerCase()
     .replace(/[^a-z ]/g, " ")
     .split(/\s+/)
