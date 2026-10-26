@@ -61,7 +61,7 @@ https://api.nlt.to/, run by Tyndale House Publishers. This is the planned source
 - "Tyndale's purpose" links to https://www.tyndale.com/purpose: "Minister to the spiritual needs of people, primarily through the publication of literature consistent with biblical principles and through grants to other charitable entities." Core values include "Driven to make God's Word accessible".
 - Endpoints (documentation): `passages` (HTML excerpt for one or more references), `search`, `parse` (references, JSON), `tag` (links Scripture references in HTML to the NLT website), `plans` and `reading` (reading plans). The key goes in the `key` query parameter; without one, the caller's IP address is the key.
 - Versions served: `NLT` (American English), `NLTUK` (UK English), `NTV` (Nueva Traducción Viviente) and `KJV`.
-- The sign-up form (https://api.nlt.to/Account/Register) asks for name, email, phone, organization, website and "Purposed Use". No key has been requested yet ([sources.md](../../sources.md) §8 item 13).
+- The sign-up form (https://api.nlt.to/Account/Register) asks for name, email, phone, organization, website and "Purposed Use". No key has been requested yet ([sources.md](../../sources.md) §8 item 12).
 
 ## Versification and canon
 

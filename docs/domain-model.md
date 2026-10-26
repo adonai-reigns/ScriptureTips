@@ -121,7 +121,7 @@ Translations number verses differently: verses moved between chapters (English J
 
 - **Hub and spoke.** All stored references use one **canonical scheme**: original-language numbering (Paratext's "org"). Each scheme maps only to and from the canonical scheme, never directly to other schemes.
 - **Users never see canonical numbers.** Display, input and URLs always use the numbering of the translation or compilation being read.
-- **Mapping data:** taken from STEPBible's **TVTMS** (Tyndale House), with Paratext `.vrs` files as a fallback. *License (believed CC BY) to be confirmed before use; attribution will be required.*
+- **Mapping data:** taken from STEPBible's **TVTMS** (Tyndale House), with Paratext `.vrs` files as a fallback. License: CC BY 4.0, confirmed and obtained (`license-evidence/stepbible-data/`). Credit "STEP Bible" linked to www.STEPBible.org; record any changes we make.
 - **Mapping types** tell the reader view how to handle each case:
 
 | Type | Meaning | Display behavior |

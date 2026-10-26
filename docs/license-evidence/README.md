@@ -29,6 +29,7 @@ A record of the license and distribution terms for every text ScriptureTips obta
 | [`unfoldingword-simplified-text`](unfoldingword-simplified-text/) | unfoldingWord Simplified Text (UST) | Ready (CC BY-SA 4.0, share-alike; terms read from the repository files) |
 | [`world-english-bible`](world-english-bible/) | World English Bible | Ready (public domain; trademark conditions) |
 | [`wycliffe-bible`](wycliffe-bible/) | Wycliffe Bible (c. 1395; Pentateuch and Gospels only) | Ready (public domain; partial) |
+| [`stepbible-data`](stepbible-data/) | STEPBible-Data: TVTMS versification mappings (other datasets not held yet) | Ready (CC BY 4.0; credit "STEP Bible"; record changes; don't republish the files) |
 | [`youngs-literal-translation`](youngs-literal-translation/) | Young's Literal Translation (1898) | Ready (public domain) |
 
 ## Publisher policies
@@ -63,6 +64,7 @@ These aren't used under the current terms, so they have no folder yet: **Bible i
 Some sites refuse automated access (HTTP 403/503). Their pages were printed to PDF in Firefox and are labeled as such in each `SOURCE.md`:
 - Cambridge University Press "Bibles rights and permissions" (in `king-james-version/`). The old *Queen's Printer's Patent* URL now redirects to a page with no rights information.
 - bible.org copyright and NET download pages (in `net-bible/`).
+- tyndale.com permissions and purpose pages (in `new-living-translation/`, `the-living-bible/` and `the-message/`), captured in the project owner's Chromium through its remote debugging connection, so their HTML is the rendered page and there are no HTTP headers.
 
 ## What to capture whenever a text is obtained
 
@@ -89,6 +91,8 @@ Retrieved 2026-10-26: 11 more files for JPS 1917, about 1 GB: the Internet Archi
 
 Retrieved 2026-10-26 (later): 6 Berean files, about 41 MB: the Berean Literal Bible (`blb.txt`, `.xlsx`, `.pdf`, `.docx`) and the Berean Interlinear Bible (`bib.pdf`, `.docx`), first recorded here. 50 files in total.
 
+Retrieved 2026-10-26 (TVTMS): 2 files from STEPBible-Data at commit `be4191f`, about 5.8 MB: the TVTMS versification file and the repository README, first recorded here. 52 files in total.
+
 **If a re-download doesn't match:** the source has changed. Keep the old file, save the new one under a dated name, and capture the license again (checklist item 8).
 
 ## Catalog snapshot
@@ -97,4 +101,4 @@ Retrieved 2026-10-26 (later): 6 Berean files, about 41 MB: the Berean Literal Bi
 
 ## Not yet done
 
-The original-language texts and data sets (OSHB, SBLGNT, STEPBible-Data, Strong's and the others in `sources.md` §5) are not in this folder yet. They need the same treatment before they are imported.
+The original-language texts and data sets (OSHB, SBLGNT, the rest of STEPBible-Data, Strong's and the others in `sources.md` §5) are not in this folder yet. They need the same treatment before they are imported.
