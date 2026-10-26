@@ -383,7 +383,11 @@ Minors have the same rights to participate as everyone else: every feature, incl
   - why some translations aren't available on ScriptureTips, so a user can see why their favorite translation is missing;
   - the constraints of each translation that *is* available, for example why some can't be corrected or adapted in a compilation, and why the user is warned when their work contains more than a set share or number of verses from one translation.
 
+  - **what each import left out or decided**, so readers can see the limits of the data they're reading. Every import of a text or data set (translations, versification mappings, lexicons …) produces a technical report: rows skipped and why, conflicts between sources and which one was chosen, known gaps. For example, the TVTMS versification import's `import-report.txt` (`packages/versification/src/data/`). Each report is rewritten for non-technical readers: what was imported, what's missing or uncertain, and what that means for them in practice (e.g. "some verses of the Greek Exodus 36–39 can't be linked yet").
+
   The details will be worked out when the license engine is built, because the restrictions are easier to explain once they're implemented. The page and the engine's warnings should link to each other.
+
+  **Writing the import summaries:** a language model drafts the plain-language version from the technical report as part of the import, run by the maintainer, so it costs nothing at run time. A person checks the draft against the report before it's published, because it must not overstate or hide a gap. The summary is stored with the import, kept in step with the report when the import is rerun, and is UI text (en-NZ, translatable).
 - **Full survey:** all translations, datasets and rule types are cataloged in [licenses.md](licenses.md). Publications derived from share-alike sources (CC BY-SA) must themselves be published CC BY-SA, so the license engine calculates each publication's license from its sources.
 - **External material:** a print includes the citation and the user's own note by default. Quoted text is kept short (NZ Copyright Act fair dealing for criticism and review) or is included only after the user confirms they have the right to use it.
 - **Strong's numbers:** the numbering system and James Strong's original 1890 concordance and dictionaries are in the public domain. Modern revised editions (e.g. *The New Strong's Exhaustive Concordance*) add copyrighted material, and that material is not used. Only public-domain or openly licensed digitizations are used (e.g. STEPBible extended Strong's, CC BY).
@@ -481,7 +485,7 @@ Foundations for the later stages are still built from the start where retrofitti
 2. Legal entity to own and operate ScriptureTips (e.g. a charitable trust or incorporated society), separating the operator's personal liability from the platform's.
 3. Which language models make up the moderation panel (§6). Decided at the social-features stage. Every call is paid by the operator, since ScriptureTips earns nothing, so an open-weights safety model on our own server is preferred for the first pass.
 4. Which domain name(s) to commit to permanently, including a short domain for printed QR codes, and the handle rules (how often a handle may change, which group names need verification).
-5. Age-related laws in countries where users live (e.g. bans on under-16s using social media, the EU's age of digital consent, US COPPA for under-13s): how the guardian model (§5.2) applies, and whether any country needs different rules. Research under way.
+5. Age-related laws in countries where users live (e.g. bans on under-16s using social media, the EU's age of digital consent, US COPPA for under-13s): how the guardian model (§5.2) applies, and whether any country needs different rules. **Deferred** until after the first public release.
 
 **Decided:**
 - **Unit for the LEB share rules:** verses. Every license restriction found names verses as its unit (licenses.md §8).

@@ -212,7 +212,7 @@ Whichever engine wins, the designer produces a **neutral book description** (JSO
 ## 11. Open questions
 
 1. Rendering engine: LaTeX or Typst, decided by the proof-of-concept trial (§9).
-2. Which printer profiles to support first. Research under way: options and a recommended shortlist with reasons.
+2. Which printer profiles to support first, with a recommended shortlist and reasons. **Deferred** until after the first public release, which ships with the generic profile only.
 3. Which binding layouts the exporter supports at launch. Printing and binding are done by the printer (files are download only), but the PDF must be laid out for the binding: the cover's spine width, a hardcover case wrap's extra bleed, and inner margins. Recommended: perfect-bound paperback first, hardcover from the printer shortlist.
 4. A rich-text editor for notes pages and the preface (a new dependency). Recommended: TipTap's open-source core (MIT, built on ProseMirror, React, custom elements for scripture references, Yjs support for groups), without its paid add-ons; alternative: Lexical (MIT).
 
