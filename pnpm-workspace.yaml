@@ -2,3 +2,8 @@ packages:
   - apps/*
   - packages/*
   - tools/*
+
+# Dependencies whose install scripts may run: native modules compiled in the toolbox.
+allowBuilds:
+  tree-sitter: true
+  tree-sitter-usfm3: true

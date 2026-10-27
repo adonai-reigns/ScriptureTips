@@ -34,9 +34,15 @@ export function toUsfm(book: ParsedBook, identification: string): UsfmResult {
   let chapter = 0;
   let verse = 0;
   let line = "";
+  /** After `\c` with no break yet: text there continues the paragraph from before. */
+  let afterChapter = false;
   const newLine = (start: string) => {
     if (line !== "") out.push(line.trimEnd());
     line = start;
+  };
+  const continueParagraph = () => {
+    if (afterChapter) newLine("\\nb");
+    afterChapter = false;
   };
   const inline = (text: string) => {
     let s = "";
@@ -56,22 +62,28 @@ export function toUsfm(book: ParsedBook, identification: string): UsfmResult {
         chapter = e.number;
         verse = 0;
         newLine(`\\c ${chapter}`);
+        afterChapter = true;
         break;
       case "break":
+        afterChapter = false;
         if (e.stanza && e.style === "q") newLine("\\b");
         newLine(e.style === "q" ? "\\q1" : `\\${e.style}`);
         break;
       case "verse":
+        continueParagraph();
         verse = e.number;
         line += `${line === "" || line.endsWith(" ") ? "" : " "}\\v ${verse} `;
         break;
       case "text":
+        continueParagraph();
         line += `${line === "" || line.endsWith(" ") ? "" : " "}${inline(e.text)}`;
         break;
       case "heading":
+        afterChapter = false;
         newLine(`\\${e.style} ${e.text}`);
         break;
       case "acrostic":
+        continueParagraph();
         line += `${line === "" || line.endsWith(" ") ? "" : " "}\\qac ${e.letter}\\qac* `;
         break;
       case "lost-hebrew":

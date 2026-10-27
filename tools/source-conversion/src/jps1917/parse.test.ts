@@ -66,6 +66,29 @@ describe("parseBook", () => {
   });
 });
 
+describe("toUsfm", () => {
+  it("writes \\nb where a paragraph runs on across a chapter break", () => {
+    const { usfm } = toUsfm(
+      {
+        info: TEST_BOOK,
+        events: [
+          { kind: "chapter", number: 1 },
+          { kind: "break", style: "p", stanza: false },
+          { kind: "verse", number: 1 },
+          { kind: "text", text: "Said unto Moses:" },
+          { kind: "chapter", number: 2 },
+          { kind: "verse", number: 1 },
+          { kind: "text", text: "‘See, I have set thee.’" },
+        ],
+        notes: [],
+        issues: [],
+      },
+      "Test",
+    );
+    expect(usfm).toContain("\\c 2\n\\nb \\v 1 ‘See, I have set thee.’");
+  });
+});
+
 describe("margin letters", () => {
   it("reads a dot before a line as a lost margin letter, but not an ellipsis", () => {
     const { book } = usfmOf([". In the beginning.", "", "x. 2And", ". . . saying."], [2]);
