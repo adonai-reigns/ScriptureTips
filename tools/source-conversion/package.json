@@ -8,6 +8,7 @@
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
     "jps1917": "node src/jps1917/cli.ts",
+    "leb": "node src/leb/cli.ts",
     "tvtms": "node src/tvtms/cli.ts"
   },
   "dependencies": {

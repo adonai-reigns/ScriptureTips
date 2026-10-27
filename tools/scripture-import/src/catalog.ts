@@ -6,7 +6,7 @@
 
 import type { SchemeId } from "@scripturetips/versification";
 
-export type LicenseKey = "public-domain" | "cc0-1.0" | "cc-by-sa-4.0" | "net-bible";
+export type LicenseKey = "public-domain" | "cc0-1.0" | "cc-by-sa-4.0" | "net-bible" | "leb";
 
 export interface CatalogEntry {
   /** Unique, stable: the eBible ID where there is one. */
@@ -228,6 +228,7 @@ export const CATALOG: readonly CatalogEntry[] = [
     "net-bible/engnet_usfm.zip",
     "net-bible",
   ),
+  english("leb", "LEB", "Lexham English Bible", "lexham-english-bible/converted", "leb"),
 ];
 
 /** Files held but not imported, and why. */
@@ -239,6 +240,5 @@ export const NOT_IMPORTED: Readonly<Record<string, string>> = {
     "prints Psalm headings unnumbered, which no scheme follows yet (sources.md §8)",
   "brenton-septuagint/eng-lxx2012_usfm.zip": "as eng-Brenton",
   "brenton-septuagint/englxxup_usfm.zip": "as eng-Brenton",
-  "lexham-english-bible/LEB.xml": "XML, not USFM: needs its own reader",
   "open-english-bible/Open-English-Bible-1965127de5c3.zip": "the eBible builds are imported",
 };

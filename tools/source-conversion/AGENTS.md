@@ -40,3 +40,16 @@ Generates the mapping tables of `packages/versification` from STEPBible's TVTMS 
 - **`generate.test.ts`** fails if the committed tables differ from a fresh import. Regenerate rather than editing them, and update `packages/versification/src/data/CHANGES.md` when the importer changes what it does to the data.
 - **Plain-language summary:** every import's report also needs a version for non-technical readers on the public translations and licenses page (vision.md §6). Not built yet.
 - When TVTMS is updated: download the new file with license evidence and hashes, change `TVTMS_COMMIT`, regenerate, and check the golden tests.
+
+## Lexham English Bible (`src/leb/`)
+
+Converts `LEB.xml` (the 2020 download, license-evidence/lexham-english-bible) to USFM 3, keeping the LEB's numbering.
+
+```bash
+./toolbox pnpm --filter @scripturetips/source-conversion leb \
+  /source-texts/lexham-english-bible/LEB.xml /source-texts/lexham-english-bible/converted
+```
+
+- **Pipeline:** `xml.ts` (a small XML reader) → `usfm.ts` (one book; the element mapping is in its header comment) → `verify.ts` (the words of each USFM book must equal the XML's) → `cli.ts` (files and `conversion-report.txt`). `books.ts` maps LEB book IDs and `<cite>` targets to USFM.
+- **Idioms are spans of a translator's note** (domain-model §2.6). usfm-grammar drops custom `\z` markers, so they travel as `\w …|x-idiom="N"\w*`, closed and reopened with the same number across a verse number or a line. Character markers inside them are written as nested (`\+add`).
+- **Record the output** hashes in `docs/license-evidence/lexham-english-bible/README.md` when you regenerate it.

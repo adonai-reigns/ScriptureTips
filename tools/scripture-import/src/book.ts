@@ -22,7 +22,19 @@ import type { UsjElement, UsjNode } from "./usj.ts";
  * Verse text: plain text, character styles, notes, the start of a paragraph or line, and a
  * heading that falls inside the verse.
  */
-export type Inline = string | CharNode | NoteNode | BlockStart | HeadingNode;
+export type Inline = string | CharNode | NoteNode | BlockStart | HeadingNode | SpanNode;
+
+/**
+ * Words a translator's note covers (domain-model §2.6): the LEB's idiomatic phrases, printed in
+ * lower corner brackets. A span that runs across a verse number or a line is in pieces with
+ * the same `span`.
+ */
+export interface SpanNode {
+  readonly type: "span";
+  /** Unique within the book; the note covering the words has the same `span`. */
+  readonly span: string;
+  readonly content: readonly Inline[];
+}
 
 export interface CharNode {
   readonly type: "char";
@@ -36,6 +48,10 @@ export interface NoteNode {
   readonly type: "note";
   readonly marker: string;
   readonly caller: string;
+  /** `\cat`: e.g. `screen` for a note the LEB shows on screen but leaves out of print. */
+  readonly category?: string;
+  /** The span of words the note covers (a `SpanNode` before it); without one, a point note. */
+  readonly span?: string;
   readonly content: readonly Inline[];
 }
 
@@ -83,6 +99,8 @@ export interface ImportedBook {
   readonly chapters: readonly ImportedChapter[];
   /** Paragraphs of introduction and titles, and milestones, counted but not imported. */
   readonly skipped: Readonly<Record<string, number>>;
+  /** Spans with no note right after them (e.g. "2Chr 4:22"), for the report. */
+  readonly spansWithoutNote: readonly string[];
   readonly issues: readonly string[];
 }
 
@@ -197,6 +215,12 @@ export function readBook(usj: UsjElement): ImportedBook | undefined {
         if (marker === "vp") continue;
         const children: Inline[] = [];
         inline(node.content ?? [], inNote, (n) => children.push(n));
+        const span = node["x-idiom"];
+        if (marker === "w" && typeof span === "string") {
+          // A span a translator's note covers, carried as `\w` (tools/source-conversion, LEB).
+          out({ type: "span", span, content: children });
+          continue;
+        }
         const attributes = attributesOf(node);
         out({ type: "char", marker, content: children, ...(attributes ? { attributes } : {}) });
       } else if (node.type === "char" && marker === "vp") {
@@ -217,10 +241,12 @@ export function readBook(usj: UsjElement): ImportedBook | undefined {
         inline(node.content ?? [], true, (n) => children.push(n));
         // The space after the caller only separates it from the note's content.
         if (typeof children[0] === "string") children[0] = children[0].trimStart();
+        const category = node["category"];
         out({
           type: "note",
           marker,
           caller: String(node["caller"] ?? "+"),
+          ...(typeof category === "string" ? { category } : {}),
           content: children.filter((n) => n !== ""),
         });
       } else if (node.type === "ms" && MILESTONE.has(marker)) {
@@ -283,11 +309,18 @@ export function readBook(usj: UsjElement): ImportedBook | undefined {
       else count("paragraph cd");
     } else if (HEADING.has(marker) && !children.some(isVerse)) {
       const chapter = chapters.at(-1);
+      const title = chapter?.verses.length === 1 ? chapter.verses[0] : undefined;
       if (marker === "d" && book.osis === "Ps" && chapter && chapter.verses.length === 0) {
         // A Psalm heading printed before verse 1 is verse 0 (domain-model §2.1).
         verse = { chapter: chapter.number, verse: 0, headings, content: [] };
         headings = [];
         chapter.verses.push(verse);
+        toVerse(children);
+        verse = undefined;
+      } else if (marker === "d" && title?.verse === 0 && !verse && headings.length === 0) {
+        // The heading's next line (LEB Ps 51, over two lines): still verse 0.
+        verse = title;
+        blocks.push("d");
         toVerse(children);
         verse = undefined;
       } else {
@@ -309,17 +342,63 @@ export function readBook(usj: UsjElement): ImportedBook | undefined {
   flushHeadings();
   if (headings.length > 0) issue("headings after the last verse");
 
+  const tidied = chapters.map((c) => ({
+    ...c,
+    verses: c.verses.map((v) => ({ ...v, content: tidy(v.content) })),
+  }));
+  const { chapters: linked, spansWithoutNote } = linkSpanNotes(code, tidied);
   return {
     book: book.osis,
     usfm: code,
     names,
-    chapters: chapters.map((c) => ({
-      ...c,
-      verses: c.verses.map((v) => ({ ...v, content: tidy(v.content) })),
-    })),
+    chapters: linked,
     skipped,
+    spansWithoutNote,
     issues,
   };
+}
+
+/**
+ * Gives each span its note: the first note after the span's last piece, with nothing between
+ * them but punctuation, spacing or the start of a line (LEB: 11,136 of 11,146 spans). A note
+ * inside a span is a note on its own words, not the span's.
+ */
+function linkSpanNotes(
+  code: string,
+  chapters: readonly ImportedChapter[],
+): { chapters: ImportedChapter[]; spansWithoutNote: string[] } {
+  const spansWithoutNote: string[] = [];
+  let open: { span: string; at: string } | undefined;
+  const close = () => {
+    if (open) spansWithoutNote.push(`${code} ${open.at}`);
+    open = undefined;
+  };
+  const linked = chapters.map((chapter) => ({
+    ...chapter,
+    verses: chapter.verses.map((verse) => ({
+      ...verse,
+      content: verse.content.map((node): Inline => {
+        if (typeof node === "string") {
+          if (/[\p{L}\p{N}]/u.test(node)) close();
+          return node;
+        }
+        if (node.type === "span") {
+          if (open && open.span !== node.span) close();
+          open = { span: node.span, at: `${verse.chapter}:${verse.verse}` };
+          return node;
+        }
+        if (node.type === "note" && open) {
+          const span = open.span;
+          open = undefined;
+          return { ...node, span };
+        }
+        if (node.type !== "block") close();
+        return node;
+      }),
+    })),
+  }));
+  close();
+  return { chapters: linked, spansWithoutNote };
 }
 
 const isVerse = (node: UsjNode) => typeof node !== "string" && node.type === "verse";

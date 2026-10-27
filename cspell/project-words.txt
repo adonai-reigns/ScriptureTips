@@ -1,5 +1,6 @@
 addpn
 altnumber
+apos
 bdit
 Berean
 biomejs
@@ -42,3 +43,5 @@ wayback
 WEBU
 Whybray
 zaln
+zidiom
+ZWNBSP

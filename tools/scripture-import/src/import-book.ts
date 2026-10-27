@@ -14,7 +14,7 @@ export interface BookResult {
 }
 
 export function importBook(source: string): BookResult {
-  const usfm = source.replace(/^﻿/, "");
+  const usfm = source.replace(/^\uFEFF/, "");
   const { usj, errors, normalizations } = parseUsfm(usfm);
   const book = readBook(usj);
   if (!book) {

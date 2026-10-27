@@ -142,3 +142,54 @@ describe("nothing is dropped silently", () => {
     expect(plainText(book.chapters[0]?.verses[0]?.content ?? [])).toBe("Many there be. Selah.");
   });
 });
+
+describe("domain-model §2.6: translator's notes covering a span of words", () => {
+  const note = (text: string, span?: string) => ({
+    type: "note",
+    marker: "f",
+    caller: "+",
+    ...(span ? { span } : {}),
+    content: [{ type: "char", marker: "ft", content: [text] }],
+  });
+
+  it("turns an LEB idiom span into a span, and links the note after it", () => {
+    const book = read(
+      "\\c 2",
+      '\\q1 \\v 23 “\\w She is now|x-idiom="18"\\w*\\f + \\ft Literally\\f* bone',
+    );
+    expect(book.chapters[0]?.verses[0]?.content).toEqual([
+      { type: "block", marker: "q1" },
+      "“",
+      { type: "span", span: "18", content: ["She is now"] },
+      note("Literally", "18"),
+      " bone",
+    ]);
+    expect(book.spansWithoutNote).toEqual([]);
+  });
+
+  it("links the note after punctuation and across a line, not a note inside the span", () => {
+    const book = read(
+      "\\c 4",
+      '\\q1 \\v 10 \\w to devote\\f + \\ft Or\\f* themselves to |x-idiom="2"\\w*',
+      '\\q2 \\v 11 \\w whoredom|x-idiom="2"\\w*.\\f + \\ft Literally\\f*',
+    );
+    const [ten, eleven] = book.chapters[0]?.verses ?? [];
+    expect(ten?.content[1]).toEqual({
+      type: "span",
+      span: "2",
+      content: ["to devote", note("Or"), " themselves to "],
+    });
+    expect(eleven?.content.at(-1)).toEqual(note("Literally", "2"));
+  });
+
+  it("reports a span with no note right after it", () => {
+    const book = read("\\c 1", '\\p \\v 1 \\w words|x-idiom="1"\\w* and more\\f + \\ft Other\\f*');
+    expect(book.spansWithoutNote).toEqual(["PSA 1:1"]);
+    expect(book.chapters[0]?.verses[0]?.content.at(-1)).toEqual(note("Other"));
+  });
+
+  it("keeps \\w without x-idiom as a character style", () => {
+    const book = read("\\c 1", '\\p \\v 1 \\w word|strong="H1"\\w*');
+    expect(book.chapters[0]?.verses[0]?.content[1]).toMatchObject({ type: "char", marker: "w" });
+  });
+});

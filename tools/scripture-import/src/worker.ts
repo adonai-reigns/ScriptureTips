@@ -43,6 +43,9 @@ for (const n of t.normalizations) report.push(`  normalized: ${n.book}: ${n.rule
 if (t.peripheral.length > 0) report.push(`  not books: ${t.peripheral.join(", ")}`);
 if (skipped.length > 0) report.push(`  verse numbers skipped: ${skipped.join(", ")}`);
 if (noCanonical.length > 0) report.push(`  no canonical verse: ${noCanonical.join(", ")}`);
+const spansWithoutNote = t.books.flatMap((b) => b.spansWithoutNote);
+if (spansWithoutNote.length > 0)
+  report.push(`  spans with no note right after them: ${spansWithoutNote.join(", ")}`);
 
 writeFileSync(join(outDir, `${entry.id}.json`), JSON.stringify(t));
 const result: WorkerResult = {

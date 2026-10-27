@@ -15,7 +15,7 @@ export function usfmWords(usfm: string): string[] {
   // A `|` in a heading can be text (`markHeadingBars`); elsewhere it starts attributes.
   const text = markHeadingBars(usfm)
     .replace(/\\id\s+\S+/g, " ")
-    .replace(/\\(?:ca|va|vp)\s[^\\]*\\(?:ca|va|vp)\*/g, " ")
+    .replace(/\\(?:ca|va|vp|cat)\s[^\\]*\\(?:ca|va|vp|cat)\*/g, " ")
     .replace(/\\(?:c|v)\s+\S+/g, " ")
     .replace(/\\(?:f|fe|ef|x|ex)\s+\S/g, " ")
     .replace(/\|[^\\]*/g, " ")

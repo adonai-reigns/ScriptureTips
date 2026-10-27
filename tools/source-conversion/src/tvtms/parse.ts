@@ -52,7 +52,7 @@ export function parseTvtmsRef(text: string): VerseRef | string {
 
 /** Parses the rows between `#DataStart(Expanded)` and `#DataEnd(Expanded)`. */
 export function parseTvtms(text: string): ParseResult {
-  const lines = text.replace(/^﻿/, "").split(/\r?\n/);
+  const lines = text.replace(/^\uFEFF/, "").split(/\r?\n/);
   const start = lines.findIndex((l) => l.startsWith("#DataStart(Expanded)"));
   const end = lines.findIndex((l) => l.startsWith("#DataEnd(Expanded)"));
   if (start < 0 || end < start) throw new Error("No expanded data section in the TVTMS file");

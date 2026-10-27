@@ -112,6 +112,7 @@ The path describes; a trailing ID pins.
 | **CanonProfile** | name (Protestant · Catholic · Orthodox …), description | There is no default: users choose at sign-up and can change it later. Stored as a user setting. |
 | **CanonBook** | canon profile, book, status (`canonical` · `additional`), order, section (e.g. Old Testament, Apocrypha, New Testament) | Decides where a book appears and whether it is labeled "Additional writings". |
 | **Verse text** | translation, canonical ref, text (with formatting markup), paragraph/section markers | Stored **per verse**, with paragraph and section markers as fields: this fits the cache (§2.5), provenance and license counting. |
+| **TranslatorNote** | translation, anchor (§2.6), kind, body (with formatting markup), category (e.g. `screen`: shown on screen, left out of print) | A note the translation's own translators wrote: footnotes, alternative renderings, the literal wording of an idiom. Imported with the text (§2.6). |
 | **VersificationScheme** | name (e.g. English/KJV, Hebrew, LXX, Vulgate), canon (list of books) | Every Translation and Compilation declares one. |
 | **VersificationMapping** | scheme, scheme ref ↔ canonical ref, mapping type | Converts a scheme's verse numbering to and from the **canonical scheme** (§2.1). |
 
@@ -158,6 +159,7 @@ The user's preferred translation, built by combining verses from source translat
 | **CompilationRule** | compilation, scope (testament/section · book · chapter · verse range), source (Translation or Publication + version) | Layered overrides on top of the base: "Genesis from KJV", "Genesis 1:1–5 from LEB". The most specific scope wins; equal scopes cannot overlap. Single verses are CompilationVerse rows. |
 | **BaseUpdate** | compilation, base publication, from version, to version, changed verses, status (`pending` · `accepted` · `partly_accepted` · `declined`) | Created when a base publication publishes a new version. The user reviews the changes verse by verse. |
 | **CompilationVerse** | compilation, canonical ref, origin (`source` · `edited` · `pasted` · `ai_assisted` · `own`), source translation + source verse (if any), **edit kind** (`correction` · `adaptation`, for `edited` only), **source snapshot** (for `edited`: the source text as it was, its hash, and the source import it came from), text, change note, translator's note, word count, authorship declaration | A single-verse choice, a modified translation verse, or the user's own rendering. Verses taken unchanged from a rule need no stored row. |
+| **CompilationNote** | compilation verse, anchor (§2.6), body, origin (`original` · `modified` · `own`), source TranslatorNote + snapshot of it (for `original` and `modified`), removed (for a removed original) | A translator's note as the compilation has it. Notes left unchanged on a `source` verse need no stored row. |
 | **CompilationAlignment** | compilation verse, word span in the user's text ↔ original-language tokens (§2.4) | Links the user's wording to the original words it renders. Optional, but powers interlinear and word-study views for the compilation. |
 
 - **Provenance is always kept.** Every verse records its origin:
@@ -182,6 +184,11 @@ The user's preferred translation, built by combining verses from source translat
   - **Export** (PDF edition) is blocked while its verses make up more than 25% of the compilation's verses.
   - **Online pages** (a published compilation, a note, a link, a ScriptureTip) show no more than 50 of its verses per page displayed (`max_verses_per_display`), and its words make up no more than 25% of the page's words (`max_share_of_work` with the unit `words`). For a note, that means at least three words of other content for every NLT word. See [licenses.md](licenses.md) §4 and the NLT evidence for how these limits were derived.
   - Where a page would go over a limit, the verses beyond it are replaced by a link to a configurable external scripture reader (set per translation; no particular service is preferred) (`external_reader_link`), rather than blocking the whole page.
+- **Translator's notes** (§2.6) come with every verse taken from a translation. A `source` verse shows its translation's notes unchanged. When a user edits a verse, they can also edit its notes: change the wording or the span, remove a note, or add their own. Each note in a compilation records where it came from:
+  - `original`: the translation's note, unchanged.
+  - `modified`: started as the translation's note and then changed. It keeps the original note as provenance (a snapshot of it and the import it came from) and is marked as modified wherever it is shown ("note adapted from the LEB").
+  - `own`: written by the user.
+  A removed original note is recorded, so the change summary and modification notice can list it. Notes count with their verse in the license share calculation (§7).
 - **Plugins:** the browser extension can show the user's own private compilation to them. Website plugins, which public visitors see, serve only **publications**, either pinned to a version or following the latest, and always record the version served (VersionReference).
 - Builds on the prototype's verse cloning (`Verse.fromVerse`, `wordCount`).
 
@@ -249,6 +256,16 @@ All scripture text the API serves comes from **one cache**, the authoritative st
 - **Access is checked before the cache.** The license engine (§7) decides whether a request may be answered at all, for example refusing a whole book of a translation with a `no_complete_book` rule. A cache hit never bypasses a license limit.
 - **Changed content is logged and reported.** Every refresh, and every refetch after a storage expiry, compares the new content with the cached content (by hash). A difference is logged as a **CacheChange** and raises a notice to the administrators. A change can mean a new upstream edition, which may come with different license terms, so the translation's license and evidence are reviewed again (the evidence policy in [sources.md](sources.md) §7) before the change is marked reviewed. **The changed content keeps being served** in the meantime: we trust the source, and without advance notice of a license change, we review and adjust with reasonable speed once the change is detected. Changed verses also trigger the compilation snapshot check (§2.3, *Source changes*).
 - Every entry keeps its source and date, so any verse shown can be traced back to where it came from (the source ledger, [sources.md](sources.md) §7).
+
+### 2.6 Translator's notes
+
+Many translations come with their translators' own notes: footnotes, alternative renderings ("Or …"), textual notes, and the literal wording behind an idiomatic phrase. They are part of the translation as published, so they are imported with it and carried through wherever its text goes.
+
+- **Every translation that provides them.** The import keeps every note a translation's source gives (the LEB's 24,247, the NET's, the WEB's footnotes, …); none is dropped.
+- **Anchored like an annotation.** A note's **anchor** is a point in the verse text (where the publisher prints the note mark), or a **span** of words when the publisher marks one. The LEB marks idiomatic phrases with lower corner brackets, ⸤like this⸥, and gives the literal wording in the note after them: the bracketed words are the span, and the note is its body. A span can run across a verse number (LEB Hos 4:10–11), so an anchor has a start and an end, each a canonical ref and a position in that verse's text.
+- **Always with the text.** Wherever a translation's text is shown, exported or printed, its notes are available with it. A reader can collapse them in a view, and an edition decides where they're placed (book-designer.md §5, stream B), but they can't be detached from the text. The publisher's own categories are kept: a note the LEB marks for screen only is left out of print unless the edition asks for it.
+- **In compilations,** notes travel with their verses and can be edited with them, keeping their provenance (§2.3).
+- **Annotation collections** can include translator's notes like any other annotation (§3.6).
 
 ## 3. Linking
 

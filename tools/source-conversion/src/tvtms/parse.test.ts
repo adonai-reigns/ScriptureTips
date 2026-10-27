@@ -25,9 +25,13 @@ describe("TVTMS references", () => {
 });
 
 const file = (...rows: string[]) =>
-  ["﻿header", "#DataStart(Expanded)", "SourceType\tSourceRef", ...rows, "#DataEnd(Expanded)"].join(
-    "\n",
-  );
+  [
+    "\uFEFFheader",
+    "#DataStart(Expanded)",
+    "SourceType\tSourceRef",
+    ...rows,
+    "#DataEnd(Expanded)",
+  ].join("\n");
 const row = (type: string, source: string, standard: string, action: string, tests = "") =>
   [type, source, standard, action, "", "", "", "", tests].join("\t");
 
