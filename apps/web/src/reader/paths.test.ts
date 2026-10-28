@@ -1,6 +1,13 @@
 import { parseOsisPassage } from "@scripturetips/passage";
 import { describe, expect, it } from "vitest";
-import { bookSlug, passagePath, pathFor, referenceFor } from "./paths.ts";
+import {
+  bookSlug,
+  ownsCompilation,
+  passagePath,
+  pathFor,
+  readerTarget,
+  referenceFor,
+} from "./paths.ts";
 
 describe("domain-model §1.6: passage paths", () => {
   it("name books in fixed lowercase English", () => {
@@ -46,5 +53,34 @@ describe("domain-model §1.6: passage paths", () => {
     expect(referenceFor(["john"])).toBeUndefined();
     expect(referenceFor(["john", "3", "16", "17"])).toBeUndefined();
     expect(referenceFor(["john", "<script>"])).toBeUndefined();
+  });
+});
+
+describe("compilation reader paths", () => {
+  it("read /read/@handle/slug/… as the compilation `@handle/slug`", () => {
+    expect(readerTarget("leb", ["genesis", "1"])).toEqual({
+      id: "leb",
+      segments: ["genesis", "1"],
+    });
+    expect(readerTarget("%40reader", ["Mine", "joel", "2"])).toEqual({
+      id: "@reader/mine",
+      segments: ["joel", "2"],
+    });
+    expect(readerTarget("@reader", ["mine"])).toEqual({ id: "@reader/mine", segments: [] });
+    expect(readerTarget("@reader", [])).toBeUndefined();
+    expect(readerTarget("@Bad!", ["mine"])).toBeUndefined();
+  });
+
+  it("are readable only by their owner", () => {
+    expect(ownsCompilation("@reader/mine", "reader")).toBe(true);
+    expect(ownsCompilation("@reader/mine", "ant")).toBe(false);
+    expect(ownsCompilation("@reader/mine", null)).toBe(false);
+    expect(ownsCompilation("leb", null)).toBe(true);
+  });
+
+  it("put a compilation's passages under its path", () => {
+    expect(pathFor("@reader/mine", [{ entered: "Joel.2.28-Joel.2.32", wholeChapters: true }])).toBe(
+      "/read/@reader/mine/joel/2",
+    );
   });
 });

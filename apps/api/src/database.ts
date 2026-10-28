@@ -29,3 +29,9 @@ export class DatabaseModule implements OnApplicationShutdown {
 }
 
 export type { Database };
+
+/** True for PostgreSQL's unique-constraint error (23505), as Drizzle wraps it or not. */
+export const isUniqueViolation = (e: unknown): boolean => {
+  const cause = (e as { cause?: { code?: string }; code?: string }) ?? {};
+  return cause.code === "23505" || cause.cause?.code === "23505";
+};

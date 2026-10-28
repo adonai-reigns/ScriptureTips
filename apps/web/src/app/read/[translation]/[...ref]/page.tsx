@@ -2,9 +2,11 @@ import { parseOsisPassage } from "@scripturetips/passage";
 import { english } from "@scripturetips/reference";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { currentAccount } from "../../../../account/api.ts";
+import { myCompilation } from "../../../../compilations/api.ts";
 import { books, passage } from "../../../../reader/api.ts";
+import { BookList } from "../../../../reader/BookList.tsx";
 import {
   arrangeBooks,
   type ChapterRef,
@@ -12,41 +14,75 @@ import {
   readingOrder,
 } from "../../../../reader/books.ts";
 import { Passage } from "../../../../reader/Passage.tsx";
-import { bookSlug, referenceFor } from "../../../../reader/paths.ts";
+import { bookSlug, ownsCompilation, readerTarget, referenceFor } from "../../../../reader/paths.ts";
 import { SearchForm } from "../../../../reader/SearchForm.tsx";
 
 interface Props {
   params: Promise<{ translation: string; ref: string[] }>;
 }
 
+/**
+ * A passage (`/read/leb/genesis/1`, `/read/@handle/slug/genesis/1`), or a compilation's book
+ * list (`/read/@handle/slug`). Compilations are shown only to their owner.
+ */
 async function load({ params }: Props) {
   const { translation, ref } = await params;
-  const reference = referenceFor(ref);
+  const [target, account] = [readerTarget(translation, ref), await currentAccount()];
+  if (!target || !ownsCompilation(target.id, account?.handle)) notFound();
+  const { id, segments } = target;
+  if (segments.length === 0) {
+    const compilation = await myCompilation(id.split("/")[1] ?? "");
+    if (!compilation) notFound();
+    return { kind: "books" as const, id, account, compilation };
+  }
+  const reference = referenceFor(segments);
   if (!reference) notFound();
-  return { translation, reference, result: await passage(translation, reference) };
+  return { kind: "passage" as const, id, account, reference, result: await passage(id, reference) };
 }
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
-  const { result } = await load(props);
-  if (!result.ok) return {};
+  const loaded = await load(props);
   const t = await getTranslations("reader");
-  const label = result.passages.map((p) => p.label).join("; ");
-  return { title: t("title", { passage: label, translation: result.translation.abbreviation }) };
+  if (loaded.kind === "books")
+    return { title: t("booksTitle", { translation: loaded.compilation.abbreviation }) };
+  if (!loaded.result.ok) return {};
+  const label = loaded.result.passages.map((p) => p.label).join("; ");
+  return {
+    title: t("title", { passage: label, translation: loaded.result.translation.abbreviation }),
+  };
 }
 
 export default async function Read(props: Props) {
-  const [{ translation, reference, result }, account] = await Promise.all([
-    load(props),
-    currentAccount(),
-  ]);
+  const loaded = await load(props);
+  const { id, account } = loaded;
+  const canon = account?.canon ?? null;
+  if (loaded.kind === "books") {
+    const { compilation } = loaded;
+    return (
+      <BookList
+        id={id}
+        abbreviation={compilation.abbreviation}
+        name={compilation.title}
+        direction={compilation.direction}
+        books={(await books(id)) ?? []}
+        canon={canon}
+        signedIn
+      />
+    );
+  }
+  const { reference, result } = loaded;
   const t = await getTranslations("errors");
   const tr = await getTranslations("reader");
-  const canon = account?.canon ?? null;
+  if (
+    !result.ok &&
+    (result.code === "unknown-translation" || result.code === "unknown-compilation")
+  )
+    notFound();
   // Previous and next chapters, in the reader's canon order, for a single passage.
   const only = result.ok && result.passages.length === 1 ? result.passages[0] : undefined;
   let around: { previous?: ChapterRef; next?: ChapterRef } = {};
   if (only) {
-    const available = await books(translation).catch(() => null);
+    const available = await books(id).catch(() => null);
     const { start, end } = parseOsisPassage(only.entered);
     if (available)
       around = neighbors(
@@ -58,16 +94,25 @@ export default async function Read(props: Props) {
   }
   const chapterLink = (c: ChapterRef, key: "previous" | "next") => (
     <a
-      href={`/read/${translation}/${bookSlug(c.osis)}/${c.chapter}`}
+      href={`/read/${id}/${bookSlug(c.osis)}/${c.chapter}`}
       rel={key === "previous" ? "prev" : "next"}
     >
       {tr(key, { chapter: `${english.name(c.osis, "full", "one")} ${c.chapter}` })}
     </a>
   );
-  if (!result.ok && result.code === "unknown-translation") notFound();
+  // A compilation credits the translations its verses came from (vision §3.1).
+  const credit =
+    result.ok && result.sources
+      ? tr("compiledFrom", {
+          title: result.translation.name,
+          sources: new Intl.ListFormat(await getLocale()).format(result.sources.map((s) => s.name)),
+        })
+      : result.ok
+        ? result.translation.name
+        : null;
   return (
     <div className="reader">
-      <SearchForm translation={translation} reference={reference} />
+      <SearchForm translation={id} reference={reference} />
       {result.ok ? (
         result.passages.map((p, i) => (
           <Passage
@@ -86,11 +131,11 @@ export default async function Read(props: Props) {
       {result.ok ? (
         <nav className="chapter-nav" aria-label={tr("chapterNav")}>
           <span>{around.previous ? chapterLink(around.previous, "previous") : null}</span>
-          <a href={`/read/${translation}`}>{tr("books")}</a>
+          <a href={`/read/${id}`}>{tr("books")}</a>
           <span>{around.next ? chapterLink(around.next, "next") : null}</span>
         </nav>
       ) : null}
-      {result.ok ? <p className="translation-credit">{result.translation.name}</p> : null}
+      {credit ? <p className="translation-credit">{credit}</p> : null}
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import type {} from "altcha/types/react";
 import { useTranslations } from "next-intl";
 import { type FormEvent, useEffect, useState } from "react";
+import { useHydrated } from "../hydrated.ts";
 import { type AccountError, accountError } from "./errors.ts";
 
 const json = { "content-type": "application/json" };
@@ -18,6 +19,7 @@ export function SignInForm() {
   const [step, setStep] = useState<"email" | "code">("email");
   const [error, setError] = useState<AccountError | null>(null);
   const [busy, setBusy] = useState(false);
+  const hydrated = useHydrated();
 
   useEffect(() => {
     // The bot-check widget is a web component that runs only in the browser.
@@ -92,7 +94,7 @@ export function SignInForm() {
           />
         </label>
         {message}
-        <button type="submit" disabled={busy}>
+        <button type="submit" disabled={busy || !hydrated}>
           {t("signInButton")}
         </button>
         <button
@@ -124,7 +126,7 @@ export function SignInForm() {
       </label>
       <altcha-widget challenge="/api/account/bot-check" auto="onfocus" name="altcha" />
       {message}
-      <button type="submit" disabled={busy}>
+      <button type="submit" disabled={busy || !hydrated}>
         {t("sendCode")}
       </button>
     </form>

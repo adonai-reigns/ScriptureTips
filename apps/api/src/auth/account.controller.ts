@@ -12,12 +12,13 @@ import {
 import { CANON_IDS } from "@scripturetips/canon";
 import { eq, user } from "@scripturetips/db";
 import { z } from "zod";
-import { DATABASE, type Database } from "../database.ts";
+import { DATABASE, type Database, isUniqueViolation } from "../database.ts";
 import { ZodPipe } from "../zod-pipe.ts";
 import type { Auth } from "./auth.ts";
 import type { AccountSettings } from "./config.ts";
 import { isReservedHandle, isReservedName } from "./reserved-handles.ts";
-import { AUTH, fetchHeaders, SETTINGS } from "./tokens.ts";
+import { signedInUser, type User } from "./session.ts";
+import { AUTH, SETTINGS } from "./tokens.ts";
 
 /** `@handle` (domain-model §1.6): 3–30 ASCII letters, digits and hyphens, stored lowercase. */
 export const Handle = z
@@ -46,7 +47,7 @@ export interface AccountView {
   trustLevel: number;
 }
 
-const view = (u: typeof user.$inferSelect): AccountView => ({
+const view = (u: User): AccountView => ({
   email: u.email,
   handle: u.handle,
   name: u.name,
@@ -110,16 +111,7 @@ export class AccountController {
     }
   }
 
-  private async signedIn(headers: Record<string, string>): Promise<typeof user.$inferSelect> {
-    const found = await this.auth.api.getSession({ headers: fetchHeaders(headers) });
-    if (!found) throw new UnauthorizedException({ code: "signed-out" });
-    const [row] = await this.db.select().from(user).where(eq(user.id, found.user.id));
-    if (!row) throw new UnauthorizedException({ code: "signed-out" });
-    return row;
+  private signedIn(headers: Record<string, string>): Promise<User> {
+    return signedInUser(this.auth, this.db, headers);
   }
 }
-
-const isUniqueViolation = (e: unknown): boolean => {
-  const cause = (e as { cause?: { code?: string }; code?: string }) ?? {};
-  return cause.code === "23505" || cause.cause?.code === "23505";
-};

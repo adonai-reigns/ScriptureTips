@@ -228,3 +228,53 @@ export const verification = pgTable(
   },
   (t) => [index("verification_identifier_idx").on(t.identifier)],
 );
+
+/**
+ * A compilation (domain-model §2.3): the user's own translation, built on a base. Always
+ * private to its owner while it's a draft. `slug` is the abbreviation in lowercase, unique per
+ * owner, used in its reader path (`/read/@handle/{slug}`).
+ */
+export const compilation = pgTable(
+  "compilation",
+  {
+    id: id(),
+    ownerId: uuid("owner_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    slug: text("slug").notNull(),
+    title: text("title").notNull(),
+    abbreviation: text("abbreviation").notNull(),
+    /** The base translation, which supplies every verse not overridden. (A base publication comes with publishing.) */
+    baseTranslationId: uuid("base_translation_id")
+      .notNull()
+      .references(() => translation.id),
+    /** Versification scheme ID: the base's. */
+    scheme: text("scheme").notNull(),
+    ...timestamps,
+  },
+  (t) => [unique().on(t.ownerId, t.slug)],
+);
+
+/**
+ * A layered override (domain-model §2.3, `CompilationRule`): verses within `scope` come from
+ * `source`. Scopes are canonical ordinal ranges; `entered` keeps the scope as the user gave it
+ * (OSIS in the compilation's numbering, or the section ID). The most specific kind wins:
+ * range, then chapter, then book, then section. Rules of the same kind never overlap.
+ */
+export const compilationRule = pgTable(
+  "compilation_rule",
+  {
+    id: id(),
+    compilationId: uuid("compilation_id")
+      .notNull()
+      .references(() => compilation.id, { onDelete: "cascade" }),
+    kind: text("kind", { enum: ["section", "book", "chapter", "range"] }).notNull(),
+    scope: int4range("scope").notNull(),
+    entered: text("entered").notNull(),
+    sourceTranslationId: uuid("source_translation_id")
+      .notNull()
+      .references(() => translation.id),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("compilation_rule_compilation_idx").on(t.compilationId)],
+);

@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@scripturetips/canon": "workspace:*",
+    "@scripturetips/licenses": "workspace:*",
     "@scripturetips/passage": "workspace:*",
     "@scripturetips/reference": "workspace:*",
     "altcha": "3.3.0",

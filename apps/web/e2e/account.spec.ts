@@ -1,39 +1,7 @@
-import { expect, type Page, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+import { arriveFromOwnAddress, codeFor, passBotCheck, shot } from "./support.ts";
 
-/** Mailpit, which catches the stack's email (compose.yaml). */
-const MAILPIT = process.env["MAILPIT_URL"] ?? "http://mailpit:8025";
-
-const shot = (name: string) => ({
-  path: `test-results/screens/${test.info().project.name}-${name}.png`,
-  fullPage: true,
-});
-
-/**
- * Each test arrives from its own address (a documentation range), as separate users would, so
- * the per-address limits (apps/api `CODE_REQUESTS_PER_IP_PER_HOUR`) don't add up across runs.
- */
-test.beforeEach(async ({ page }) => {
-  const address = `198.51.100.${1 + Math.floor(Math.random() * 254)}`;
-  await page.setExtraHTTPHeaders({ "x-forwarded-for": address });
-});
-
-/** The sign-in code in the newest email to `to`. */
-async function codeFor(page: Page, to: string): Promise<string> {
-  let code: string | undefined;
-  await expect
-    .poll(async () => {
-      const found = await (
-        await page.request.get(`${MAILPIT}/api/v1/search?query=${encodeURIComponent(`to:"${to}"`)}`)
-      ).json();
-      const id = found.messages?.[0]?.ID;
-      if (!id) return undefined;
-      const message = await (await page.request.get(`${MAILPIT}/api/v1/message/${id}`)).json();
-      code = /\b(\d{6})\b/.exec(message.Text ?? "")?.[1];
-      return code;
-    })
-    .toBeTruthy();
-  return code ?? "";
-}
+arriveFromOwnAddress();
 
 test("vision §11: sign in with an emailed code, choose a handle and canon, sign out", async ({
   page,
@@ -47,8 +15,7 @@ test("vision §11: sign in with an emailed code, choose a handle and canon, sign
   await expect(page).toHaveURL(/\/sign-in$/);
 
   await page.getByRole("textbox", { name: "Email address" }).fill(email);
-  await page.getByText("I'm not a robot").click();
-  await expect(page.locator('input[name="altcha"]')).not.toHaveValue("", { timeout: 30_000 });
+  await passBotCheck(page);
   await page.screenshot(shot("sign-in"));
   await page.getByRole("button", { name: "Send code" }).click();
   await expect(page.getByText(`We've sent a 6-digit code to ${email}`)).toBeVisible();
@@ -94,8 +61,7 @@ test("a wrong code is answered in words", async ({ page }) => {
   const email = `wrong-${Date.now()}${test.info().project.name}@example.com`;
   await page.goto("/sign-in");
   await page.getByRole("textbox", { name: "Email address" }).fill(email);
-  await page.getByText("I'm not a robot").click();
-  await expect(page.locator('input[name="altcha"]')).not.toHaveValue("", { timeout: 30_000 });
+  await passBotCheck(page);
   await page.getByRole("button", { name: "Send code" }).click();
   const code = await codeFor(page, email);
   await page.getByRole("textbox", { name: "Code" }).fill(code === "000000" ? "111111" : "000000");

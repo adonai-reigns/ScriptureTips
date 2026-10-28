@@ -6,8 +6,12 @@ const API = process.env["API_URL"] ?? "http://127.0.0.1:3001/api";
 
 const config: NextConfig = {
   // Workspace packages are TypeScript source.
+  // The floating dev-tools badge covers controls at the bottom of small screens (and shows in
+  // every screenshot). Errors still reach the browser console.
+  devIndicators: false,
   transpilePackages: [
     "@scripturetips/canon",
+    "@scripturetips/licenses",
     "@scripturetips/passage",
     "@scripturetips/reference",
     "@scripturetips/versification",
@@ -18,6 +22,8 @@ const config: NextConfig = {
     { source: "/api/auth/:path*", destination: `${API}/auth/:path*` },
     { source: "/api/account", destination: `${API}/account` },
     { source: "/api/account/:path*", destination: `${API}/account/:path*` },
+    { source: "/api/compilations", destination: `${API}/compilations` },
+    { source: "/api/compilations/:path*", destination: `${API}/compilations/:path*` },
   ],
   // Other hosts the dev server answers (`./dev up --lan` sets them): a phone on the network.
   allowedDevOrigins: (process.env["DEV_ORIGINS"] ?? "").split(",").filter(Boolean),

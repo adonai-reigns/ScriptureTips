@@ -1,9 +1,5 @@
 import { expect, test } from "@playwright/test";
-
-const shot = (name: string) => ({
-  path: `test-results/screens/${test.info().project.name}-${name}.png`,
-  fullPage: true,
-});
+import { shot } from "./support.ts";
 
 test("the landing page offers translations and a passage box", async ({ page }) => {
   await page.goto("/");
@@ -49,7 +45,9 @@ test("KJV Psalm 23: poetry lines and a Psalm title", async ({ page }) => {
 
 test("an unknown book is answered in words", async ({ page }) => {
   await page.goto("/read?t=leb&ref=Hezekiah%201");
-  await expect(page.getByRole("alert")).toHaveText("We couldn't find a book by that name.");
+  await expect(page.getByRole("main").getByRole("alert")).toHaveText(
+    "We couldn't find a book by that name.",
+  );
   await page.screenshot(shot("error"));
 });
 

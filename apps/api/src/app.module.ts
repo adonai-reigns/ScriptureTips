@@ -1,13 +1,15 @@
 import { type DynamicModule, Module } from "@nestjs/common";
 import { AuthModule } from "./auth/auth.module.ts";
 import type { AccountSettings } from "./auth/config.ts";
+import { CompilationsController } from "./compilations/compilations.controller.ts";
+import { CompilationsService } from "./compilations/compilations.service.ts";
 import { DatabaseModule } from "./database.ts";
 import { TranslationsController } from "./translations/translations.controller.ts";
 import { TranslationsService } from "./translations/translations.service.ts";
 
 @Module({
-  controllers: [TranslationsController],
-  providers: [TranslationsService],
+  controllers: [TranslationsController, CompilationsController],
+  providers: [TranslationsService, CompilationsService],
 })
 export class AppModule {
   /** The app on a database (`DATABASE_URL`, or the URL given), with its account settings. */

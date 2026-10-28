@@ -87,3 +87,23 @@ function referenceText(p: Passage): string {
   const last = v(end.verse, end.part);
   return last === v(start.verse, start.part) ? `${name} ${from}` : `${name} ${from}-${last}`;
 }
+
+/**
+ * The reader ID and passage segments from a path's segments after `/read/`: a translation
+ * (`/read/leb/…`) or a compilation (`/read/@handle/slug/…`, ID `@handle/slug`).
+ */
+export function readerTarget(
+  first: string,
+  rest: readonly string[],
+): { id: string; segments: string[] } | undefined {
+  const head = decodeURIComponent(first);
+  if (!head.startsWith("@")) return { id: head, segments: [...rest] };
+  const [slug, ...segments] = rest;
+  if (!slug || !/^@[a-z0-9-]{3,30}$/.test(head) || !/^[a-z0-9]{2,12}$/i.test(slug))
+    return undefined;
+  return { id: `${head}/${slug.toLowerCase()}`, segments };
+}
+
+/** True if a reader ID is a compilation's, and `handle` (the viewer's) owns it. */
+export const ownsCompilation = (id: string, handle: string | null | undefined): boolean =>
+  !id.startsWith("@") || (handle != null && id.startsWith(`@${handle}/`));

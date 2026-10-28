@@ -2,13 +2,16 @@
   "site": {
     "name": "ScriptureTips",
     "tagline": "Study the scriptures in the translation you trust.",
-    "credits": "Credits"
+    "credits": "Credits",
+    "compilations": "Compilations"
   },
   "search": {
     "translation": "Translation",
     "reference": "Passage",
     "placeholder": "e.g. John 3:16, Psalm 23, Joel 2:28–32",
-    "go": "Read"
+    "go": "Read",
+    "yourCompilations": "Your compilations",
+    "translations": "Translations"
   },
   "reader": {
     "notes": "Translator's notes",
@@ -30,7 +33,8 @@
     "noCanon": "Choose your canon on your account page to see the books in your tradition's order.",
     "previous": "Previous: {chapter}",
     "next": "Next: {chapter}",
-    "chapterNav": "Chapters"
+    "chapterNav": "Chapters",
+    "compiledFrom": "{title}, compiled from {sources}."
   },
   "errors": {
     "unknown-translation": "We don't have that translation.",
@@ -102,5 +106,62 @@
     "catholicHelp": "73 books, with Tobit, Judith, 1 and 2 Maccabees, Wisdom, Sirach, Baruch and the Greek parts of Esther and Daniel.",
     "orthodox": "Orthodox",
     "orthodoxHelp": "76 books, the Greek Orthodox canon: the Catholic books with 1 Esdras, 3 Maccabees and Psalm 151."
+  },
+  "compilations": {
+    "title": "Your compilations",
+    "intro": "A compilation is your own translation. Start from a base translation, then take books, chapters or passages from others. It stays private to you.",
+    "none": "You haven't made a compilation yet.",
+    "needHandle": "Choose a handle on your account page first: your compilations' links use it.",
+    "builtOn": "Built on the {base}.",
+    "read": "Read",
+    "edit": "Edit",
+    "new": "New compilation",
+    "titleField": "Title",
+    "titleHelp": "E.g. My Study Bible.",
+    "abbreviation": "Abbreviation",
+    "abbreviationHelp": "2 to 12 letters or numbers. It's part of your compilation's link.",
+    "base": "Base translation",
+    "baseHelp": "Every verse comes from here unless you choose another source.",
+    "create": "Create",
+    "sources": "Sources by book",
+    "narrower": "{count, plural, one {and # passage from elsewhere} other {and # passages from elsewhere}}",
+    "rules": "Your choices",
+    "noRules": "Every verse comes from the {base}.",
+    "ruleFrom": "{scope} from the {source}",
+    "remove": "Remove",
+    "removeLabel": "Remove {scope} from the {source}",
+    "addRule": "Take verses from another translation",
+    "scopeSection": "A whole section",
+    "scopePassage": "A book, chapter or passage",
+    "scope": "Which verses",
+    "section": "Section",
+    "passage": "Book, chapter or passage",
+    "passageHelp": "E.g. Genesis, Psalm 23 or Isaiah 53:1–12, in your compilation's numbering. A single verse comes later.",
+    "source": "From",
+    "add": "Add",
+    "deleteCompilation": "Delete this compilation",
+    "confirmDelete": "Delete {title}? This can't be undone.",
+    "sections": {
+      "ot": "Old Testament",
+      "nt": "New Testament",
+      "additional": "Additional writings"
+    }
+  },
+  "compilationErrors": {
+    "handle-required": "Choose a handle on your account page first.",
+    "unknown-translation": "We don't have that translation.",
+    "base-not-allowed": "That translation's licence doesn't allow it to be a base.",
+    "source-not-allowed": "That translation's licence doesn't allow taking its verses.",
+    "name-of-translation": "That's the name of a published translation. Choose your own, so readers aren't misled.",
+    "abbreviation-taken": "You already have a compilation with that abbreviation.",
+    "one-reference": "Enter one book, chapter or passage at a time.",
+    "whole-verses": "Choose whole verses.",
+    "no-canonical": "We can't place that passage in other translations yet.",
+    "single-verse": "Choose at least two verses. Choosing single verses comes later.",
+    "not-in-base": "Your base translation has no verses there. Books it lacks come later.",
+    "rule-overlaps": "That overlaps a choice you've already made. Remove that one first, or choose a narrower passage.",
+    "unknown-compilation": "We couldn't find that compilation.",
+    "invalid-request": "Check what you entered and try again.",
+    "unavailable": "Something went wrong. Please try again shortly."
   }
 }

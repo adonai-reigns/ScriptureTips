@@ -10,7 +10,12 @@ import {
   translatorNote,
   verseText,
 } from "@scripturetips/db";
-import { bookByOsis, formatOsisPassage, type Passage } from "@scripturetips/passage";
+import {
+  bookByOsis,
+  formatOsisPassage,
+  type OrdinalRange,
+  type Passage,
+} from "@scripturetips/passage";
 import {
   formatPassage,
   type ParseError,
@@ -55,6 +60,9 @@ export interface PassageVerse {
     readonly body: unknown;
   }[];
 }
+
+/** A verse with its canonical ordinal range, for matching across translations (not sent). */
+export type StoredVerse = PassageVerse & { readonly range: OrdinalRange | null };
 
 export interface PassageResult {
   /** As written, in the translation's numbering (OSIS). */
@@ -138,7 +146,7 @@ export class TranslationsService {
     const passages: PassageResult[] = [];
     let total = 0;
     for (const ref of parsed.references) {
-      const found = await this.versesIn(row.id, ref.entered);
+      const found = (await this.versesIn(row.id, ref.entered)).map(({ range: _, ...v }) => v);
       total += found.length;
       if (total > MAX_VERSES) return { ok: false, reason: "too-many-verses", limit: MAX_VERSES };
       passages.push({
@@ -153,21 +161,43 @@ export class TranslationsService {
   }
 
   /** The verses a passage covers, in the translation's numbering; a bridged verse counts once. */
-  private async versesIn(translationId: string, p: Passage): Promise<PassageVerse[]> {
+  async versesIn(translationId: string, p: Passage): Promise<StoredVerse[]> {
     const { start, end } = p;
-    const rows = await this.db
-      .select()
-      .from(verseText)
-      .where(
-        and(
-          eq(verseText.translationId, translationId),
-          eq(verseText.book, start.book),
-          sql`(${verseText.chapter}, coalesce(${verseText.toVerse}, ${verseText.verse})) >= (${start.chapter}, ${start.verse})`,
-          sql`(${verseText.chapter}, ${verseText.verse}) <= (${end.chapter}, ${end.verse})`,
-        ),
-      )
-      .orderBy(asc(verseText.chapter), asc(verseText.verse))
-      .limit(MAX_VERSES + 1);
+    return this.withNotes(
+      await this.db
+        .select()
+        .from(verseText)
+        .where(
+          and(
+            eq(verseText.translationId, translationId),
+            eq(verseText.book, start.book),
+            sql`(${verseText.chapter}, coalesce(${verseText.toVerse}, ${verseText.verse})) >= (${start.chapter}, ${start.verse})`,
+            sql`(${verseText.chapter}, ${verseText.verse}) <= (${end.chapter}, ${end.verse})`,
+          ),
+        )
+        .orderBy(asc(verseText.chapter), asc(verseText.verse))
+        .limit(MAX_VERSES + 1),
+    );
+  }
+
+  /** A translation's verses whose canonical verses overlap `range` (compilation sources). */
+  async versesOverlapping(translationId: string, range: OrdinalRange): Promise<StoredVerse[]> {
+    return this.withNotes(
+      await this.db
+        .select()
+        .from(verseText)
+        .where(
+          and(
+            eq(verseText.translationId, translationId),
+            sql`${verseText.canonicalRange} && int4range(${range.start}, ${range.end}, '[]')`,
+          ),
+        )
+        .orderBy(asc(verseText.chapter), asc(verseText.verse))
+        .limit(MAX_VERSES * 2),
+    );
+  }
+
+  private async withNotes(rows: (typeof verseText.$inferSelect)[]): Promise<StoredVerse[]> {
     const notes =
       rows.length === 0
         ? []
@@ -187,6 +217,7 @@ export class TranslationsService {
       to: r.toVerse,
       published: r.published,
       canonical: r.canonical,
+      range: r.canonicalRange,
       headings: r.headings,
       content: r.content,
       notes: notes
@@ -202,7 +233,8 @@ export class TranslationsService {
     }));
   }
 
-  private verseCounts(translationId: string): Promise<VerseCounts> {
+  /** A translation's chapters and verses, read once: the reference parser needs them. */
+  verseCounts(translationId: string): Promise<VerseCounts> {
     let counts = this.counts.get(translationId);
     if (!counts) {
       counts = this.readCounts(translationId);
@@ -251,7 +283,8 @@ const summary = (row: typeof translation.$inferSelect): TranslationSummary => ({
   license: row.licenseKey,
 });
 
-const wholeChapters = (p: Passage, verses: VerseCounts): boolean =>
+/** True when a passage is whole chapters ("Psalm 23", "Ruth 1–2"). */
+export const wholeChapters = (p: Passage, verses: VerseCounts): boolean =>
   p.start.part === 0 &&
   p.end.part === 0 &&
   p.start.verse === verses.verses(p.start.book, p.start.chapter)?.first &&

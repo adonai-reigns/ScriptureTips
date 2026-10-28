@@ -1,4 +1,10 @@
-/** The API's translations and passages (apps/api), fetched on the server. */
+/**
+ * The API's translations and passages (apps/api), fetched on the server. A compilation is read
+ * like a translation by its reader ID, `@handle/slug` (paths.ts), with the viewer's session:
+ * compilations are private to their owner.
+ */
+
+import { cookies } from "next/headers";
 
 export type Inline =
   | string
@@ -31,6 +37,15 @@ export interface Verse {
   headings: Heading[];
   content: Inline[];
   notes: Note[];
+  /** In a compilation: the translation this verse was taken from (catalog ID). */
+  source?: string;
+}
+
+/** A translation a compilation's verses were taken from. */
+export interface Source {
+  id: string;
+  abbreviation: string;
+  name: string;
 }
 
 export interface PassageResult {
@@ -52,7 +67,7 @@ export interface Translation {
 }
 
 export type PassageResponse =
-  | { ok: true; translation: Translation; passages: PassageResult[] }
+  | { ok: true; translation: Translation; passages: PassageResult[]; sources?: Source[] }
   | { ok: false; code: string; index?: number };
 
 /** `API_URL`: the API inside the dev stack (compose.yaml), or the local one. */
@@ -64,19 +79,33 @@ export async function translations(): Promise<Translation[]> {
   return ((await res.json()) as { translations: Translation[] }).translations;
 }
 
+/** A compilation's API path, from its reader ID (`@handle/slug`). */
+const compilationPath = (id: string) =>
+  `${API}/compilations/${encodeURIComponent(id.split("/")[1] ?? "")}`;
+
+/** A request for a translation (cached) or a compilation (the viewer's own, never cached). */
+async function request(id: string, path: string): Promise<Response> {
+  if (!id.startsWith("@"))
+    return fetch(`${API}/translations/${encodeURIComponent(id)}${path}`, {
+      next: { revalidate: 300 },
+    });
+  const cookie = (await cookies()).toString();
+  return fetch(`${compilationPath(id)}${path}`, { headers: { cookie }, cache: "no-store" });
+}
+
 export async function passage(translation: string, ref: string): Promise<PassageResponse> {
   let res: Response;
   try {
-    res = await fetch(
-      `${API}/translations/${encodeURIComponent(translation)}/passages?ref=${encodeURIComponent(ref)}`,
-      { next: { revalidate: 300 } },
-    );
+    res = await request(translation, `/passages?ref=${encodeURIComponent(ref)}`);
   } catch {
     return { ok: false, code: "unavailable" };
   }
   const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
   if (res.ok)
-    return { ok: true, ...(body as { translation: Translation; passages: PassageResult[] }) };
+    return {
+      ok: true,
+      ...(body as { translation: Translation; passages: PassageResult[]; sources?: Source[] }),
+    };
   const code = typeof body["code"] === "string" ? body["code"] : "unavailable";
   return {
     ok: false,
@@ -89,10 +118,8 @@ export async function passage(translation: string, ref: string): Promise<Passage
 export async function books(
   translation: string,
 ): Promise<{ osis: string; chapters: number[] }[] | null> {
-  const res = await fetch(`${API}/translations/${encodeURIComponent(translation)}/books`, {
-    next: { revalidate: 300 },
-  });
-  if (res.status === 404) return null;
+  const res = await request(translation, "/books");
+  if (res.status === 404 || res.status === 401) return null;
   if (!res.ok) throw new Error(`API: ${res.status}`);
   return ((await res.json()) as { books: { osis: string; chapters: number[] }[] }).books;
 }

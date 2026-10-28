@@ -214,6 +214,9 @@ importers:
       '@scripturetips/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@scripturetips/licenses':
+        specifier: workspace:*
+        version: link:../../packages/licenses
       '@scripturetips/passage':
         specifier: workspace:*
         version: link:../../packages/passage
@@ -250,6 +253,9 @@ importers:
       '@scripturetips/canon':
         specifier: workspace:*
         version: link:../../packages/canon
+      '@scripturetips/licenses':
+        specifier: workspace:*
+        version: link:../../packages/licenses
       '@scripturetips/passage':
         specifier: workspace:*
         version: link:../../packages/passage
@@ -297,6 +303,8 @@ importers:
       drizzle-kit:
         specifier: 0.31.11
         version: 0.31.11
+
+  packages/licenses: {}
 
   packages/passage: {}
 

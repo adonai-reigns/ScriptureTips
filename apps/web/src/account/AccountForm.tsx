@@ -3,6 +3,7 @@
 import { CANON_IDS } from "@scripturetips/canon";
 import { useTranslations } from "next-intl";
 import { type FormEvent, useState } from "react";
+import { useHydrated } from "../hydrated.ts";
 import type { Account } from "./api.ts";
 import { type AccountError, accountError } from "./errors.ts";
 
@@ -13,6 +14,7 @@ export function AccountForm({ account }: { account: Account }) {
   const tc = useTranslations("canons");
   const [error, setError] = useState<AccountError | null>(null);
   const [busy, setBusy] = useState(false);
+  const hydrated = useHydrated();
 
   const save = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -95,7 +97,7 @@ export function AccountForm({ account }: { account: Account }) {
           {te(error)}
         </p>
       )}
-      <button type="submit" disabled={busy}>
+      <button type="submit" disabled={busy || !hydrated}>
         {t("save")}
       </button>
     </form>

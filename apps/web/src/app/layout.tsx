@@ -28,6 +28,11 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
               <Image src="/brand/logo-48.png" width={48} height={48} alt="" priority />
               <span>{t("name")}</span>
             </a>
+            {account?.handle ? (
+              <a href="/compilations" className="account-link compilations-link">
+                {t("compilations")}
+              </a>
+            ) : null}
             <a href={account ? "/account" : "/sign-in"} className="account-link">
               {account ? (account.handle ? `@${account.handle}` : ta("yourAccount")) : ta("signIn")}
             </a>
