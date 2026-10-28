@@ -155,15 +155,111 @@ describe("NET notes and headings", () => {
   });
 });
 
-describe("a note in an introduction paragraph (RV Sirach prologue)", () => {
+describe("a note in an introduction paragraph", () => {
   it("is written in brackets, and the book reads", () => {
     const { book, rules } = read(
-      "SIR",
+      "TOB",
       "\\ip I found \\f + \\fr 1:0 \\ft Or, \\fqa a like work\\f* a copy.",
       "\\c 1",
       "\\p \\v 1 All wisdom cometh from the Lord.",
     );
     expect(book.skipped).toMatchObject({ "paragraph ip": 1 });
     expect(rules).toEqual(["note in an introduction paragraph written in brackets"]);
+  });
+});
+
+describe("the prologue to Sirach, written as verse 0 for now (domain-model §10)", () => {
+  it("keeps the KJV's prologue after \\c 1, with its headings, as verse 0", () => {
+    const { book, rules } = read(
+      "SIR",
+      "\\c 1",
+      "\\s1 A Prologue made by an uncertain Author",
+      "\\p This Jesus was the son of Sirach.",
+      "\\s1 The Prologue of the Wisdom of Jesus the Son of Sirach.",
+      "\\p Whereas many and great things.",
+      "\\p",
+      "\\v 1 All wisdom cometh from the Lord.",
+    );
+    const prologue = book.chapters[0]?.verses[0];
+    expect(prologue?.verse).toBe(0);
+    expect(prologue?.headings.map((h) => plainText(h.content))).toEqual([
+      "A Prologue made by an uncertain Author",
+    ]);
+    expect(plainText(prologue?.content ?? [])).toContain("This Jesus was the son of Sirach.");
+    expect(headingsIn(prologue?.content ?? [])).toEqual([
+      ["s1", "The Prologue of the Wisdom of Jesus the Son of Sirach."],
+    ]);
+    expect(plainText(verseContent(book, 1, 1))).toBe("All wisdom cometh from the Lord.");
+    expect(rules).toEqual([
+      "Sirach prologue written as verse 0 (Sir 1:0, for now: domain-model §10)",
+    ]);
+  });
+
+  it("moves a prologue printed as introduction (WEB, RV, KJVCPB) to verse 0, leaving the editors' introduction", () => {
+    const { book, rules } = read(
+      "SIR",
+      "\\mt1 Sirach",
+      "\\ip Sirach is recognized as Deuterocanonical.",
+      "\\is1 The Prologue of the Wisdom of Jesus the Son of Sirach.",
+      "\\im \\sc Whereas\\sc* many and great \\add things\\add* have been delivered.",
+      "\\c 1",
+      "\\q1",
+      "\\v 1 All wisdom comes from the Lord,",
+    );
+    expect(book.skipped).toMatchObject({ "paragraph ip": 1 });
+    const prologue = book.chapters[0]?.verses[0];
+    expect(prologue?.verse).toBe(0);
+    expect(prologue?.headings.map((h) => h.marker)).toEqual(["s1"]);
+    expect(plainText(prologue?.content ?? [])).toBe(
+      "Whereas many and great things have been delivered.",
+    );
+    expect(rules).toEqual([
+      "Sirach prologue moved from the introduction to before 1:1",
+      "Sirach prologue written as verse 0 (Sir 1:0, for now: domain-model §10)",
+    ]);
+  });
+});
+
+describe("a paragraph between a chapter number and its first verse (KJV Sir 51)", () => {
+  it("is a title of verse 1", () => {
+    const { book, rules } = read(
+      "SIR",
+      "\\c 51",
+      "\\p A Prayer of Jesus the son of Sirach.",
+      "\\q1",
+      "\\v 1 I will give thanks to you, O Lord,",
+    );
+    const [first] = book.chapters[0]?.verses ?? [];
+    expect(first?.verse).toBe(1);
+    expect(first?.headings).toEqual([
+      { marker: "d", content: ["A Prayer of Jesus the son of Sirach."] },
+    ]);
+    expect(rules).toEqual(["paragraph before a chapter's first verse written as a title (\\d)"]);
+  });
+
+  it("leaves an empty paragraph before verse 1 alone", () => {
+    const { rules } = read("SIR", "\\c 2", "\\p", "\\q1", "\\v 1 My son,");
+    expect(rules).toEqual([]);
+  });
+});
+
+describe("Psalm 119's acrostic letters written as \\qc (ASV, KJVCPB)", () => {
+  it("are headings of the verse after them", () => {
+    const { book, rules } = read(
+      "PSA",
+      "\\c 119",
+      `\\qc ${String.fromCharCode(0x5d0)} ALEPH.`,
+      "\\q1",
+      "\\v 1 Blessed are they.",
+      "\\qc BETH.",
+      "\\q1",
+      "\\v 9 Wherewithal shall a young man.",
+    );
+    expect(book.chapters[0]?.verses[0]?.headings).toEqual([
+      { marker: "qa", content: [`${String.fromCharCode(0x5d0)} ALEPH.`] },
+    ]);
+    expect(book.chapters[0]?.verses[1]?.headings).toEqual([{ marker: "qa", content: ["BETH."] }]);
+    expect(plainText(verseContent(book, 119, 1))).toBe("Blessed are they.");
+    expect(rules).toEqual(["Psalm 119 acrostic letter written as \\qa"]);
   });
 });

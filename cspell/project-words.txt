@@ -6,6 +6,7 @@ Berean
 biomejs
 CXXFLAGS
 depcruise
+Deuterocanonical
 engbsb
 engfbv
 enggnv

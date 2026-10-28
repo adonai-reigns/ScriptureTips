@@ -21,7 +21,23 @@ export interface Normalization {
 }
 
 /**
- * Adjustments usfm-grammar needs, each kept to the smallest span and listed in the report.
+ * Adjustments to the USFM, each kept to the smallest span and listed in the report. First,
+ * where the import reads the structure differently from how the source marks it:
+ *
+ * - **The prologue to Sirach is written as verse 0** (Sir 1:0), like a Psalm title. It's the
+ *   grandson's preface, before 1:1, and no scheme numbers it; verse 0 is a stopgap until the
+ *   reader view has a prologue element (domain-model §10). The KJV prints it after `\c 1`
+ *   under two `\s1` headings; the WEB, WEBU, RV and KJVCPB as introduction (`\is1`, `\ip`,
+ *   `\im`), which is moved to after `\c 1` first. The editors' own introduction before it
+ *   (WEB: "… is recognized as Deuterocanonical …") stays introduction.
+ * - A paragraph between a chapter number and its first verse, with no verse number in it, is
+ *   a title: `\c 51` `\p A Prayer of Jesus the son of Sirach.` (KJV, WEB, RV). It becomes `\d`,
+ *   a heading of verse 1.
+ * - The ASV and KJVCPB write Psalm 119's acrostic letters (`א ALEPH.`) as `\qc`, a centered
+ *   poetry line, which would make each letter part of the verse before it. They become `\qa`,
+ *   the acrostic heading.
+ *
+ * Then what usfm-grammar needs:
  *
  * - It accepts no nested character marker inside `\qs` (the "Selah" span), and empties the span
  *   if it meets one. WEB editions write `\qs \+w Selah|strong="H5542"\+w*.\qs*`, which is
@@ -52,9 +68,9 @@ export interface Normalization {
  *   it becomes `\xt Is 41:14\xt*`, a reference in a note; nothing is lost. It also tags part of
  *   a commentary's title as a reference, unclosed (`R. Whybray, \it \+xo Is 40-66\it*`); there
  *   the tag is removed and the text kept.
- * - It accepts no note inside an introduction paragraph. The RV writes one in the prologue to
- *   Sirach. There the note is written out in brackets: introductions aren't imported yet, and
- *   no words are lost.
+ * - It accepts no note inside an introduction paragraph. There the note is written out in
+ *   brackets (WEB front matter): introductions aren't imported yet, and no words are lost.
+ *   The RV's note in the Sirach prologue stays a note, as the prologue leaves the introduction.
  */
 export function normalizeUsfm(usfm: string): { usfm: string; normalizations: Normalization[] } {
   const normalizations: Normalization[] = [];
@@ -67,6 +83,37 @@ export function normalizeUsfm(usfm: string): { usfm: string; normalizations: Nor
     });
     if (count) normalizations.push({ rule, count });
   };
+  const code = /^\\id\s+(\S+)/m.exec(usfm)?.[1] ?? "";
+  if (code === "SIR") {
+    // Before the "note in an introduction paragraph" rule: moved out of the introduction, the
+    // RV's note in the prologue stays a note.
+    apply(
+      "Sirach prologue moved from the introduction to before 1:1",
+      /^\\is\d?\s[^\n]*Prologue[\s\S]*?(?=^\\c\s+1\s*$)/m,
+      (block) => block.replace(/^\\is\d?\s/gm, "\\s1 ").replace(/^\\i[a-z]+\d?\s/gm, "\\p "),
+    );
+    usfm = usfm.replace(
+      /^((?:\\s1\s[^\n]*Prologue[^\n]*\n(?:\\p\s[^\n]*\n)+)+)(\\c\s+1\s*\n)/m,
+      "$2$1",
+    );
+    apply(
+      "Sirach prologue written as verse 0 (Sir 1:0, for now: domain-model §10)",
+      /^(\\c\s+1\s*\n(?:\\s\d?\s[^\n]*\n)*)\\p[ \t]+(?!\\v\s)(?=\S)/m,
+      (start) => `${start}\\v 0 `,
+    );
+  }
+  apply(
+    "paragraph before a chapter's first verse written as a title (\\d)",
+    /^(\\c\s+\d+\s*\n)\\p[ \t]+(?=[^\\\s][^\n]*\n(?:\\[a-z]+\d?\s*\n)*\\v\s)/gm,
+    (start) => start.replace(/\\p[ \t]+$/, "\\d "),
+  );
+  if (code === "PSA") {
+    apply(
+      "Psalm 119 acrostic letter written as \\qa",
+      /^\\qc\s+(?=(?:\p{Script=Hebrew}\s*)?[A-Z]+\.?\s*$)/gmu,
+      () => "\\qa ",
+    );
+  }
   apply("nested marker inside \\qs unwrapped", /\\qs\s.*?\\qs\*/gs, (span) =>
     span.replace(/\\\+[a-z0-9]+\s?([^\\|]*)(?:\|[^\\]*)?\\\+[a-z0-9]+\*/g, "$1"),
   );

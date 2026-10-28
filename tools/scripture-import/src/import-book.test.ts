@@ -125,7 +125,7 @@ describe("nothing is dropped silently", () => {
   });
 
   it("reports text outside a verse", () => {
-    const result = importBook(usfm("\\c 1", "\\p Stray text", "\\v 1 Verse."));
+    const result = importBook(usfm("\\c 1", "\\m Stray text", "\\v 1 Verse."));
     expect(result.issues.join("\n")).toMatch(/text outside a verse/);
   });
 

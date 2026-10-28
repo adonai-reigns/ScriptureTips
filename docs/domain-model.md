@@ -135,6 +135,7 @@ Translations number verses differently: verses moved between chapters (English J
 | `added` | Present only in this translation/canon | Shown; links from other schemes don't reach it |
 
 - **Psalm headings** are verse `0`, so they can be linked like any other verse.
+- **The prologue to Sirach** is verse `0` of chapter 1 for now (Sir 1:0), in every translation that prints it, wherever the source puts it (after `\c 1`, or in the book's introduction). Like a Psalm heading it's numbered where no scheme numbers it. It may become a prologue element of its own (§10).
 - A **golden test set** of the hard cases above runs in CI against every change to mapping data or the reference parser.
 
 ### 2.2 Passage (value object)
@@ -541,3 +542,4 @@ External references in an edition are rendered as footnotes or endnotes using th
 ## 10. Open questions
 
 1. Which source text the interlinear and word studies show when the user hasn't chosen one. Licenses for the original-language datasets are confirmed in [sources.md](sources.md) §5 (with the caveats in §6). Proposed: follow the translation being read (e.g. KJV → Textus Receptus, modern translations → a critical text), with a user setting to override it.
+2. **A prologue element.** The prologue to Sirach is stored as verse 0 for now (§2.1), as are Psalm headings. It's prose (two paragraphs, about 600 words in the KJV), not a verse: it may need its own element, shown before 1:1, linkable as "Sirach, prologue" and offered separately in compilations. Revisit when the reader view is built.
