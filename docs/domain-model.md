@@ -430,7 +430,7 @@ Separate from stance: "was this helpful?" (`helpful` · `somewhat` · `not_helpf
 
 | **GuardianLink** | minor (user), guardian (user), requested_at, accepted_by_minor_at, accepted_by_guardian_at, ended_at, end reason (`turned_18` · `replaced` · `revoked_by_staff`) | Gives the guardian read-only access to everything the minor's account can see or has done, including private work and messages. Guardian access is itself logged and visible to the minor. |
 
-`User` gains `state`: `active` · `pending_deletion` · `deleted` · `memorial`, and `age_bracket`: `adult` · `minor` (self-declared) plus `turns_adult_on` (from the declared birth month and year). A `minor` without an accepted GuardianLink can use private study only.
+`User` gains `state`: `active` · `pending_deletion` · `deleted` · `memorial`, and, once the user first opens a feature that communicates with others, starting with publishing (vision §5.2), `age_bracket`: `adult` · `minor` (self-declared) plus `turns_adult_on` (from the declared birth month and year). Until then both are empty: private study needs neither. A `minor` without an accepted GuardianLink can't publish or use the social features.
 
 ### 5.1 Group collaboration
 Each member has a **role**: `read` (can read the group's items), `contribute` (can also edit them), `publish` (can also publish them) or `admin` (can also manage membership, conduct and the group's settings). The **group's settings** decide whether its content may be made public at all.

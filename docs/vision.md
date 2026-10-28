@@ -362,11 +362,13 @@ Once something is public, other people act on it: they read it, quote it, reply 
 - **Legacy contact:** a user can name someone who, on proof of death, can download the export, choose what stays published, and turn the account into a memorial. Without one, the account and its published work remain as they are.
 - **Inactive accounts are never deleted automatically.** People return to study tools after years.
 
-### 5.2 Minors: full participation, with a guardian
-Minors have the same rights to participate as everyone else: every feature, including publishing, discussion and groups. ScriptureTips doesn't strip young people of participation because they might be harmed; it acts against the people who would do harm.
+### 5.2 Age: asked only where people communicate with others
+Features that keep a user's work to themselves, such as private study, compilations and editions, are open to everyone, whatever their age. **No age is asked at sign-up.** Age-related laws, and the responsibilities that come with reaching other people, apply once a user communicates with others: **publishing** (a form of communicating with others), discussion, comments, messaging, contacts and groups. Those features ask for the information the law requires the first time a user opens one, and stay unavailable until it is provided. Publishing arrives in stage 1, so the age declaration is built with it (§10). What each country requires is settled before the first public release (§11, item 5).
 
-- **Declared, not verified:** a user under 18 declares that they are in the minor age bracket at sign-up.
-- **A guardian is required.** A minor's account is linked to a guardian's ScriptureTips account, with both agreeing to the link, before the minor can publish, comment or join groups. Until then the account can still be used for private study.
+Minors have the same rights to participate as everyone else, including publishing. ScriptureTips doesn't strip young people of participation because they might be harmed; it acts against the people who would do harm.
+
+- **Declared, not verified:** on first opening a feature that communicates with others, starting with publishing, a user declares their age bracket (minor or adult).
+- **A guardian is required for those features.** A minor's account is linked to a guardian's ScriptureTips account, with both agreeing to the link, before the minor can publish or use the social features. Everything else stays available without one. Until guardian links are built, a minor can't publish.
 - **The guardian can see all of the minor's activity:** private work, published work, comments, groups and messages. They have view-only access: they can't edit, publish or post as the minor.
 - **The guardian reports harm through the normal abuse channels** (§4.1). Minors get no extra moderation beyond this. The platform-wide moderation of behavior applies to everyone as usual.
 - **Not shown publicly:** other users aren't told that an account belongs to a minor, so the label can't be used to single them out.
@@ -471,12 +473,12 @@ The first three stages complete the primary purpose: **ScriptureTips as a study 
 
 | Stage | Contents |
 |---|---|
-| **1. Compilations and publications** | Foundations first: monorepo, testing framework (testing.md), accounts, canon choice, versification, reference parser, public-domain translations, passages API. Then compilations (bases, layered overrides, own wording with authorship evidence, modified translation verses as corrections or adaptations), the publishing procedure with the automated check, versions, published history and URLs. |
+| **1. Compilations and publications** | Foundations first: monorepo, testing framework (testing.md), accounts, canon choice, versification, reference parser, public-domain translations, passages API. Then compilations (bases, layered overrides, own wording with authorship evidence, modified translation verses as corrections or adaptations), the publishing procedure with the automated check and the age declaration it requires (§5.2), versions, published history and URLs. |
 | **2. Study tools** | Interlinear, Strong's, lexicons, Paleo-Hebrew letter forms, personal research libraries, scripture links, external references, annotations, tags, annotation collections, search of the user's own content. |
 | **3. Book designer** | Editions, the PDF engine (after the LaTeX vs Typst trial), printer profiles, preflight checks. |
 | **4. Sharing and the browser extension** | Notes with placement tracking; the rewritten browser extension (v1.0.3 parity, tooltips, note insert flow), released as an update to the existing Web Store listing; the website widget and its JavaScript API; the WordPress plugin. Built together because they share most of their code. Until then, v1.0.3 stays live as it is. |
 | **5. Your data** | Full export, account deletion with its options, legacy contact. |
-| **Later** | The social features: discussion, groups and collaboration, public content search, guardians for minors' social activity. Also notifications beyond the basics, offline and mobile, AI assistance (BYOK), content in other languages, volunteer UI translation, federation, satellite installations. |
+| **Later** | The social features: discussion, groups and collaboration, public content search, guardian links for minors (§5.2). Also notifications beyond the basics, offline and mobile, AI assistance (BYOK), content in other languages, volunteer UI translation, federation, satellite installations. |
 
 Foundations for the later stages are still built from the start where retrofitting would be costly: language files and language tags, RTL-ready layouts, client-generated IDs, revision-based check-in and the sync API, the visibility model and the authorization matrix test.
 
@@ -486,7 +488,7 @@ Foundations for the later stages are still built from the start where retrofitti
 2. Legal entity to own and operate ScriptureTips (e.g. a charitable trust or incorporated society), separating the operator's personal liability from the platform's.
 3. Which language models make up the moderation panel (§6). Decided at the social-features stage. Every call is paid by the operator, since ScriptureTips earns nothing, so an open-weights safety model on our own server is preferred for the first pass.
 4. Which domain name(s) to commit to permanently, including a short domain for printed QR codes, and the handle rules (how often a handle may change, which group names need verification).
-5. Age-related laws in countries where users live (e.g. bans on under-16s using social media, the EU's age of digital consent, US COPPA for under-13s): how the guardian model (§5.2) applies, and whether any country needs different rules. **Deferred** until after the first public release.
+5. Age-related laws in countries where users live (e.g. bans on under-16s using social media, the EU's age of digital consent, US COPPA for under-13s): how the age declaration and guardian model (§5.2) apply to publishing and the social features, and whether any country needs different rules. Also whether an account for private study (which holds an email address) needs anything for young children under COPPA or the GDPR. To settle before the first public release, since publishing is in stage 1.
 6. **Bot check for sign-up and code requests:** self-hosted, so no visitor data goes to a third party (which rules out reCAPTCHA, hCaptcha and Cloudflare Turnstile). Candidate: ALTCHA (proof of work, MIT). Needs approval as a dependency when accounts are built.
 
 **Decided:**
