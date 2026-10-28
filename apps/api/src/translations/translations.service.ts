@@ -1,5 +1,15 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { translation, translationBook, translatorNote, verseText } from "@scripturetips/db";
+import {
+  and,
+  asc,
+  eq,
+  inArray,
+  sql,
+  translation,
+  translationBook,
+  translatorNote,
+  verseText,
+} from "@scripturetips/db";
 import { formatOsisPassage, type Passage } from "@scripturetips/passage";
 import {
   formatPassage,
@@ -8,7 +18,6 @@ import {
   type VerseCounts,
 } from "@scripturetips/reference";
 import type { SchemeId } from "@scripturetips/versification";
-import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { DATABASE, type Database } from "../database.ts";
 
 /**

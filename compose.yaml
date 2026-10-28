@@ -50,11 +50,40 @@ services:
     environment:
       DATABASE_URL: postgres://scripturetips:scripturetips@postgres:5432/scripturetips
       PORT: "3001"
+      # Accounts (apps/api/src/auth). A development-only secret: production sets its own.
+      AUTH_SECRET: development-only-secret-not-for-production-use
+      AUTH_URL: http://127.0.0.1:3000
+      TRUSTED_ORIGINS: http://localhost:3000,http://web:3000,${LAN_ORIGINS:-}
+      VALKEY_URL: redis://valkey:6379
+      SMTP_URL: smtp://mailpit:1025
+      MAIL_FROM: ScriptureTips <no-reply@scripturetips.localhost>
     ports:
       - 127.0.0.1:3001:3001
     depends_on:
       postgres:
         condition: service_healthy
+      valkey:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    profiles: [dev]
+
+  # Rate limits and bot-check replay protection (later also BullMQ jobs). Nothing in it needs
+  # keeping, so it has no volume.
+  valkey:
+    image: valkey/valkey:9.0.7-alpine
+    healthcheck:
+      test: [CMD, valkey-cli, ping]
+      interval: 2s
+      retries: 30
+    profiles: [dev]
+
+  # Catches every email the stack sends, such as sign-in codes: read them at
+  # http://127.0.0.1:8025. Nothing leaves the machine.
+  mailpit:
+    image: axllent/mailpit:v1.31.4
+    ports:
+      - 127.0.0.1:8025:8025
     profiles: [dev]
 
   # The web app (apps/web), with hot reload. http://127.0.0.1:3000, or on the local network
@@ -69,7 +98,9 @@ services:
     environment:
       API_URL: http://api:3001/api
       NEXT_TELEMETRY_DISABLED: "1"
-      DEV_ORIGINS: ${DEV_ORIGINS:-}
+      # Hosts besides localhost the dev server answers: `web` for the end-to-end tests, and
+      # the network addresses `./dev up --lan` adds.
+      DEV_ORIGINS: web,${DEV_ORIGINS:-}
     ports:
       - ${LAN_BIND:-127.0.0.1}:3000:3000
     depends_on:

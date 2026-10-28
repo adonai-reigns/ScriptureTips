@@ -1,0 +1,37 @@
+{
+ "source": "https://github.com/shouldbee/reserved-usernames",
+ "commit": "0302214e8c1363fc5877ce3343ef6262e8852e96",
+ "commit_date": "2021-07-14T07:06:29Z",
+ "files": [
+  {
+   "path": "shouldbee-reserved-usernames/reserved-usernames.txt",
+   "url": "https://raw.githubusercontent.com/shouldbee/reserved-usernames/0302214e8c1363fc5877ce3343ef6262e8852e96/reserved-usernames.txt",
+   "bytes": 4240,
+   "sha256": "ece5a88dd916d3662572690e61753c730a2423365d0b6f4581f548fc253b840b",
+   "last_modified": null,
+   "record": "shouldbee-reserved-usernames/shouldbee-reserved-usernames-download-record-2026-10-28.json",
+   "status": "first recorded here",
+   "retrieved": "2026-10-28"
+  },
+  {
+   "path": "shouldbee-reserved-usernames/LICENSE",
+   "url": "https://raw.githubusercontent.com/shouldbee/reserved-usernames/0302214e8c1363fc5877ce3343ef6262e8852e96/LICENSE",
+   "bytes": 1067,
+   "sha256": "c9b003992c61becee037549814a89434c05780288f14c190b554dc30b7fddf5f",
+   "last_modified": null,
+   "record": "shouldbee-reserved-usernames/shouldbee-reserved-usernames-download-record-2026-10-28.json",
+   "status": "first recorded here",
+   "retrieved": "2026-10-28"
+  },
+  {
+   "path": "shouldbee-reserved-usernames/README.md",
+   "url": "https://raw.githubusercontent.com/shouldbee/reserved-usernames/0302214e8c1363fc5877ce3343ef6262e8852e96/README.md",
+   "bytes": 890,
+   "sha256": "d22abaa3a7d1ac792c5c9483d7fed7f1e7821b92bddc3adba562ece108e6a5c0",
+   "last_modified": null,
+   "record": "shouldbee-reserved-usernames/shouldbee-reserved-usernames-download-record-2026-10-28.json",
+   "status": "first recorded here",
+   "retrieved": "2026-10-28"
+  }
+ ]
+}

@@ -48,6 +48,18 @@ a {
 
 .site-header {
   padding: 0.75rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.account-link {
+  background: rgb(255 255 255 / 0.85);
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  font-weight: 600;
+  text-decoration: none;
 }
 
 .brand {
@@ -157,6 +169,75 @@ main {
 
 .error {
   color: #8a1c1c;
+}
+
+/* Sign-in and account forms */
+.account-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 26rem;
+}
+
+.account-form label,
+.account-form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.account-form small {
+  font-size: 0.85rem;
+}
+
+.account-form input,
+.account-form output,
+.account-form button[type="submit"] {
+  font: inherit;
+  font-size: 1rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid #9aa5b1;
+  border-radius: 0.4rem;
+  color: var(--ink);
+  background: #fff;
+}
+
+.account-form output {
+  border-color: transparent;
+  padding-left: 0;
+  font-weight: 600;
+}
+
+.account-form button[type="submit"] {
+  background: var(--deep);
+  border-color: var(--deep);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.account-form button:disabled {
+  opacity: 0.6;
+}
+
+.link-button {
+  font: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--deep);
+  text-decoration: underline;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.welcome {
+  background: var(--pale);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
 }
 
 /* The passage */

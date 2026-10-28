@@ -3,8 +3,15 @@
   "version": "0.2",
   "language": "en-US",
   "dictionaryDefinitions": [
-    { "name": "project-words", "path": "./cspell/project-words.txt", "addWords": true },
-    { "name": "scripture-words", "path": "./cspell/scripture-words.txt" }
+    {
+      "name": "project-words",
+      "path": "./cspell/project-words.txt",
+      "addWords": true
+    },
+    {
+      "name": "scripture-words",
+      "path": "./cspell/scripture-words.txt"
+    }
   ],
   "dictionaries": ["project-words", "scripture-words"],
   "ignoreRegExpList": ["/[\\u0590-\\u05FF]+/g"],
@@ -16,7 +23,10 @@
     "coverage",
     "**/*.cjs",
     "tools/source-conversion/src/jps1917/corrections.ts",
-    "packages/reference/src/languages/**"
+    "packages/reference/src/languages/**",
+    "**/dist/**",
+    "**/.next/**",
+    "**/test-results/**"
   ],
   "overrides": [
     {

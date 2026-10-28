@@ -8,6 +8,13 @@
       "when": 1793162273601,
       "tag": "0000_scripture_text",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793174799267,
+      "tag": "0001_accounts",
+      "breakpoints": true
     }
   ]
 }

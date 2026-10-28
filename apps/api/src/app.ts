@@ -2,11 +2,19 @@ import "reflect-metadata";
 import { NestFactory } from "@nestjs/core";
 import { FastifyAdapter, type NestFastifyApplication } from "@nestjs/platform-fastify";
 import { AppModule } from "./app.module.ts";
+import { type AccountSettings, accountSettingsFromEnv } from "./auth/config.ts";
 
-/** The API on Fastify, under `/api`. `databaseUrl`: tests pass their own database. */
-export async function createApp(databaseUrl?: string): Promise<NestFastifyApplication> {
+export interface AppOptions {
+  /** Tests pass their own database. */
+  databaseUrl?: string;
+  /** From the environment when not given; tests pass a memory store and a mail list. */
+  accounts?: AccountSettings;
+}
+
+/** The API on Fastify, under `/api`. */
+export async function createApp(options: AppOptions = {}): Promise<NestFastifyApplication> {
   const app = await NestFactory.create<NestFastifyApplication>(
-    AppModule.forDatabase(databaseUrl),
+    AppModule.create(options.accounts ?? accountSettingsFromEnv(), options.databaseUrl),
     new FastifyAdapter(),
     { logger: ["error", "warn"] },
   );

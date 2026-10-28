@@ -1,7 +1,10 @@
 addpn
 Akira
+altcha
 altnumber
+Ānaru
 apos
+axllent
 bdit
 Berean
 biomejs
@@ -34,6 +37,7 @@ healthcheck
 isready
 KJVCPB
 lexham
+mailpit
 NASB
 NRSV
 OEBCW
@@ -58,3 +62,7 @@ Whybray
 zaln
 zidiom
 ZWNBSP
+Ελληνικά
+shouldbee
+marteinn
+Sandström

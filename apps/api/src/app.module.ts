@@ -1,4 +1,6 @@
 import { type DynamicModule, Module } from "@nestjs/common";
+import { AuthModule } from "./auth/auth.module.ts";
+import type { AccountSettings } from "./auth/config.ts";
 import { DatabaseModule } from "./database.ts";
 import { TranslationsController } from "./translations/translations.controller.ts";
 import { TranslationsService } from "./translations/translations.service.ts";
@@ -8,8 +10,11 @@ import { TranslationsService } from "./translations/translations.service.ts";
   providers: [TranslationsService],
 })
 export class AppModule {
-  /** The app on a database: `DATABASE_URL`, or the URL given (tests). */
-  static forDatabase(url?: string): DynamicModule {
-    return { module: AppModule, imports: [DatabaseModule.forUrl(url)] };
+  /** The app on a database (`DATABASE_URL`, or the URL given), with its account settings. */
+  static create(accounts: AccountSettings, databaseUrl?: string): DynamicModule {
+    return {
+      module: AppModule,
+      imports: [DatabaseModule.forUrl(databaseUrl), AuthModule.forSettings(accounts)],
+    };
   }
 }

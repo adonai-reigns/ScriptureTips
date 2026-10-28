@@ -533,6 +533,66 @@
       "record": "stepbible-data/stepbible-data-download-record-2026-10-26.json",
       "status": "first recorded here",
       "retrieved": "2026-10-26"
+    },
+    {
+      "path": "big-username-blocklist/list_raw.txt",
+      "url": "https://raw.githubusercontent.com/marteinn/The-Big-Username-Blocklist/c5d456f6af0285931c85e08d53ed7e1ac35d31fc/list_raw.txt",
+      "bytes": 4146,
+      "sha256": "aa22cc5da02fd90ef90a38179e2d16fe36c4504563472deebb0aeda679dbd8b9",
+      "last_modified": null,
+      "record": "big-username-blocklist/big-username-blocklist-download-record-2026-10-28.json",
+      "status": "first recorded here",
+      "retrieved": "2026-10-28"
+    },
+    {
+      "path": "big-username-blocklist/LICENSE",
+      "url": "https://raw.githubusercontent.com/marteinn/The-Big-Username-Blocklist/c5d456f6af0285931c85e08d53ed7e1ac35d31fc/LICENSE",
+      "bytes": 1090,
+      "sha256": "6c9c512b6c4a94416c5024970736fa21625be32fae84f79edb124efad29e8430",
+      "last_modified": null,
+      "record": "big-username-blocklist/big-username-blocklist-download-record-2026-10-28.json",
+      "status": "first recorded here",
+      "retrieved": "2026-10-28"
+    },
+    {
+      "path": "big-username-blocklist/README.md",
+      "url": "https://raw.githubusercontent.com/marteinn/The-Big-Username-Blocklist/c5d456f6af0285931c85e08d53ed7e1ac35d31fc/README.md",
+      "bytes": 2939,
+      "sha256": "7e46d778c719d3e1bbcf091f98266138d5406ffa6fcd1e9318839c08e3fd657a",
+      "last_modified": null,
+      "record": "big-username-blocklist/big-username-blocklist-download-record-2026-10-28.json",
+      "status": "first recorded here",
+      "retrieved": "2026-10-28"
+    },
+    {
+      "path": "shouldbee-reserved-usernames/reserved-usernames.txt",
+      "url": "https://raw.githubusercontent.com/shouldbee/reserved-usernames/0302214e8c1363fc5877ce3343ef6262e8852e96/reserved-usernames.txt",
+      "bytes": 4240,
+      "sha256": "ece5a88dd916d3662572690e61753c730a2423365d0b6f4581f548fc253b840b",
+      "last_modified": null,
+      "record": "shouldbee-reserved-usernames/shouldbee-reserved-usernames-download-record-2026-10-28.json",
+      "status": "first recorded here",
+      "retrieved": "2026-10-28"
+    },
+    {
+      "path": "shouldbee-reserved-usernames/LICENSE",
+      "url": "https://raw.githubusercontent.com/shouldbee/reserved-usernames/0302214e8c1363fc5877ce3343ef6262e8852e96/LICENSE",
+      "bytes": 1067,
+      "sha256": "c9b003992c61becee037549814a89434c05780288f14c190b554dc30b7fddf5f",
+      "last_modified": null,
+      "record": "shouldbee-reserved-usernames/shouldbee-reserved-usernames-download-record-2026-10-28.json",
+      "status": "first recorded here",
+      "retrieved": "2026-10-28"
+    },
+    {
+      "path": "shouldbee-reserved-usernames/README.md",
+      "url": "https://raw.githubusercontent.com/shouldbee/reserved-usernames/0302214e8c1363fc5877ce3343ef6262e8852e96/README.md",
+      "bytes": 890,
+      "sha256": "d22abaa3a7d1ac792c5c9483d7fed7f1e7821b92bddc3adba562ece108e6a5c0",
+      "last_modified": null,
+      "record": "shouldbee-reserved-usernames/shouldbee-reserved-usernames-download-record-2026-10-28.json",
+      "status": "first recorded here",
+      "retrieved": "2026-10-28"
     }
   ]
 }

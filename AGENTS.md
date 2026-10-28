@@ -8,7 +8,7 @@ The project is being rebuilt from scratch as this monorepo. The legacy repos alo
 
 ## Status
 
-The monorepo is scaffolded. Built so far: the toolbox, `pnpm verify`, the web app in [`apps/web`](apps/web/AGENTS.md) (landing page, reader view, credits), the API in [`apps/api`](apps/api/AGENTS.md) (translations and passages), the core packages [`packages/passage`](packages/passage/AGENTS.md), [`packages/versification`](packages/versification/AGENTS.md) (mapping tables generated from TVTMS) and [`packages/reference`](packages/reference/AGENTS.md) (the reference parser), [`packages/db`](packages/db/AGENTS.md) (PostgreSQL schema for scripture text, migrations, test databases), the translation import and loader in [`tools/scripture-import`](tools/scripture-import/AGENTS.md), and the source-text converters in [`tools/source-conversion`](tools/source-conversion/AGENTS.md) (JPS 1917, the LEB, and the TVTMS versification import). The rest of the stack below is decided but not yet built. Update this file as parts become real.
+The monorepo is scaffolded. Built so far: the toolbox, `pnpm verify`, the web app in [`apps/web`](apps/web/AGENTS.md) (landing page, reader view, credits, sign-in and account page), the API in [`apps/api`](apps/api/AGENTS.md) (translations, passages, and accounts: sign-in by one-time email code), the core packages [`packages/passage`](packages/passage/AGENTS.md), [`packages/versification`](packages/versification/AGENTS.md) (mapping tables generated from TVTMS) and [`packages/reference`](packages/reference/AGENTS.md) (the reference parser), [`packages/db`](packages/db/AGENTS.md) (PostgreSQL schema for scripture text and accounts, migrations, test databases), the translation import and loader in [`tools/scripture-import`](tools/scripture-import/AGENTS.md), and the source-text converters in [`tools/source-conversion`](tools/source-conversion/AGENTS.md) (JPS 1917, the LEB, and the TVTMS versification import). The rest of the stack below is decided but not yet built. Update this file as parts become real.
 
 ## Development environment
 
@@ -47,7 +47,7 @@ Run each through `./toolbox`.
 - `pnpm verify`: Biome lint and format check, dependency boundaries, spelling, then type-check and tests for the packages affected by the change. **Built.**
 - `pnpm verify:full`: the same for every package. **Built.** End-to-end, accessibility, PDF and extension tests are added as those parts are built.
 - `pnpm format`: apply Biome formatting, import sorting and safe fixes.
-- `./dev up [--lan]` / `./dev down` / `./dev logs`: start, stop and follow the local stack (`--lan` also serves the web app to the local network), run on the host (Docker isn't available inside the toolbox). **Built** with PostgreSQL, the API and the web app; the other services are added as they're built. `pnpm dev:seed [scenario]` is **planned**.
+- `./dev up [--lan]` / `./dev down` / `./dev logs`: start, stop and follow the local stack (`--lan` also serves the web app to the local network), run on the host (Docker isn't available inside the toolbox). **Built** with PostgreSQL, Valkey, Mailpit (catches outgoing email: http://127.0.0.1:8025), the API and the web app; the other services are added as they're built. `pnpm dev:seed [scenario]` is **planned**.
 
 **Claude Code hooks** (`.claude/settings.json`, scripts in `scripts/claude-hooks/`): every edited file is formatted with Biome, and `pnpm verify` runs before the agent finishes a turn that changed code. A failure is sent back to the agent to fix.
 
@@ -68,7 +68,7 @@ Markdown isn't formatted by Biome yet (it's excluded in `biome.json`), and cspel
 
 ## Dependencies
 
-Ask before adding any package that isn't already approved. Approved so far: Vitest, Playwright, Biome, and the stack listed in vision.md §7. Testing extras waiting for approval are listed in testing.md §9.
+Ask before adding any package that isn't already approved. Approved so far: Vitest, Playwright, Biome, the stack listed in vision.md §7, and for accounts: ALTCHA (`altcha`, `altcha-lib`), nodemailer, ioredis and Mailpit. Testing extras waiting for approval are listed in testing.md §9.
 
 ## Licensing and sources
 

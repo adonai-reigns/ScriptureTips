@@ -1,0 +1,37 @@
+{
+ "source": "https://github.com/marteinn/The-Big-Username-Blocklist",
+ "commit": "c5d456f6af0285931c85e08d53ed7e1ac35d31fc",
+ "commit_date": "2021-02-13T09:53:19Z",
+ "files": [
+  {
+   "path": "big-username-blocklist/list_raw.txt",
+   "url": "https://raw.githubusercontent.com/marteinn/The-Big-Username-Blocklist/c5d456f6af0285931c85e08d53ed7e1ac35d31fc/list_raw.txt",
+   "bytes": 4146,
+   "sha256": "aa22cc5da02fd90ef90a38179e2d16fe36c4504563472deebb0aeda679dbd8b9",
+   "last_modified": null,
+   "record": "big-username-blocklist/big-username-blocklist-download-record-2026-10-28.json",
+   "status": "first recorded here",
+   "retrieved": "2026-10-28"
+  },
+  {
+   "path": "big-username-blocklist/LICENSE",
+   "url": "https://raw.githubusercontent.com/marteinn/The-Big-Username-Blocklist/c5d456f6af0285931c85e08d53ed7e1ac35d31fc/LICENSE",
+   "bytes": 1090,
+   "sha256": "6c9c512b6c4a94416c5024970736fa21625be32fae84f79edb124efad29e8430",
+   "last_modified": null,
+   "record": "big-username-blocklist/big-username-blocklist-download-record-2026-10-28.json",
+   "status": "first recorded here",
+   "retrieved": "2026-10-28"
+  },
+  {
+   "path": "big-username-blocklist/README.md",
+   "url": "https://raw.githubusercontent.com/marteinn/The-Big-Username-Blocklist/c5d456f6af0285931c85e08d53ed7e1ac35d31fc/README.md",
+   "bytes": 2939,
+   "sha256": "7e46d778c719d3e1bbcf091f98266138d5406ffa6fcd1e9318839c08e3fd657a",
+   "last_modified": null,
+   "record": "big-username-blocklist/big-username-blocklist-download-record-2026-10-28.json",
+   "status": "first recorded here",
+   "retrieved": "2026-10-28"
+  }
+ ]
+}

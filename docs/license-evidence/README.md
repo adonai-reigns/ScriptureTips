@@ -30,6 +30,8 @@ A record of the license and distribution terms for every text ScriptureTips obta
 | [`world-english-bible`](world-english-bible/) | World English Bible | Ready (public domain; trademark conditions) |
 | [`wycliffe-bible`](wycliffe-bible/) | Wycliffe Bible (c. 1395; Pentateuch and Gospels only) | Ready (public domain; partial) |
 | [`stepbible-data`](stepbible-data/) | STEPBible-Data: TVTMS versification mappings (other datasets not held yet) | Ready (CC BY 4.0; credit "STEP Bible"; record changes; don't republish the files) |
+| [`big-username-blocklist`](big-username-blocklist/) | The Big Username Blocklist: reserved handles (not a text) | Ready (MIT; keep the notice with the generated table) |
+| [`shouldbee-reserved-usernames`](shouldbee-reserved-usernames/) | shouldbee/reserved-usernames: reserved handles (not a text) | Ready (MIT; keep the notice with the generated table) |
 | [`macula`](macula/) | MACULA Hebrew and Greek linguistic datasets (terms only; files not held) | Ready with exclusions (CC BY 4.0; leave out the UBS-derived fields and the SIL glosses, listed in `SOURCE.md`) |
 | [`translation-for-translators`](translation-for-translators/) | Translation for Translators (T4T) (terms only; files not held) | Ready (CC BY-SA 4.0, share-alike) |
 | [`open-english-translation`](open-english-translation/) | Open English Translation (OET) | Not for now: CC BY-SA 4.0, but its translators don't yet recommend it for Bible sites |

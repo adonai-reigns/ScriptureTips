@@ -1,11 +1,12 @@
 /**
  * Scripture text (domain-model §2): translations, their books, verse text and translator's
- * notes, as the import loads them. Keys are UUIDv7 (§1.1), made by PostgreSQL 18's
+ * notes, as the import loads them. Then accounts (domain-model §5). Keys are UUIDv7 (§1.1), made by PostgreSQL 18's
  * `uuidv7()`. Generate a migration after every change (`pnpm generate`).
  */
 
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   check,
   customType,
   index,
@@ -142,4 +143,86 @@ export const translatorNote = pgTable(
     body: jsonb("body").notNull(),
   },
   (t) => [unique().on(t.verseTextId, t.position)],
+);
+
+const timestamps = {
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+};
+
+/**
+ * Accounts (domain-model §5), in the shape Better Auth expects (apps/api/src/auth). Sign-in is a
+ * one-time code sent by email, with no passwords (vision §11, Decided), so `email_verified` is
+ * true for everyone who has signed in.
+ */
+export const user = pgTable("user", {
+  id: id(),
+  /** Display name, in any script. Empty until the user chooses one. */
+  name: text("name").notNull().default(""),
+  /** Private: never shown to other users. Stored lowercase. */
+  email: text("email").notNull().unique(),
+  emailVerified: boolean("email_verified").notNull().default(false),
+  image: text("image"),
+  /** `@handle` (domain-model §1.6): lowercase ASCII letters, digits and hyphens. Chosen after the first sign-in. */
+  handle: text("handle").unique(),
+  /** BCP 47 tag for the interface language. */
+  locale: text("locale").notNull().default("en-NZ"),
+  /** 0–4 (vision §4): what the account may do beyond private study. */
+  trustLevel: integer("trust_level").notNull().default(0),
+  ...timestamps,
+});
+
+export const session = pgTable(
+  "session",
+  {
+    id: id(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    token: text("token").notNull().unique(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    ...timestamps,
+  },
+  (t) => [index("session_user_idx").on(t.userId)],
+);
+
+/**
+ * Better Auth's "account": a way of signing in linked to a user. Named `auth_account` so it
+ * isn't mistaken for the user's account.
+ */
+export const authAccount = pgTable(
+  "auth_account",
+  {
+    id: id(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    accountId: text("account_id").notNull(),
+    providerId: text("provider_id").notNull(),
+    accessToken: text("access_token"),
+    refreshToken: text("refresh_token"),
+    idToken: text("id_token"),
+    accessTokenExpiresAt: timestamp("access_token_expires_at", { withTimezone: true }),
+    refreshTokenExpiresAt: timestamp("refresh_token_expires_at", { withTimezone: true }),
+    scope: text("scope"),
+    /** Unused: there are no passwords. Better Auth's schema has the column. */
+    password: text("password"),
+    ...timestamps,
+  },
+  (t) => [index("auth_account_user_idx").on(t.userId)],
+);
+
+/** Short-lived values, such as sign-in codes (stored hashed). */
+export const verification = pgTable(
+  "verification",
+  {
+    id: id(),
+    identifier: text("identifier").notNull(),
+    value: text("value").notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    ...timestamps,
+  },
+  (t) => [index("verification_identifier_idx").on(t.identifier)],
 );
