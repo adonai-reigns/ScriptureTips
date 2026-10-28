@@ -9,6 +9,7 @@ import {
   AddRuleForm,
   DeleteCompilationButton,
   RemoveRuleButton,
+  RemoveVerseButton,
 } from "../../../compilations/forms.tsx";
 import { bookSource } from "../../../compilations/sources.ts";
 import { books, translations } from "../../../reader/api.ts";
@@ -74,6 +75,55 @@ export default async function CompilationEditor({ params }: Props) {
           .filter((s) => canCompile(s.license))
           .map((s) => ({ id: s.id, label: `${s.abbreviation}: ${s.name}` }))}
       />
+
+      <h2>{t("verses")}</h2>
+      <p>{t("versesIntro")}</p>
+      {c.verses.length === 0 ? (
+        <p>{t("noVerses")}</p>
+      ) : (
+        <ul className="rule-list">
+          {c.verses.map((v) => {
+            const values = { verse: v.label, source: v.source.abbreviation };
+            return (
+              <li key={v.id}>
+                <span>
+                  {v.editKind === "correction"
+                    ? t("verseCorrected", values)
+                    : v.editKind === "adaptation"
+                      ? t("verseAdapted", values)
+                      : t("verseFrom", values)}
+                  {v.sourceChanged ? (
+                    <small className="warning">
+                      {" "}
+                      {t("sourceChanged", { source: v.source.abbreviation })}
+                    </small>
+                  ) : null}
+                </span>
+                <a
+                  href={`/compilations/${c.slug}/verse?ref=${encodeURIComponent(v.label)}`}
+                  aria-label={t("changeLabel", { verse: v.label })}
+                >
+                  {t("change")}
+                </a>
+                <RemoveVerseButton
+                  slug={c.slug}
+                  id={v.id}
+                  label={t("removeVerseLabel", { verse: v.label })}
+                  text={t("remove")}
+                />
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      <form className="account-form verse-open" action={`/compilations/${c.slug}/verse`}>
+        <label>
+          <span>{t("verseField")}</span>
+          <input name="ref" required maxLength={200} />
+          <small>{t("verseHelp")}</small>
+        </label>
+        <button type="submit">{t("openVerse")}</button>
+      </form>
 
       <h2>{t("sources")}</h2>
       {arrangeBooks(available ?? [], account.canon).map((section) => (

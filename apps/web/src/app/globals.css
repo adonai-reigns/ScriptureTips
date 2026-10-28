@@ -308,6 +308,16 @@ main {
   margin: 0 0 0.75rem;
 }
 
+/* Read by screen readers, not shown. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .verse {
   font-family: var(--sans);
   font-size: 0.65em;
@@ -645,6 +655,68 @@ main {
   background: #fff;
 }
 
+.account-form textarea {
+  font: inherit;
+  font-family: var(--serif);
+  font-size: 1rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid #9aa5b1;
+  border-radius: 0.4rem;
+  color: var(--ink);
+  background: #fff;
+  resize: vertical;
+}
+
+.verse-open {
+  margin-bottom: 1rem;
+}
+
+.verse-text {
+  margin: 0 0 0.5rem;
+  padding: 0.75rem 1rem;
+  border-left: 3px solid var(--sky-mid);
+  background: #fff;
+}
+
+.verse-options {
+  list-style: none;
+  margin: 0 0 1.5rem;
+  padding: 0;
+}
+
+.verse-options li {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #e3e7eb;
+}
+
+.verse-options p {
+  margin: 0.25rem 0 0.5rem;
+}
+
+.verse-options small,
+.in-use {
+  color: var(--muted);
+}
+
+button.secondary {
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--deep);
+  border-radius: 0.4rem;
+  color: var(--deep);
+  background: #fff;
+  cursor: pointer;
+}
+
+.warning {
+  color: #7a4a00;
+}
+
+.saved {
+  color: #1d5e2a;
+}
+
 .link-button.danger {
   color: #8a1c1c;
 }
@@ -653,6 +725,14 @@ main {
   color: var(--muted);
   font-size: 0.9rem;
   margin-top: 2rem;
+}
+
+.translation-credit.edit-notice {
+  margin-top: 0.25rem;
+}
+
+.verse.edited {
+  color: var(--deep);
 }
 
 .credits li {

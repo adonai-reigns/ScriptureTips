@@ -76,7 +76,17 @@ const HEADINGS: Readonly<Record<string, "h2" | "h3" | "h4" | "p">> = {
   qa: "h4",
 };
 
-function BlockView({ block }: { block: Block }): ReactNode {
+/** A compilation's changed verses: † corrected, ‡ adapted (vision §3.1, modification notices). */
+export const EDIT_MARKS = { correction: "†", adaptation: "‡" } as const;
+
+function BlockView({
+  block,
+  edited,
+}: {
+  block: Block;
+  /** Words read out after a changed verse's number, for screen readers. */
+  edited: Record<"correction" | "adaptation", string>;
+}): ReactNode {
   if (block.kind === "heading") {
     const Element = HEADINGS[block.marker] ?? "p";
     return (
@@ -90,8 +100,14 @@ function BlockView({ block }: { block: Block }): ReactNode {
     <p className={`b-${block.marker}`}>
       {block.pieces.map((p) =>
         p.kind === "verse" ? (
-          <sup key={p.id} id={p.id} className="verse">
+          <sup key={p.id} id={p.id} className={p.edit ? "verse edited" : "verse"}>
             {p.label}
+            {p.edit ? (
+              <>
+                <span aria-hidden="true">{EDIT_MARKS[p.edit]}</span>
+                <span className="visually-hidden"> {edited[p.edit]}</span>
+              </>
+            ) : null}
           </sup>
         ) : (
           <ShownText key={p.key} nodes={[p.shown]} />
@@ -130,7 +146,11 @@ export async function Passage({
       {passage.verses.length === 0 ? <p>{t("noVerses")}</p> : null}
       <div className="scripture">
         {blocks.map((b) => (
-          <BlockView key={b.key} block={b} />
+          <BlockView
+            key={b.key}
+            block={b}
+            edited={{ correction: t("corrected"), adaptation: t("adapted") }}
+          />
         ))}
       </div>
       {notes.length > 0 ? (

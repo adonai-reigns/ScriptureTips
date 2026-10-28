@@ -21,6 +21,8 @@ import {
   CompilationsService,
   type CompilationView,
   SECTIONS,
+  type VerseChoiceView,
+  type VerseEditorView,
 } from "./compilations.service.ts";
 
 const Slug = z.string().regex(/^[a-z0-9]{2,12}$/i);
@@ -49,6 +51,17 @@ const NewRule = z
   .strict();
 
 const PassageQuery = z.object({ ref: z.string().trim().min(1).max(200) });
+
+/** A single verse taken from `source`; with `text`, that source's wording edited. */
+const VerseChoice = z
+  .object({
+    reference: z.string().trim().min(1).max(200),
+    source: TranslationId,
+    text: z.string().trim().min(1).max(5000).optional(),
+    kind: z.enum(["correction", "adaptation"]).optional(),
+    changeNote: z.string().trim().max(1000).optional(),
+  })
+  .strict();
 
 /** The signed-in user's compilations (domain-model §2.3). Errors come back as codes. */
 @Controller("compilations")
@@ -107,6 +120,34 @@ export class CompilationsController {
     @Param("rule", new ZodPipe(z.uuid())) rule: string,
   ): Promise<CompilationView> {
     return this.compilations.removeRule(await this.user(headers), slug, rule);
+  }
+
+  /** The verse editor's view of one verse: `?ref=Genesis 1:3`. */
+  @Get(":slug/verses")
+  async verse(
+    @Headers() headers: Record<string, string>,
+    @Param("slug", new ZodPipe(Slug)) slug: string,
+    @Query(new ZodPipe(PassageQuery)) query: z.infer<typeof PassageQuery>,
+  ): Promise<VerseEditorView> {
+    return this.compilations.verse(await this.user(headers), slug, query.ref);
+  }
+
+  @Post(":slug/verses")
+  async saveVerse(
+    @Headers() headers: Record<string, string>,
+    @Param("slug", new ZodPipe(Slug)) slug: string,
+    @Body(new ZodPipe(VerseChoice)) body: z.infer<typeof VerseChoice>,
+  ): Promise<{ choice: VerseChoiceView; wordsChanged: number }> {
+    return this.compilations.saveVerse(await this.user(headers), slug, body);
+  }
+
+  @Delete(":slug/verses/:verse")
+  async removeVerse(
+    @Headers() headers: Record<string, string>,
+    @Param("slug", new ZodPipe(Slug)) slug: string,
+    @Param("verse", new ZodPipe(z.uuid())) verse: string,
+  ): Promise<CompilationView> {
+    return this.compilations.removeVerse(await this.user(headers), slug, verse);
   }
 
   @Get(":slug/books")

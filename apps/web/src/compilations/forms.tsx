@@ -241,3 +241,211 @@ export function DeleteCompilationButton({ slug, title }: { slug: string; title: 
     </>
   );
 }
+
+/** Takes one verse from a translation, unchanged (domain-model §2.3, CompilationVerse `source`). */
+export function UseVerseButton({
+  slug,
+  reference,
+  source,
+  label,
+}: {
+  slug: string;
+  reference: string;
+  source: string;
+  label: string;
+}) {
+  const t = useTranslations("compilations");
+  const router = useRouter();
+  const { error, busy, hydrated, run } = useSubmit();
+  return (
+    <>
+      <button
+        type="button"
+        className="secondary"
+        aria-label={label}
+        disabled={busy || !hydrated}
+        onClick={() =>
+          run(
+            () => send("POST", `/api/compilations/${slug}/verses`, { reference, source }),
+            () => router.refresh(),
+          )
+        }
+      >
+        {t("useThis")}
+      </button>
+      <ErrorText code={error} />
+    </>
+  );
+}
+
+/** A translation whose wording may be changed, with what the editor starts from. */
+export interface Editable {
+  id: string;
+  label: string;
+  abbreviation: string;
+  text: string;
+  correctionLimit: number;
+}
+
+/**
+ * Corrects or adapts one translation's wording of a verse (domain-model §2.3, `edited`). The API
+ * decides the kind: a change beyond the correction limit is an adaptation, whatever was chosen.
+ */
+export function VerseEditForm({
+  slug,
+  reference,
+  sources,
+  initial,
+}: {
+  slug: string;
+  reference: string;
+  sources: Editable[];
+  /** The source to start from, and its text (the compilation's own, if it already edited it). */
+  initial: { source: string; text: string };
+}) {
+  const t = useTranslations("compilations");
+  const router = useRouter();
+  const [source, setSource] = useState(initial.source);
+  const [text, setText] = useState(initial.text);
+  const [saved, setSaved] = useState<string | null>(null);
+  const { error, busy, hydrated, run } = useSubmit();
+  const from = sources.find((s) => s.id === source) ?? sources[0];
+  const choose = (id: string) => {
+    setSource(id);
+    setText(id === initial.source ? initial.text : (sources.find((s) => s.id === id)?.text ?? ""));
+  };
+  const submit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = new FormData(e.currentTarget);
+    const kind = String(form.get("kind") ?? "correction");
+    setSaved(null);
+    run(
+      async () => {
+        try {
+          const res = await fetch(`/api/compilations/${slug}/verses`, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              reference,
+              source,
+              text,
+              kind,
+              changeNote: String(form.get("changeNote") ?? ""),
+            }),
+          });
+          if (!res.ok) return errorCode(res);
+          const body = (await res.json()) as {
+            choice: { origin: string; editKind: string | null; source: { abbreviation: string } };
+            wordsChanged: number;
+          };
+          const { choice } = body;
+          setSaved(
+            choice.origin === "source"
+              ? t("savedSource", { source: choice.source.abbreviation })
+              : choice.editKind === "adaptation" && kind === "correction"
+                ? t("becameAdaptation", { count: body.wordsChanged })
+                : choice.editKind === "adaptation"
+                  ? t("savedAdaptation")
+                  : t("savedCorrection"),
+          );
+          return null;
+        } catch {
+          return "unavailable";
+        }
+      },
+      () => router.refresh(),
+    );
+  };
+  return (
+    <form className="account-form" onSubmit={submit}>
+      <label>
+        <span>{t("startFrom")}</span>
+        {/* Not editable until hydrated: text typed earlier would be mixed with the original. */}
+        <select value={source} disabled={!hydrated} onChange={(e) => choose(e.target.value)}>
+          {sources.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label>
+        <span>{t("wording")}</span>
+        <textarea
+          name="text"
+          required
+          maxLength={5000}
+          rows={5}
+          readOnly={!hydrated}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+        />
+      </label>
+      <fieldset className="choices">
+        <legend>{t("kind")}</legend>
+        <label className="choice">
+          <input type="radio" name="kind" value="correction" defaultChecked />
+          <span>
+            <strong>{t("correction")}</strong>{" "}
+            <small>{t("correctionHelp", { limit: from?.correctionLimit ?? 3 })}</small>
+          </span>
+        </label>
+        <label className="choice">
+          <input type="radio" name="kind" value="adaptation" />
+          <span>
+            <strong>{t("adaptation")}</strong> <small>{t("adaptationHelp")}</small>
+          </span>
+        </label>
+      </fieldset>
+      <label>
+        <span>{t("changeNote")}</span>
+        <input name="changeNote" maxLength={1000} />
+      </label>
+      <ErrorText code={error} />
+      {saved ? (
+        <p role="status" className="saved">
+          {saved}
+        </p>
+      ) : null}
+      <button type="submit" disabled={busy || !hydrated}>
+        {t("save")}
+      </button>
+    </form>
+  );
+}
+
+/** Resets a single verse to inherited (domain-model §2.3); its history is kept. */
+export function RemoveVerseButton({
+  slug,
+  id,
+  label,
+  text,
+}: {
+  slug: string;
+  id: string;
+  /** For screen readers: which verse. */
+  label: string;
+  text: string;
+}) {
+  const router = useRouter();
+  const { error, busy, hydrated, run } = useSubmit();
+  return (
+    <>
+      <button
+        type="button"
+        className="link-button"
+        aria-label={label}
+        disabled={busy || !hydrated}
+        onClick={() =>
+          run(
+            () => send("DELETE", `/api/compilations/${slug}/verses/${id}`),
+            () => router.refresh(),
+          )
+        }
+      >
+        {text}
+      </button>
+      <ErrorText code={error} />
+    </>
+  );
+}

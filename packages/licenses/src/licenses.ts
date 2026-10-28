@@ -2,8 +2,8 @@
  * The license module (domain-model §7): each license key's terms as machine-readable rules,
  * so nothing about a text's permissions is assumed in code. A translation names its license
  * by key (`translation.license_key`). Rule types follow licenses.md §8; only the ones the
- * loaded translations need are written out so far, and only `not_as_base` and
- * `no_modification` are acted on yet (compilations, stage 1).
+ * loaded translations need are written out so far, and only `not_as_base`, `no_modification`
+ * and `correction_limit` are acted on yet (compilations).
  *
  * An unknown key allows nothing: a text whose terms haven't been recorded can't be built on.
  */
@@ -23,7 +23,9 @@ export type LicenseRule =
   | { readonly type: "name_restriction"; readonly term: string }
   | { readonly type: "reporting_obligation" }
   | { readonly type: "not_as_base" }
-  | { readonly type: "no_modification" };
+  | { readonly type: "no_modification" }
+  /** Overrides how many words a correction may change (domain-model §2.3, `edited`). */
+  | { readonly type: "correction_limit"; readonly words: number };
 
 export interface License {
   readonly key: string;
@@ -89,3 +91,12 @@ export const canCompile = (key: string): boolean => LICENSES.has(key);
 /** True if a compilation may change the wording of verses under this license. */
 export const canModify = (key: string): boolean =>
   LICENSES.has(key) && !has(key, "no_modification");
+
+/** Words a correction may change (added, removed or replaced) before it counts as an adaptation. */
+export const CORRECTION_LIMIT = 3;
+
+/** The correction limit for verses under this license: its own, or `CORRECTION_LIMIT`. */
+export function correctionLimit(key: string): number {
+  for (const r of licenseFor(key)?.rules ?? []) if (r.type === "correction_limit") return r.words;
+  return CORRECTION_LIMIT;
+}

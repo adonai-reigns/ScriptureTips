@@ -30,9 +30,40 @@ export interface CompilationSummary {
   direction: "ltr" | "rtl";
 }
 
+export type EditKind = "correction" | "adaptation";
+
+/** A single-verse choice (domain-model §2.3, CompilationVerse). */
+export interface VerseChoice {
+  id: string;
+  /** OSIS in the compilation's numbering: "Gen.1.3". */
+  entered: string;
+  label: string;
+  origin: "source" | "edited";
+  editKind: EditKind | null;
+  source: SourceView;
+  changeNote: string | null;
+  /** An edited verse's source has changed since the edit. */
+  sourceChanged: boolean;
+}
+
 export interface Compilation extends CompilationSummary {
   scheme: string;
   rules: Rule[];
+  verses: VerseChoice[];
+}
+
+/** One verse as the compilation has it, and as each translation that may be taken has it. */
+export interface VerseEditor {
+  label: string;
+  entered: string;
+  current: { source: SourceView; edit: EditKind | null; text: string };
+  choice: VerseChoice | null;
+  options: {
+    translation: SourceView;
+    text: string;
+    modifiable: boolean;
+    correctionLimit: number;
+  }[];
 }
 
 const API = process.env["API_URL"] ?? "http://127.0.0.1:3001/api";
@@ -57,4 +88,23 @@ export async function myCompilations(): Promise<CompilationSummary[]> {
 
 export function myCompilation(slug: string): Promise<Compilation | null> {
   return get<Compilation>(`/${encodeURIComponent(slug)}`);
+}
+
+/** The verse editor's view of `ref`, or the API's error code for it. */
+export async function verseEditor(
+  slug: string,
+  ref: string,
+): Promise<{ ok: true; verse: VerseEditor } | { ok: false; code: string }> {
+  const cookie = (await cookies()).toString();
+  try {
+    const res = await fetch(
+      `${API}/compilations/${encodeURIComponent(slug)}/verses?ref=${encodeURIComponent(ref)}`,
+      { headers: { cookie }, cache: "no-store" },
+    );
+    const body = (await res.json().catch(() => ({}))) as { code?: unknown };
+    if (res.ok) return { ok: true, verse: body as VerseEditor };
+    return { ok: false, code: typeof body.code === "string" ? body.code : "unavailable" };
+  } catch {
+    return { ok: false, code: "unavailable" };
+  }
 }

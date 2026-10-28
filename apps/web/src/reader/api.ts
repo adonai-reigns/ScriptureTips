@@ -39,6 +39,8 @@ export interface Verse {
   notes: Note[];
   /** In a compilation: the translation this verse was taken from (catalog ID). */
   source?: string;
+  /** In a compilation: the source's wording was corrected or adapted. */
+  edit?: "correction" | "adaptation";
 }
 
 /** A translation a compilation's verses were taken from. */

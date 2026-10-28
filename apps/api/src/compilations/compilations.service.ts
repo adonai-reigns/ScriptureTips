@@ -11,13 +11,17 @@ import {
   asc,
   compilation,
   compilationRule,
+  compilationVerse,
+  compilationVerseRevision,
+  desc,
   eq,
   inArray,
   sql,
   translation,
+  translationImport,
   verseText,
 } from "@scripturetips/db";
-import { canBeBase, canCompile } from "@scripturetips/licenses";
+import { canBeBase, canCompile, canModify, correctionLimit } from "@scripturetips/licenses";
 import {
   BOOKS,
   formatOsisPassage,
@@ -41,6 +45,14 @@ import {
   wholeChapters,
 } from "../translations/translations.service.ts";
 import { type Layer, layersFor, matchingVerse, type RuleKind } from "./resolve.ts";
+import {
+  applyWording,
+  editableText,
+  type Inline,
+  snapshotHash,
+  wordCount,
+  wordsChanged,
+} from "./wording.ts";
 
 export const SECTIONS = ["ot", "nt", "additional"] as const;
 export type SectionId = (typeof SECTIONS)[number];
@@ -82,13 +94,68 @@ export interface CompilationSummary {
   readonly direction: "ltr" | "rtl";
 }
 
+export type EditKind = "correction" | "adaptation";
+
+/** A single-verse choice (domain-model §2.3, `CompilationVerse`). */
+export interface VerseChoiceView {
+  readonly id: string;
+  /** OSIS in the compilation's numbering: "Gen.1.3". */
+  readonly entered: string;
+  /** For display: "Genesis 1:3". */
+  readonly label: string;
+  readonly origin: "source" | "edited";
+  readonly editKind: EditKind | null;
+  readonly source: SourceView;
+  readonly changeNote: string | null;
+  /** True when an edited verse's source has changed (or gone) since the edit. */
+  readonly sourceChanged: boolean;
+}
+
 export interface CompilationView extends CompilationSummary {
   readonly scheme: string;
   readonly rules: RuleView[];
+  readonly verses: VerseChoiceView[];
 }
 
-/** A compilation's verse, with the translation it was taken from (`source`, a catalog ID). */
-export type CompilationVerse = PassageVerse & { readonly source: string };
+/**
+ * A compilation's verse, with the translation it was taken from (`source`, a catalog ID), and
+ * `edit` where the compilation changed its wording.
+ */
+export type CompilationVerse = PassageVerse & { readonly source: string; readonly edit?: EditKind };
+
+/** What the verse editor shows: the verse as the compilation has it, and every translation's. */
+export interface VerseEditorView {
+  readonly label: string;
+  readonly entered: string;
+  readonly current: {
+    readonly source: SourceView;
+    readonly edit: EditKind | null;
+    readonly text: string;
+  };
+  readonly choice: VerseChoiceView | null;
+  readonly options: readonly {
+    readonly translation: SourceView;
+    readonly text: string;
+    /** Its license lets the wording be changed. */
+    readonly modifiable: boolean;
+    readonly correctionLimit: number;
+  }[];
+}
+
+/** A source verse as an edit found it: what `sourceHash` is taken over. */
+interface Snapshot {
+  readonly headings: unknown;
+  readonly content: Inline[];
+  readonly notes: PassageVerse["notes"];
+}
+
+const snapshotOf = (v: PassageVerse): Snapshot => ({
+  headings: v.headings,
+  content: v.content as Inline[],
+  notes: v.notes,
+});
+
+type ChoiceRow = typeof compilationVerse.$inferSelect;
 
 export type RuleScope = { readonly section: SectionId } | { readonly reference: string };
 
@@ -145,7 +212,7 @@ export class CompilationsService {
         })
         .returning();
       if (!created) throw new Error("no compilation");
-      return { ...summary(owner, created, base), scheme: created.scheme, rules: [] };
+      return { ...summary(owner, created, base), scheme: created.scheme, rules: [], verses: [] };
     } catch (e) {
       if (isUniqueViolation(e)) throw new ConflictException({ code: "abbreviation-taken" });
       throw e;
@@ -164,6 +231,7 @@ export class CompilationsService {
     return {
       ...summary(owner, c, base),
       scheme: c.scheme,
+      verses: await this.choiceViews(c.id, counts),
       rules: rules.map(({ r, source }) => ({
         id: r.id,
         kind: r.kind,
@@ -309,11 +377,19 @@ export class CompilationsService {
       scope: r.scope,
       sourceId: r.sourceTranslationId,
     }));
-    const sourceRows = rules.length
+    const choices = await this.db
+      .select()
+      .from(compilationVerse)
+      .where(eq(compilationVerse.compilationId, c.id));
+    const sourceIds = new Set([
+      ...rules.map((r) => r.sourceTranslationId),
+      ...choices.flatMap((v) => (v.sourceTranslationId ? [v.sourceTranslationId] : [])),
+    ]);
+    const sourceRows = sourceIds.size
       ? await this.db
           .select()
           .from(translation)
-          .where(inArray(translation.id, [...new Set(rules.map((r) => r.sourceTranslationId))]))
+          .where(inArray(translation.id, [...sourceIds]))
       : [];
     const sources = new Map([base, ...sourceRows].map((t) => [t.id, t]));
     const used = new Map<string, SourceView>();
@@ -325,7 +401,13 @@ export class CompilationsService {
       total += baseVerses.length;
       if (total > MAX_VERSES)
         throw new BadRequestException({ code: "too-many-verses", limit: MAX_VERSES });
-      const verses = await this.resolve(baseVerses, base.id, layers);
+      const verses = await this.resolve(
+        baseVerses,
+        ref.entered.start.book,
+        base.id,
+        layers,
+        new Map(choices.map((v) => [v.entered, v])),
+      );
       for (const v of verses) {
         const t = sources.get(v.from);
         if (t && !used.has(t.id)) used.set(t.id, sourceView(t));
@@ -335,9 +417,10 @@ export class CompilationsService {
         canonical: ref.canonical ? formatOsisPassage(ref.canonical) : null,
         label: formatPassage(ref.entered, { verses: counts }),
         wholeChapters: wholeChapters(ref.entered, counts),
-        verses: verses.map(({ verse, from }) => ({
+        verses: verses.map(({ verse, from, edit }) => ({
           ...verse,
           source: sources.get(from)?.catalogId ?? base.catalogId,
+          ...(edit ? { edit } : {}),
         })),
       });
     }
@@ -356,12 +439,18 @@ export class CompilationsService {
     };
   }
 
-  /** Each base verse, or the same verse from the most specific layer whose source has it. */
+  /**
+   * Each base verse as the compilation has it (domain-model §2.3, "Resolution order"): its
+   * single-verse choice, else the same verse from the most specific layer whose source has it,
+   * else the base's.
+   */
   private async resolve(
     baseVerses: readonly StoredVerse[],
+    book: string,
     baseId: string,
     layers: readonly Layer[],
-  ): Promise<{ verse: PassageVerse; from: string }[]> {
+    choices: ReadonlyMap<string, ChoiceRow>,
+  ): Promise<{ verse: PassageVerse; from: string; edit?: EditKind }[]> {
     const ranges = baseVerses.flatMap((v) => (v.range ? [v.range] : []));
     const span = ranges.length
       ? {
@@ -372,25 +461,324 @@ export class CompilationsService {
     const relevant = span
       ? layers.filter((l) => l.scope.start <= span.end && span.start <= l.scope.end)
       : [];
+    const chosen = baseVerses.flatMap((b) => {
+      const choice = choices.get(`${book}.${b.chapter}.${b.verse}`);
+      return choice?.origin === "source" && choice.sourceTranslationId
+        ? [choice.sourceTranslationId]
+        : [];
+    });
     const fromSource = new Map<string, StoredVerse[]>();
-    for (const id of new Set(relevant.map((l) => l.sourceId))) {
+    for (const id of new Set([...relevant.map((l) => l.sourceId), ...chosen])) {
       if (span) fromSource.set(id, await this.translations.versesOverlapping(id, span));
     }
     return baseVerses.map((b) => {
       const { range: _, ...baseVerse } = b;
-      for (const layer of layersFor(b, relevant)) {
-        const found = matchingVerse(b, fromSource.get(layer.sourceId) ?? []);
-        if (found) {
-          const { range: __, ...v } = found;
-          // The compilation's numbering, the source's words.
+      // The compilation's numbering, the source's words.
+      const numbered = (v: StoredVerse) => {
+        const { range: __, ...rest } = v;
+        return { ...rest, chapter: b.chapter, verse: b.verse, to: b.to, published: b.published };
+      };
+      const choice = choices.get(`${book}.${b.chapter}.${b.verse}`);
+      if (choice?.sourceTranslationId) {
+        if (choice.origin === "edited" && choice.editKind) {
+          const snapshot = choice.sourceSnapshot as Snapshot;
           return {
-            verse: { ...v, chapter: b.chapter, verse: b.verse, to: b.to, published: b.published },
-            from: layer.sourceId,
+            verse: {
+              ...baseVerse,
+              headings: snapshot.headings,
+              content: choice.content,
+              notes: snapshot.notes,
+            },
+            from: choice.sourceTranslationId,
+            edit: choice.editKind,
           };
         }
+        const found = matchingVerse(b, fromSource.get(choice.sourceTranslationId) ?? []);
+        if (found) return { verse: numbered(found), from: choice.sourceTranslationId };
+      }
+      for (const layer of layersFor(b, relevant)) {
+        const found = matchingVerse(b, fromSource.get(layer.sourceId) ?? []);
+        if (found) return { verse: numbered(found), from: layer.sourceId };
       }
       return { verse: baseVerse, from: baseId };
     });
+  }
+
+  /** The base verse a reference names: exactly one verse, in the compilation's numbering. */
+  private async oneVerse(
+    c: typeof compilation.$inferSelect,
+    base: typeof translation.$inferSelect,
+    reference: string,
+  ): Promise<{ verse: StoredVerse; entered: string; label: string; book: string }> {
+    const counts = await this.translations.verseCounts(base.id);
+    const parsed = parseReference(reference, { scheme: c.scheme as SchemeId, verses: counts });
+    if (!parsed.ok)
+      throw new BadRequestException({ code: parsed.error.code, index: parsed.error.index });
+    const [ref, ...more] = parsed.references;
+    if (!ref || more.length > 0) throw new BadRequestException({ code: "one-verse" });
+    if (ref.entered.start.part !== 0 || ref.entered.end.part !== 0)
+      throw new BadRequestException({ code: "whole-verses" });
+    const found = await this.translations.versesIn(base.id, ref.entered);
+    const [verse, ...others] = found;
+    if (!verse || others.length > 0) throw new BadRequestException({ code: "one-verse" });
+    if (!verse.range) throw new BadRequestException({ code: "no-canonical" });
+    const book = ref.entered.start.book;
+    const at = { book, chapter: verse.chapter, verse: verse.verse, part: 0 };
+    const end = { ...at, verse: verse.to ?? verse.verse };
+    return {
+      verse,
+      book,
+      entered: `${book}.${verse.chapter}.${verse.verse}`,
+      label: formatPassage({ start: at, end }, { verses: counts }),
+    };
+  }
+
+  /** The verse editor (vision §3.1): the verse as the compilation has it, and each translation's. */
+  async verse(owner: User, slug: string, reference: string): Promise<VerseEditorView> {
+    const { c, base } = await this.find(owner, slug);
+    const { verse, entered, label, book } = await this.oneVerse(c, base, reference);
+    const range = verse.range as OrdinalRange;
+
+    const rules = await this.db
+      .select()
+      .from(compilationRule)
+      .where(eq(compilationRule.compilationId, c.id));
+    const [choice] = await this.db
+      .select()
+      .from(compilationVerse)
+      .where(and(eq(compilationVerse.compilationId, c.id), eq(compilationVerse.entered, entered)));
+    const [resolved] = await this.resolve(
+      [verse],
+      book,
+      base.id,
+      rules.map((r) => ({
+        id: r.id,
+        kind: r.kind,
+        scope: r.scope,
+        sourceId: r.sourceTranslationId,
+      })),
+      new Map(choice ? [[entered, choice]] : []),
+    );
+    if (!resolved) throw new NotFoundException({ code: "one-verse" });
+
+    // Every translation's verse that is the same verse.
+    const rows = await this.db
+      .select({ t: translation, v: verseText })
+      .from(verseText)
+      .innerJoin(translation, eq(translation.id, verseText.translationId))
+      .where(sql`${verseText.canonicalRange} && int4range(${range.start}, ${range.end}, '[]')`);
+    const byTranslation = new Map<
+      string,
+      { t: typeof translation.$inferSelect; verses: StoredVerse[] }
+    >();
+    for (const { t, v } of rows) {
+      const entry = byTranslation.get(t.id) ?? { t, verses: [] };
+      entry.verses.push({
+        chapter: v.chapter,
+        verse: v.verse,
+        to: v.toVerse,
+        published: v.published,
+        canonical: v.canonical,
+        range: v.canonicalRange,
+        headings: v.headings,
+        content: v.content,
+        notes: [],
+      });
+      byTranslation.set(t.id, entry);
+    }
+    const options = [...byTranslation.values()]
+      .filter(({ t }) => canCompile(t.licenseKey))
+      .flatMap(({ t, verses }) => {
+        const match = matchingVerse(verse, verses);
+        return match
+          ? [
+              {
+                translation: sourceView(t),
+                text: editableText(match.content as Inline[]),
+                modifiable: canModify(t.licenseKey),
+                correctionLimit: correctionLimit(t.licenseKey),
+              },
+            ]
+          : [];
+      })
+      .sort((a, b) => a.translation.abbreviation.localeCompare(b.translation.abbreviation));
+
+    const from =
+      byTranslation.get(resolved.from)?.t ??
+      (await this.db.select().from(translation).where(eq(translation.id, resolved.from)))[0];
+    const counts = await this.translations.verseCounts(base.id);
+    return {
+      label,
+      entered,
+      current: {
+        source: from ? sourceView(from) : sourceView(base),
+        edit: resolved.edit ?? null,
+        text: editableText(resolved.verse.content as Inline[]),
+      },
+      choice: choice ? ((await this.choiceViews(c.id, counts, choice.id))[0] ?? null) : null,
+      options,
+    };
+  }
+
+  /**
+   * Chooses a single verse from `source`, or saves an edit of that source's wording
+   * (domain-model §2.3): within the license's correction limit an edit is a correction unless
+   * the user calls it an adaptation; beyond it, it's an adaptation.
+   */
+  async saveVerse(
+    owner: User,
+    slug: string,
+    input: {
+      reference: string;
+      source: string;
+      text?: string | undefined;
+      kind?: EditKind | undefined;
+      changeNote?: string | undefined;
+    },
+  ): Promise<{ choice: VerseChoiceView; wordsChanged: number }> {
+    const { c, base } = await this.find(owner, slug);
+    const { verse, entered } = await this.oneVerse(c, base, input.reference);
+    const [source] = await this.db
+      .select()
+      .from(translation)
+      .where(eq(translation.catalogId, input.source));
+    if (!source) throw new BadRequestException({ code: "unknown-translation" });
+    if (!canCompile(source.licenseKey))
+      throw new BadRequestException({ code: "source-not-allowed" });
+    const found = matchingVerse(
+      verse,
+      await this.translations.versesOverlapping(source.id, verse.range as OrdinalRange),
+    );
+    if (!found) throw new BadRequestException({ code: "not-in-source" });
+
+    const snapshot = snapshotOf(found);
+    const before = editableText(snapshot.content);
+    const edited = input.text !== undefined && editableText([input.text]) !== before;
+    let row: Omit<typeof compilationVerse.$inferInsert, "compilationId" | "entered" | "scope">;
+    let changed = 0;
+    if (edited && input.text !== undefined) {
+      if (!canModify(source.licenseKey))
+        throw new BadRequestException({ code: "modification-not-allowed" });
+      changed = wordsChanged(before, input.text);
+      const [latest] = await this.db
+        .select({ id: translationImport.id })
+        .from(translationImport)
+        .where(eq(translationImport.translationId, source.id))
+        .orderBy(desc(translationImport.importedAt))
+        .limit(1);
+      row = {
+        origin: "edited",
+        editKind:
+          input.kind === "adaptation" || changed > correctionLimit(source.licenseKey)
+            ? "adaptation"
+            : "correction",
+        sourceTranslationId: source.id,
+        sourceSnapshot: snapshot,
+        sourceHash: snapshotHash(snapshot),
+        sourceImportId: latest?.id ?? null,
+        content: applyWording(snapshot.content, input.text),
+        changeNote: input.changeNote?.trim() || null,
+        wordCount: wordCount(input.text),
+      };
+    } else {
+      row = {
+        origin: "source",
+        editKind: null,
+        sourceTranslationId: source.id,
+        sourceSnapshot: null,
+        sourceHash: null,
+        sourceImportId: null,
+        content: null,
+        changeNote: null,
+        wordCount: null,
+      };
+    }
+
+    const saved = await this.db.transaction(async (tx) => {
+      const [r] = await tx
+        .insert(compilationVerse)
+        .values({ ...row, compilationId: c.id, entered, scope: verse.range as OrdinalRange })
+        .onConflictDoUpdate({
+          target: [compilationVerse.compilationId, compilationVerse.entered],
+          set: { ...row, updatedAt: new Date() },
+        })
+        .returning();
+      await tx.insert(compilationVerseRevision).values({
+        compilationId: c.id,
+        entered,
+        authorId: owner.id,
+        origin: row.origin,
+        editKind: row.editKind ?? null,
+        sourceTranslationId: source.id,
+        content: row.content ?? null,
+        changeNote: row.changeNote ?? null,
+      });
+      await tx.update(compilation).set({ updatedAt: new Date() }).where(eq(compilation.id, c.id));
+      return r;
+    });
+    if (!saved) throw new Error("no verse choice");
+    const counts = await this.translations.verseCounts(base.id);
+    const [view] = await this.choiceViews(c.id, counts, saved.id);
+    if (!view) throw new Error("no verse choice");
+    return { choice: view, wordsChanged: changed };
+  }
+
+  /** Removes a single-verse choice: the verse is inherited again. Its history is kept. */
+  async removeVerse(owner: User, slug: string, id: string): Promise<CompilationView> {
+    const { c } = await this.find(owner, slug);
+    await this.db.transaction(async (tx) => {
+      const [removed] = await tx
+        .delete(compilationVerse)
+        .where(and(eq(compilationVerse.id, id), eq(compilationVerse.compilationId, c.id)))
+        .returning({ entered: compilationVerse.entered });
+      if (!removed) throw new NotFoundException({ code: "unknown-verse-choice" });
+      await tx
+        .insert(compilationVerseRevision)
+        .values({ compilationId: c.id, entered: removed.entered, authorId: owner.id });
+    });
+    return this.view(owner, slug);
+  }
+
+  /** The compilation's single-verse choices (or one of them), in canonical order. */
+  private async choiceViews(
+    compilationId: string,
+    counts: VerseCounts,
+    only?: string,
+  ): Promise<VerseChoiceView[]> {
+    const rows = await this.db
+      .select({ v: compilationVerse, source: translation })
+      .from(compilationVerse)
+      .innerJoin(translation, eq(translation.id, compilationVerse.sourceTranslationId))
+      .where(
+        only
+          ? and(eq(compilationVerse.compilationId, compilationId), eq(compilationVerse.id, only))
+          : eq(compilationVerse.compilationId, compilationId),
+      )
+      .orderBy(asc(sql`lower(${compilationVerse.scope})`));
+    return Promise.all(
+      rows.map(async ({ v, source }) => {
+        let sourceChanged = false;
+        if (v.origin === "edited") {
+          // The source verse now: the one whose canonical verses are exactly this verse's.
+          const now = (await this.translations.versesOverlapping(source.id, v.scope)).filter(
+            (s) => s.range?.start === v.scope.start && s.range.end === v.scope.end,
+          );
+          sourceChanged =
+            now.length !== 1 || snapshotHash(snapshotOf(now[0] as StoredVerse)) !== v.sourceHash;
+        }
+        const at = parseOsisPassage(v.entered);
+        return {
+          id: v.id,
+          entered: v.entered,
+          label: formatPassage(at, { verses: counts }),
+          origin: v.origin === "edited" ? ("edited" as const) : ("source" as const),
+          editKind: v.editKind,
+          source: sourceView(source),
+          changeNote: v.changeNote,
+          sourceChanged,
+        };
+      }),
+    );
   }
 
   private async find(owner: User, slug: string) {

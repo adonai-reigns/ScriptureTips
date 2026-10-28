@@ -13,7 +13,7 @@ import {
   neighbors,
   readingOrder,
 } from "../../../../reader/books.ts";
-import { Passage } from "../../../../reader/Passage.tsx";
+import { EDIT_MARKS, Passage } from "../../../../reader/Passage.tsx";
 import { bookSlug, ownsCompilation, readerTarget, referenceFor } from "../../../../reader/paths.ts";
 import { SearchForm } from "../../../../reader/SearchForm.tsx";
 
@@ -110,6 +110,31 @@ export default async function Read(props: Props) {
       : result.ok
         ? result.translation.name
         : null;
+  // And names who changed which translations' wording, by the mark on those verses.
+  const handle = id.startsWith("@") ? (id.split("/")[0] ?? "").slice(1) : "";
+  const list = new Intl.ListFormat(await getLocale());
+  const notices = result.ok
+    ? (["correction", "adaptation"] as const).flatMap((kind) => {
+        const ids = new Set(
+          result.passages.flatMap((p) =>
+            p.verses.flatMap((v) => (v.edit === kind && v.source ? [v.source] : [])),
+          ),
+        );
+        const names = (result.sources ?? []).filter((s) => ids.has(s.id)).map((s) => s.name);
+        return names.length
+          ? [
+              {
+                kind,
+                text: tr(kind === "correction" ? "correctedFrom" : "adaptedFrom", {
+                  mark: EDIT_MARKS[kind],
+                  handle,
+                  sources: list.format(names),
+                }),
+              },
+            ]
+          : [];
+      })
+    : [];
   return (
     <div className="reader">
       <SearchForm translation={id} reference={reference} />
@@ -136,6 +161,11 @@ export default async function Read(props: Props) {
         </nav>
       ) : null}
       {credit ? <p className="translation-credit">{credit}</p> : null}
+      {notices.map((n) => (
+        <p key={n.kind} className="translation-credit edit-notice">
+          {n.text}
+        </p>
+      ))}
     </div>
   );
 }

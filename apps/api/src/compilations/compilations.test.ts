@@ -1,6 +1,9 @@
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import {
+  and,
+  compilationVerseRevision,
   type Database,
+  eq,
   translation,
   translationBook,
   translatorNote,
@@ -263,6 +266,133 @@ describe("domain-model §2.3: compilations", () => {
     });
     expect((await rule({ section: "nt" })).json()).toMatchObject({ code: "not-in-base" });
     expect((await rule({ section: "ot" })).statusCode).toBe(201);
+  });
+
+  it("take a single verse from a source, ahead of every rule", async () => {
+    const res = await post(owner, "/api/compilations/mine/verses", {
+      reference: "Joel 2:30",
+      source: "kjv",
+    });
+    expect(res.statusCode).toBe(201);
+    expect(res.json()).toMatchObject({
+      choice: { entered: "Joel.2.30", label: "Joel 2:30", origin: "source", source: { id: "kjv" } },
+      wordsChanged: 0,
+    });
+    expect(await read("Joel 2:30")).toEqual(["2:30 KJV 2:30. (kjv; kjv note)"]);
+  });
+
+  it("show a verse as the compilation has it, beside every translation's that may be taken", async () => {
+    const res = await get(owner, "/api/compilations/mine/verses?ref=Joel%202:30");
+    expect(res.json()).toMatchObject({
+      label: "Joel 2:30",
+      entered: "Joel.2.30",
+      current: { source: { id: "kjv" }, edit: null, text: "KJV 2:30." },
+      choice: { origin: "source" },
+      options: [
+        { translation: { id: "heb" }, text: "HEB 3:3.", modifiable: true, correctionLimit: 3 },
+        { translation: { id: "kjv" }, text: "KJV 2:30." },
+        { translation: { id: "other" }, text: "OTHER 2:30." },
+      ],
+    });
+  });
+
+  it("save a small change to a source's wording as a correction, keeping its notes", async () => {
+    const res = await post(owner, "/api/compilations/mine/verses", {
+      reference: "Joel 3:1",
+      source: "kjv",
+      text: "KJV 3:1 amended.",
+      changeNote: "A word was missing.",
+    });
+    expect(res.json()).toMatchObject({
+      choice: { origin: "edited", editKind: "correction", changeNote: "A word was missing." },
+      wordsChanged: 1,
+    });
+    expect(await read("Joel 3:1")).toEqual(["3:1 KJV 3:1 amended. (kjv; kjv note)"]);
+    const verse = (await get(owner, "/api/compilations/mine/passages?ref=Joel%203:1")).json()
+      .passages[0].verses[0];
+    expect(verse).toMatchObject({ source: "kjv", edit: "correction" });
+  });
+
+  it("save a larger change, or one the user calls so, as an adaptation", async () => {
+    const save = (text: string, kind?: string) =>
+      post(owner, "/api/compilations/mine/verses", {
+        reference: "Joel 3:1",
+        source: "kjv",
+        text,
+        ...(kind ? { kind } : {}),
+      });
+    expect((await save("Entirely new words for this verse.")).json()).toMatchObject({
+      choice: { editKind: "adaptation" },
+      wordsChanged: 6,
+    });
+    expect((await save("KJV 3:1 changed.", "adaptation")).json()).toMatchObject({
+      choice: { editKind: "adaptation" },
+      wordsChanged: 1,
+    });
+    // The source's own wording is a plain choice of that verse again.
+    expect((await save("KJV 3:1.")).json()).toMatchObject({ choice: { origin: "source" } });
+  });
+
+  it("notice when an edited verse's source has changed since", async () => {
+    await post(owner, "/api/compilations/mine/verses", {
+      reference: "Joel 3:1",
+      source: "kjv",
+      text: "KJV 3:1 amended.",
+    });
+    const changed = () =>
+      get(owner, "/api/compilations/mine").then(
+        (r) =>
+          r.json().verses.find((v: { entered: string }) => v.entered === "Joel.3.1").sourceChanged,
+      );
+    expect(await changed()).toBe(false);
+    const [kjv] = await db.select().from(translation).where(eq(translation.catalogId, "kjv"));
+    await db
+      .update(verseText)
+      .set({ content: ["KJV 3:1, re-imported.", { type: "note", position: 0 }] })
+      .where(
+        and(
+          eq(verseText.translationId, kjv?.id ?? ""),
+          eq(verseText.chapter, 3),
+          eq(verseText.verse, 1),
+        ),
+      );
+    expect(await changed()).toBe(true);
+    // What the compilation shows is what was edited, not the new source text.
+    expect(await read("Joel 3:1")).toEqual(["3:1 KJV 3:1 amended. (kjv; kjv note)"]);
+  });
+
+  it("refuse a verse the source lacks, and more than one verse", async () => {
+    const save = (reference: string, source: string) =>
+      post(owner, "/api/compilations/mine/verses", { reference, source });
+    expect((await save("Joel 3:2", "heb")).json()).toMatchObject({ code: "not-in-source" });
+    expect((await save("Joel 2:28-29", "kjv")).json()).toMatchObject({ code: "one-verse" });
+    expect((await save("Joel 3:1", "unrecorded")).json()).toMatchObject({
+      code: "source-not-allowed",
+    });
+  });
+
+  it("reset a verse to inherited, keeping its history", async () => {
+    const view = (await get(owner, "/api/compilations/mine")).json();
+    const choice = view.verses.find((v: { entered: string }) => v.entered === "Joel.3.1");
+    const res = await call("DELETE", owner, `/api/compilations/mine/verses/${choice.id}`);
+    expect(res.statusCode).toBe(200);
+    expect(res.json().verses.map((v: { entered: string }) => v.entered)).toEqual(["Joel.2.30"]);
+    expect(await read("Joel 3:1")).toEqual(["3:1 HEB 4:1. (heb; heb note)"]);
+    const history = await db
+      .select()
+      .from(compilationVerseRevision)
+      .where(eq(compilationVerseRevision.entered, "Joel.3.1"));
+    expect(history.map((h) => h.origin)).toEqual([
+      "edited",
+      "edited",
+      "edited",
+      "source",
+      "edited",
+      null,
+    ]);
+    expect(
+      (await call("DELETE", owner, `/api/compilations/mine/verses/${choice.id}`)).statusCode,
+    ).toBe(404);
   });
 
   it("list the base's books, and are deleted with their rules", async () => {

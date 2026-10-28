@@ -117,6 +117,20 @@ describe("layOut", () => {
     });
   });
 
+  it("carries a compilation's correction or adaptation to the verse number (domain-model §2.3)", () => {
+    const { blocks } = layOut(
+      [verse(1, ["One."]), verse(2, ["Two."], { edit: "correction" })],
+      "p0",
+    );
+    const numbers = blocks.flatMap((b) =>
+      b.kind === "block" ? b.pieces.filter((p) => p.kind === "verse") : [],
+    );
+    expect(numbers).toEqual([
+      { kind: "verse", label: "1", id: "p0-v1-1" },
+      { kind: "verse", label: "2", id: "p0-v1-2", edit: "correction" },
+    ]);
+  });
+
   it("still lists a note the markup doesn't mark", () => {
     const { notes } = layOut([verse(1, ["Text."], { notes: [note(0, "Unmarked")] })], "p0");
     expect(notes.map((n) => n.note.body[0])).toEqual(["Unmarked"]);

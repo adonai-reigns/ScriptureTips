@@ -278,3 +278,75 @@ export const compilationRule = pgTable(
   },
   (t) => [index("compilation_rule_compilation_idx").on(t.compilationId)],
 );
+
+/**
+ * A single-verse choice (domain-model §2.3, `CompilationVerse`): the verse `entered` (OSIS, the
+ * compilation's numbering, its first verse if bridged) taken from `source`, or edited from it.
+ * `scope` is the verse's canonical range. An `edited` verse keeps a snapshot of the source verse
+ * as it was (headings, content and notes, with its hash and import), and its own `content`.
+ * `own`, `pasted` and `ai_assisted` come with own renderings.
+ */
+export const compilationVerse = pgTable(
+  "compilation_verse",
+  {
+    id: id(),
+    compilationId: uuid("compilation_id")
+      .notNull()
+      .references(() => compilation.id, { onDelete: "cascade" }),
+    entered: text("entered").notNull(),
+    scope: int4range("scope").notNull(),
+    origin: text("origin", {
+      enum: ["source", "edited", "pasted", "ai_assisted", "own"],
+    }).notNull(),
+    editKind: text("edit_kind", { enum: ["correction", "adaptation"] }),
+    sourceTranslationId: uuid("source_translation_id").references(() => translation.id),
+    /** `{ headings, content, notes }` of the source verse when the edit was made. */
+    sourceSnapshot: jsonb("source_snapshot"),
+    /** SHA-256 of the snapshot (stable JSON): a changed source verse no longer matches it. */
+    sourceHash: text("source_hash"),
+    sourceImportId: uuid("source_import_id").references(() => translationImport.id, {
+      onDelete: "set null",
+    }),
+    /** The verse's own wording (inline markup), for every origin but `source`. */
+    content: jsonb("content"),
+    changeNote: text("change_note"),
+    wordCount: integer("word_count"),
+    ...timestamps,
+  },
+  (t) => [
+    unique().on(t.compilationId, t.entered),
+    check(
+      "compilation_verse_edited",
+      sql`${t.origin} <> 'edited' OR (${t.editKind} IS NOT NULL AND ${t.sourceTranslationId} IS NOT NULL AND ${t.sourceSnapshot} IS NOT NULL AND ${t.content} IS NOT NULL)`,
+    ),
+    check(
+      "compilation_verse_source",
+      sql`${t.origin} <> 'source' OR ${t.sourceTranslationId} IS NOT NULL`,
+    ),
+  ],
+);
+
+/**
+ * Every save of a single-verse choice, and every reset (`origin` null), kept when the choice is
+ * removed (domain-model §1.3). Deleted with the compilation.
+ */
+export const compilationVerseRevision = pgTable(
+  "compilation_verse_revision",
+  {
+    id: id(),
+    compilationId: uuid("compilation_id")
+      .notNull()
+      .references(() => compilation.id, { onDelete: "cascade" }),
+    entered: text("entered").notNull(),
+    authorId: uuid("author_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    origin: text("origin", { enum: ["source", "edited", "pasted", "ai_assisted", "own"] }),
+    editKind: text("edit_kind", { enum: ["correction", "adaptation"] }),
+    sourceTranslationId: uuid("source_translation_id").references(() => translation.id),
+    content: jsonb("content"),
+    changeNote: text("change_note"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("compilation_verse_revision_idx").on(t.compilationId, t.entered)],
+);
