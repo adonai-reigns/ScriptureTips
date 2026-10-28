@@ -422,7 +422,7 @@ All TypeScript, in one monorepo. Full rationale: see [architecture.md](architect
 | Database | PostgreSQL (full-text search; pgvector later) |
 | ORM | Drizzle |
 | Jobs / cache | Valkey + BullMQ |
-| Auth | Better Auth (self-hosted; passkeys, social logins, organizations/roles) |
+| Auth | Better Auth (self-hosted): sign-in with a one-time email code, no passwords; passkeys next (§11) |
 | Web | Next.js (React), server-rendered public pages |
 | Mobile (later) | Expo / React Native |
 | Real-time | NestJS WebSockets; Yjs for collaborative editing later |
@@ -487,6 +487,7 @@ Foundations for the later stages are still built from the start where retrofitti
 3. Which language models make up the moderation panel (§6). Decided at the social-features stage. Every call is paid by the operator, since ScriptureTips earns nothing, so an open-weights safety model on our own server is preferred for the first pass.
 4. Which domain name(s) to commit to permanently, including a short domain for printed QR codes, and the handle rules (how often a handle may change, which group names need verification).
 5. Age-related laws in countries where users live (e.g. bans on under-16s using social media, the EU's age of digital consent, US COPPA for under-13s): how the guardian model (§5.2) applies, and whether any country needs different rules. **Deferred** until after the first public release.
+6. **Bot check for sign-up and code requests:** self-hosted, so no visitor data goes to a third party (which rules out reCAPTCHA, hCaptcha and Cloudflare Turnstile). Candidate: ALTCHA (proof of work, MIT). Needs approval as a dependency when accounts are built.
 
 **Decided:**
 - **Unit for the LEB share rules:** verses. Every license restriction found names verses as its unit (licenses.md §8).
@@ -501,3 +502,4 @@ Foundations for the later stages are still built from the start where retrofitti
 - **Name for shareable pages:** notes, e.g. `/@antz/notes/how-they-drank` (§3.6). Short thoughts attached to a passage or word are **annotations**.
 - **Other scriptures:** the reference parser keeps its extension point; other scriptures will come later as an opt-in feature, to help link traditions and understand common themes.
 - **Canon profile:** there is no default; new users choose one at sign-up from the main traditions.
+- **Sign-in:** a one-time code sent to the user's email address (6 digits, valid for about 10 minutes, a few attempts per code), with **no passwords**. Signing in proves control of the address, so it doubles as email verification, with no identity documents asked for. Users stay pseudonymous: any email address will do, including private ones, which matters for believers where faith is persecuted. Long sessions (renewed while in use) keep the emails few. Code requests are protected by a self-hosted bot check (which one: item 6) and rate limits per address and IP. **Next:** passkeys as an optional, phishing-resistant second way in.

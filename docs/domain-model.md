@@ -416,7 +416,7 @@ Separate from stance: "was this helpful?" (`helpful` · `somewhat` · `not_helpf
 
 | Entity | Key fields | Notes |
 |---|---|---|
-| **User** | handle, display name, locale, created_at | Accounts and sign-in are handled by Better Auth. |
+| **User** | handle, display name, email, locale, trust level, created_at | Accounts and sign-in are handled by Better Auth: a one-time email code, no passwords (vision §11, Decided). The email address is private and never shown to other users. |
 | **AIProviderConfig** | user, provider, model preferences, key location (`device` · `server`), encrypted key (only when `server`), enabled features | Bring your own key. By default the key stays on the user's device (web app / extension storage) and is never sent to ScriptureTips. |
 | **Profile** | bio, avatar, public links | Shown only to the audience the user chooses. |
 | **Contact** | user A ↔ user B, status (`requested` · `accepted` · `blocked`) | Both users must accept. Used for `contacts` visibility. |
