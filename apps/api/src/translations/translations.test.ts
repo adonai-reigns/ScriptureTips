@@ -102,7 +102,8 @@ describe("GET /api/translations/:translation/passages", () => {
     const [p] = body.passages;
     expect(p.entered).toBe("Joel.2.28-Joel.2.30");
     expect(p.canonical).toBe("Joel.3.1-Joel.3.3");
-    expect(p.label).toBe("Joel 2:28–30");
+    expect(p.label).toBe("Joel 2:28\u201330");
+    expect(p.wholeChapters).toBe(false);
     expect(p.verses.map((v: { verse: number }) => v.verse)).toEqual([28, 29, 30]);
     expect(p.verses[0].headings).toEqual([{ marker: "s1", content: ["The Spirit Poured Out"] }]);
     expect(p.verses[0].notes).toEqual([

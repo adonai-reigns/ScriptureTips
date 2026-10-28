@@ -1,0 +1,368 @@
+/* Palette and placement: docs/branding.md. The reading surface stays plain. */
+:root {
+  --sky: #44c8f5;
+  --sky-mid: #209bd6;
+  --deep: #0054a5;
+  --pale: #c6e9fa;
+  --sky-legacy: #62d1f7;
+  --paper: #fdfcf8;
+  --ink: #1d232a;
+  --muted: #5b6672;
+  --rule: #dfe3e6;
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--sky-legacy);
+  color: var(--ink);
+  font-family: var(--sans);
+  line-height: 1.5;
+}
+
+/*
+ * The clouds-and-birds artwork fills the viewport and stays put while the page scrolls over
+ * it. A fixed layer rather than `background-attachment: fixed`, which phones ignore.
+ */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: var(--sky-legacy) url("/brand/clouds-and-birds.svg") no-repeat 15% 100% / cover;
+}
+
+a {
+  color: var(--deep);
+}
+
+:focus-visible {
+  outline: 3px solid var(--sky-mid);
+  outline-offset: 2px;
+}
+
+.site-header {
+  padding: 0.75rem 1rem;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 1.25rem;
+  text-decoration: none;
+  background: rgb(255 255 255 / 0.85);
+  border-radius: 0.5rem;
+  padding: 0.25rem 0.75rem 0.25rem 0.25rem;
+}
+
+/* The content sits on a white panel over the artwork, so text keeps full contrast. */
+main {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 3rem;
+  background: var(--paper);
+  border-radius: 0.75rem;
+  box-shadow: 0 0.25rem 1.5rem rgb(0 40 80 / 0.15);
+}
+
+.site-footer {
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.site-footer a {
+  background: rgb(255 255 255 / 0.85);
+  border-radius: 0.4rem;
+  padding: 0.25rem 0.6rem;
+}
+
+@media (max-width: 48rem) {
+  main {
+    border-radius: 0;
+    padding: 1.25rem 1rem 2.5rem;
+  }
+}
+
+/* Landing */
+.landing-art {
+  text-align: center;
+  padding: 1rem 1rem 1.5rem;
+}
+
+.landing-card {
+  display: inline-block;
+}
+
+.landing-card p {
+  margin: 0.25rem 0 0;
+}
+
+.landing-art h1 {
+  margin: 0.5rem 0 0;
+}
+
+/* Search form */
+.search {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-end;
+  margin-bottom: 1.5rem;
+}
+
+.search label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.search-ref {
+  flex: 1 1 14rem;
+}
+
+.search select,
+.search input,
+.search button {
+  font: inherit;
+  font-size: 1rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid #9aa5b1;
+  border-radius: 0.4rem;
+  color: var(--ink);
+  background: #fff;
+}
+
+.search select {
+  max-width: 16rem;
+}
+
+.search button {
+  background: var(--deep);
+  border-color: var(--deep);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.error {
+  color: #8a1c1c;
+}
+
+/* The passage */
+.passage-label {
+  font-family: var(--serif);
+  font-size: 1.6rem;
+  margin: 0 0 1rem;
+}
+
+.scripture {
+  font-family: var(--serif);
+  font-size: 1.2rem;
+  line-height: 1.7;
+}
+
+.scripture p {
+  margin: 0 0 0.75rem;
+}
+
+.verse {
+  font-family: var(--sans);
+  font-size: 0.65em;
+  font-weight: 600;
+  color: var(--muted);
+  margin: 0 0.15em 0 0.3em;
+}
+
+.b-p,
+.b-pi,
+.b-pi1 {
+  text-indent: 1.5em;
+}
+
+.b-pi2 {
+  padding-left: 2em;
+}
+
+.b-m,
+.b-nb {
+  text-indent: 0;
+}
+
+.b-pc,
+.b-qc {
+  text-align: center;
+}
+
+.b-pr,
+.b-qr {
+  text-align: right;
+}
+
+.b-pm,
+.b-pmo,
+.b-pmc,
+.b-pmr {
+  padding-left: 1.5em;
+}
+
+/* Poetry: each line its own block, wrapped lines hang. */
+.scripture .b-q,
+.scripture .b-q1,
+.scripture .b-q2,
+.scripture .b-q3,
+.scripture .b-q4 {
+  margin: 0;
+  padding-left: 3em;
+  text-indent: -2em;
+}
+
+.scripture .b-q2 {
+  padding-left: 4em;
+}
+
+.scripture .b-q3,
+.scripture .b-q4 {
+  padding-left: 5em;
+}
+
+.b-b {
+  height: 0.75rem;
+}
+
+.b-d,
+.h-d {
+  font-style: italic;
+  color: var(--muted);
+}
+
+.b-li,
+.b-li1,
+.b-li2 {
+  padding-left: 2em;
+  text-indent: -1em;
+}
+
+.scripture h2,
+.scripture h3,
+.scripture h4 {
+  font-family: var(--sans);
+  margin: 1.5rem 0 0.5rem;
+  line-height: 1.3;
+}
+
+.scripture h3 {
+  font-size: 1.05rem;
+}
+
+.scripture h4 {
+  font-size: 0.95rem;
+}
+
+.h-r,
+.h-sr,
+.h-mr {
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--muted);
+  margin-top: -0.25rem;
+}
+
+.h-sp {
+  font-variant: small-caps;
+  font-weight: 600;
+}
+
+/* Character styles */
+.c-add {
+  font-style: italic;
+}
+
+.c-nd,
+.c-sc {
+  font-variant: small-caps;
+}
+
+.c-qs {
+  font-style: italic;
+  float: right;
+}
+
+.c-bdit {
+  font-weight: 700;
+  font-style: italic;
+}
+
+/* The LEB's idiomatic phrases, in lower corner brackets. */
+.idiom {
+  color: inherit;
+}
+
+.note-mark {
+  font-family: var(--sans);
+  font-size: 0.65em;
+  line-height: 0;
+}
+
+.note-mark a {
+  text-decoration: none;
+  padding: 0 0.1em;
+}
+
+/* Translator's notes, below the passage */
+.notes {
+  border-top: 1px solid var(--rule);
+  margin-top: 1.5rem;
+  padding-top: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.notes h2 {
+  font-size: 1rem;
+  color: var(--muted);
+}
+
+.notes ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.notes li {
+  margin-bottom: 0.4rem;
+}
+
+.notes li:target {
+  background: var(--pale);
+}
+
+.note-letter {
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.note-verse {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.translation-credit {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-top: 2rem;
+}
+
+.credits li {
+  margin-bottom: 0.5rem;
+}

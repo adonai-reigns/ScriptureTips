@@ -38,6 +38,8 @@ module.exports = {
   ],
   options: {
     doNotFollow: { path: "node_modules" },
+    // Next.js's generated files.
+    exclude: { path: "(^|/)\\.next/|next-env\\.d\\.ts$" },
     tsPreCompilationDeps: true,
     combinedDependencies: true,
     enhancedResolveOptions: {

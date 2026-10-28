@@ -1,0 +1,41 @@
+{
+  "site": {
+    "name": "ScriptureTips",
+    "tagline": "Study the scriptures in the translation you trust.",
+    "credits": "Credits"
+  },
+  "search": {
+    "translation": "Translation",
+    "reference": "Passage",
+    "placeholder": "e.g. John 3:16, Psalm 23, Joel 2:28–32",
+    "go": "Read"
+  },
+  "reader": {
+    "notes": "Translator's notes",
+    "noteOn": "Note on verse {verse}",
+    "title": "{passage} ({translation})",
+    "noVerses": "This passage isn't in this translation."
+  },
+  "errors": {
+    "unknown-translation": "We don't have that translation.",
+    "unknown-book": "We couldn't find a book by that name.",
+    "no-book": "Start with the name of a book, e.g. John 3:16.",
+    "book-not-in-scheme": "This translation doesn't include that book.",
+    "expected-chapter": "Add a chapter number, e.g. John 3.",
+    "no-such-chapter": "That book doesn't have a chapter with that number.",
+    "no-such-verse": "That chapter doesn't have a verse with that number.",
+    "verse-counts-unknown": "We can't read that passage in this translation yet.",
+    "backwards-range": "The passage ends before it starts.",
+    "unexpected-text": "We couldn't read part of that reference.",
+    "too-many-verses": "That's more than we show at once. Try a chapter or a few chapters.",
+    "invalid-request": "Enter a passage to read.",
+    "unavailable": "Scripture text isn't available right now. Please try again shortly."
+  },
+  "credits": {
+    "title": "Credits",
+    "intro": "ScriptureTips is free software, made possible by the generosity of others.",
+    "logo": "Logo by buzzzy at Fiverr.com.",
+    "background": "“Clouds And Birds” by Akira / Garcya.us, from FreeVector.com, licensed under CC BY-NC 4.0.",
+    "translations": "Each translation is credited with its text."
+  }
+}

@@ -12,6 +12,13 @@ RUN apt-get update \
   && chown -R node:node /home/node /workspace \
   && git config --system --add safe.directory /workspace
 
+# Playwright's Chromium and the system libraries it needs, for screenshots and end-to-end
+# tests (testing.md §3). Keep the version equal to @playwright/test in package.json.
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+RUN npx -y playwright@1.64.0 install --with-deps chromium \
+  && chmod -R a+rX /ms-playwright \
+  && rm -rf /var/lib/apt/lists/* /root/.npm
+
 ENV PNPM_HOME=/home/node/.local/share/pnpm \
   PNPM_STORE_DIR=/home/node/.local/share/pnpm/store \
   # Node 24's V8 headers need C++20; some native modules (tree-sitter 0.25) still ask for C++17.

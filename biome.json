@@ -6,7 +6,13 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!**/*.md", "!docs/license-evidence", "!pnpm-lock.yaml"]
+    "includes": [
+      "**",
+      "!**/*.md",
+      "!docs/license-evidence",
+      "!pnpm-lock.yaml",
+      "!apps/web/public/brand"
+    ]
   },
   "formatter": {
     "indentStyle": "space",

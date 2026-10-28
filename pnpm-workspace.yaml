@@ -10,3 +10,7 @@ allowBuilds:
   # Through drizzle-kit. Its install script only checks the binary, which esbuild's platform
   # package already provides.
   esbuild: false
+  # Through next-intl's tooling. Their install scripts only build from source when no
+  # prebuilt platform package is found, and one is.
+  "@parcel/watcher": false
+  "@swc/core": false

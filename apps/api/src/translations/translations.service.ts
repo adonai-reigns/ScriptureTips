@@ -54,6 +54,8 @@ export interface PassageResult {
   readonly canonical: string | null;
   /** For display: "Joel 2:28–32", "Psalm 23". */
   readonly label: string;
+  /** True when the passage is whole chapters ("Psalm 23", "Ruth 1–2"): paths use the short form. */
+  readonly wholeChapters: boolean;
   readonly verses: readonly PassageVerse[];
 }
 
@@ -105,6 +107,7 @@ export class TranslationsService {
         entered: formatOsisPassage(ref.entered),
         canonical: ref.canonical ? formatOsisPassage(ref.canonical) : null,
         label: formatPassage(ref.entered, { verses }),
+        wholeChapters: wholeChapters(ref.entered, verses),
         verses: found,
       });
     }
@@ -209,3 +212,9 @@ const summary = (row: typeof translation.$inferSelect): TranslationSummary => ({
   scheme: row.scheme,
   license: row.licenseKey,
 });
+
+const wholeChapters = (p: Passage, verses: VerseCounts): boolean =>
+  p.start.part === 0 &&
+  p.end.part === 0 &&
+  p.start.verse === verses.verses(p.start.book, p.start.chapter)?.first &&
+  p.end.verse === verses.verses(p.end.book, p.end.chapter)?.last;

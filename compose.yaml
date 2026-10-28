@@ -57,6 +57,25 @@ services:
         condition: service_healthy
     profiles: [dev]
 
+  # The web app (apps/web), with hot reload. http://127.0.0.1:3000, or on the local network
+  # with `./dev up --lan`.
+  web:
+    image: scripturetips-toolbox:dev
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    working_dir: /workspace
+    command: [pnpm, --filter, "@scripturetips/web", dev]
+    volumes:
+      - .:/workspace
+    environment:
+      API_URL: http://api:3001/api
+      NEXT_TELEMETRY_DISABLED: "1"
+      DEV_ORIGINS: ${DEV_ORIGINS:-}
+    ports:
+      - ${LAN_BIND:-127.0.0.1}:3000:3000
+    depends_on:
+      - api
+    profiles: [dev]
+
   # Integration-test server (testing.md §10): separate from development data, held in memory,
   # started with the toolbox. Each test file gets its own database, cloned from a migrated
   # template.

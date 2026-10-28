@@ -1,9 +1,11 @@
 addpn
+Akira
 altnumber
 apos
 bdit
 Berean
 biomejs
+buzzzy
 CXXFLAGS
 depcruise
 Deuterocanonical
@@ -26,6 +28,8 @@ engylt
 eocd
 esac
 esbuild
+Fiverr
+Garcya
 healthcheck
 isready
 KJVCPB

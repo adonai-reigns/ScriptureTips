@@ -1,17 +1,28 @@
 #!/usr/bin/env bash
 # Start or stop the local development stack (testing.md §2): ./dev up, ./dev down, ./dev logs.
-# Runs on the host, since Docker isn't available inside the toolbox.
+# `./dev up --lan` also serves the web app to the local network (to try it on a phone); the
+# API and database stay on localhost. Runs on the host, since Docker isn't available inside
+# the toolbox.
 set -euo pipefail
 cd "$(dirname "$0")"
 
 export HOST_UID="$(id -u)" HOST_GID="$(id -g)"
 
 case "${1:-}" in
-  up) exec docker compose --profile dev up -d --wait ;;
+  up)
+    if [[ "${2:-}" == "--lan" ]]; then
+      addresses="$(hostname -I | tr ' ' '\n' | grep -E '^(192\.168|10)\.' || true)"
+      export LAN_BIND=0.0.0.0 DEV_ORIGINS="$(paste -sd, <<<"$addresses")"
+      docker compose --profile dev up -d --wait --force-recreate web api
+      for a in $addresses; do echo "Web app on the network: http://$a:3000"; done
+      exit
+    fi
+    exec docker compose --profile dev up -d --wait --force-recreate web api
+    ;;
   down) exec docker compose --profile dev stop ;;
   logs) exec docker compose --profile dev logs -f "${@:2}" ;;
   *)
-    echo "Usage: ./dev up | down | logs [service]" >&2
+    echo "Usage: ./dev up [--lan] | down | logs [service]" >&2
     exit 1
     ;;
 esac

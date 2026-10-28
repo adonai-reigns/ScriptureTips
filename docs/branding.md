@@ -28,8 +28,8 @@ Taken from the artwork's own colors.
 
 ## 3. Where the artwork goes
 
-- **Yes:** the landing page, the header band, sign-in, empty states ("no compilations yet"), the extension's popup.
-- **Not behind scripture or notes.** The reading surface is plain: a paper-like light background. A busy image behind long text hurts readability and fails contrast checks.
+- **The page background:** the artwork fills the viewport and stays fixed while the content scrolls over it, on every page. Also in the extension's popup.
+- **Never directly behind text.** Content sits on a plain paper-colored panel over the artwork, so scripture and notes keep full contrast. On narrow screens the panel spans the full width, and the artwork shows around the header.
 
 ## 4. Type
 

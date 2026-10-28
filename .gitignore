@@ -9,3 +9,6 @@ dist/
 .env.*
 !.env.example
 *.tsbuildinfo
+test-results/
+.next/
+next-env.d.ts
