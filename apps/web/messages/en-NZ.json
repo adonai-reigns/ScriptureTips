@@ -16,7 +16,21 @@
     "title": "{passage} ({translation})",
     "noVerses": "This passage isn't in this translation.",
     "additional": "Additional writings: not counted as scripture in the {canon} canon.",
-    "varies": "Counted as scripture in some traditions, not in others."
+    "varies": "Counted as scripture in some traditions, not in others.",
+    "books": "Books",
+    "booksTitle": "Books of the {translation}",
+    "section": {
+      "ot": "Old Testament",
+      "nt": "New Testament",
+      "varies": "In some traditions",
+      "additional": "Additional writings"
+    },
+    "chapterLink": "{book} {chapter}",
+    "noCanonSignedOut": "Sign in and choose your canon to see the books in your tradition's order.",
+    "noCanon": "Choose your canon on your account page to see the books in your tradition's order.",
+    "previous": "Previous: {chapter}",
+    "next": "Next: {chapter}",
+    "chapterNav": "Chapters"
   },
   "errors": {
     "unknown-translation": "We don't have that translation.",

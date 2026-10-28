@@ -84,3 +84,15 @@ export async function passage(translation: string, ref: string): Promise<Passage
     ...(typeof body["index"] === "number" ? { index: body["index"] } : {}),
   };
 }
+
+/** The books a translation has text for, with their chapters; null for an unknown translation. */
+export async function books(
+  translation: string,
+): Promise<{ osis: string; chapters: number[] }[] | null> {
+  const res = await fetch(`${API}/translations/${encodeURIComponent(translation)}/books`, {
+    next: { revalidate: 300 },
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`API: ${res.status}`);
+  return ((await res.json()) as { books: { osis: string; chapters: number[] }[] }).books;
+}

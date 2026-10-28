@@ -1,10 +1,18 @@
+import { parseOsisPassage } from "@scripturetips/passage";
+import { english } from "@scripturetips/reference";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { currentAccount } from "../../../../account/api.ts";
-import { passage } from "../../../../reader/api.ts";
+import { books, passage } from "../../../../reader/api.ts";
+import {
+  arrangeBooks,
+  type ChapterRef,
+  neighbors,
+  readingOrder,
+} from "../../../../reader/books.ts";
 import { Passage } from "../../../../reader/Passage.tsx";
-import { referenceFor } from "../../../../reader/paths.ts";
+import { bookSlug, referenceFor } from "../../../../reader/paths.ts";
 import { SearchForm } from "../../../../reader/SearchForm.tsx";
 
 interface Props {
@@ -32,6 +40,30 @@ export default async function Read(props: Props) {
     currentAccount(),
   ]);
   const t = await getTranslations("errors");
+  const tr = await getTranslations("reader");
+  const canon = account?.canon ?? null;
+  // Previous and next chapters, in the reader's canon order, for a single passage.
+  const only = result.ok && result.passages.length === 1 ? result.passages[0] : undefined;
+  let around: { previous?: ChapterRef; next?: ChapterRef } = {};
+  if (only) {
+    const available = await books(translation).catch(() => null);
+    const { start, end } = parseOsisPassage(only.entered);
+    if (available)
+      around = neighbors(
+        readingOrder(arrangeBooks(available, canon)),
+        start.book,
+        start.chapter,
+        end.chapter,
+      );
+  }
+  const chapterLink = (c: ChapterRef, key: "previous" | "next") => (
+    <a
+      href={`/read/${translation}/${bookSlug(c.osis)}/${c.chapter}`}
+      rel={key === "previous" ? "prev" : "next"}
+    >
+      {tr(key, { chapter: `${english.name(c.osis, "full", "one")} ${c.chapter}` })}
+    </a>
+  );
   if (!result.ok && result.code === "unknown-translation") notFound();
   return (
     <div className="reader">
@@ -43,7 +75,7 @@ export default async function Read(props: Props) {
             passage={p}
             index={i}
             direction={result.translation.direction}
-            canon={account?.canon ?? null}
+            canon={canon}
           />
         ))
       ) : (
@@ -51,6 +83,13 @@ export default async function Read(props: Props) {
           {t.has(result.code) ? t(result.code) : t("unavailable")}
         </p>
       )}
+      {result.ok ? (
+        <nav className="chapter-nav" aria-label={tr("chapterNav")}>
+          <span>{around.previous ? chapterLink(around.previous, "previous") : null}</span>
+          <a href={`/read/${translation}`}>{tr("books")}</a>
+          <span>{around.next ? chapterLink(around.next, "next") : null}</span>
+        </nav>
+      ) : null}
       {result.ok ? <p className="translation-credit">{result.translation.name}</p> : null}
     </div>
   );

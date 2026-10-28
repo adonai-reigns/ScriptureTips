@@ -140,3 +140,17 @@ describe("GET /api/translations/:translation/passages", () => {
     expect(res.json()).toMatchObject({ code: "invalid-request" });
   });
 });
+
+describe("GET /api/translations/:translation/books", () => {
+  it("lists the books with text and their chapters", async () => {
+    const res = await get("/api/translations/kjv/books");
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toEqual({ books: [{ osis: "Joel", chapters: [2] }] });
+  });
+
+  it("answers an unknown translation with 404", async () => {
+    const res = await get("/api/translations/nope/books");
+    expect(res.statusCode).toBe(404);
+    expect(res.json()).toMatchObject({ code: "unknown-translation" });
+  });
+});

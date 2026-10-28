@@ -45,6 +45,17 @@ services:
     user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     working_dir: /workspace
     command: [pnpm, --filter, "@scripturetips/api", dev]
+    # `./dev up` waits until the API answers.
+    healthcheck:
+      test:
+        [
+          CMD,
+          node,
+          -e,
+          "fetch('http://127.0.0.1:3001/api/translations').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))",
+        ]
+      interval: 2s
+      retries: 60
     volumes:
       - .:/workspace
     environment:
@@ -93,6 +104,18 @@ services:
     user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     working_dir: /workspace
     command: [pnpm, --filter, "@scripturetips/web", dev]
+    # `./dev up` waits until the web app serves its first page.
+    healthcheck:
+      test:
+        [
+          CMD,
+          node,
+          -e,
+          "fetch('http://127.0.0.1:3000/').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))",
+        ]
+      interval: 2s
+      timeout: 30s
+      retries: 60
     volumes:
       - .:/workspace
     environment:

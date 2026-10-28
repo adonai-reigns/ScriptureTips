@@ -7,7 +7,10 @@
     "outDir": "dist",
     "rootDir": "src",
     "rewriteRelativeImportExtensions": true,
-    "sourceMap": true
+    "sourceMap": true,
+    // With --incremental (the dev script), the watcher's first pass finds nothing changed and
+    // writes nothing, so node --watch doesn't restart just after starting.
+    "tsBuildInfoFile": "dist/.tsbuildinfo"
   },
   "exclude": ["src/**/*.test.ts"]
 }

@@ -11,6 +11,7 @@ import { z } from "zod";
 import { ZodPipe } from "../zod-pipe.ts";
 import {
   type PassageResult,
+  type TranslationBookSummary,
   type TranslationSummary,
   TranslationsService,
 } from "./translations.service.ts";
@@ -26,6 +27,16 @@ export class TranslationsController {
   @Get()
   async list(): Promise<{ translations: TranslationSummary[] }> {
     return { translations: await this.translations.list() };
+  }
+
+  /** The books a translation has text for, with their chapters, for the reader's book list. */
+  @Get(":translation/books")
+  async books(
+    @Param("translation", new ZodPipe(TranslationId)) id: string,
+  ): Promise<{ books: TranslationBookSummary[] }> {
+    const books = await this.translations.books(id);
+    if (!books) throw new NotFoundException({ code: "unknown-translation" });
+    return { books };
   }
 
   /**

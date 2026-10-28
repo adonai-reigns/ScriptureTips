@@ -10,7 +10,7 @@ import {
   translatorNote,
   verseText,
 } from "@scripturetips/db";
-import { formatOsisPassage, type Passage } from "@scripturetips/passage";
+import { bookByOsis, formatOsisPassage, type Passage } from "@scripturetips/passage";
 import {
   formatPassage,
   type ParseError,
@@ -68,6 +68,12 @@ export interface PassageResult {
   readonly verses: readonly PassageVerse[];
 }
 
+/** A book a translation has text for, and its chapters (in the translation's numbering). */
+export interface TranslationBookSummary {
+  readonly osis: string;
+  readonly chapters: readonly number[];
+}
+
 export type PassageOutcome =
   | {
       readonly ok: true;
@@ -94,6 +100,29 @@ export class TranslationsService {
       )
       .orderBy(asc(translation.name));
     return rows.map(summary);
+  }
+
+  /** The books with text, in registry order (the reader arranges them by canon); null if unknown. */
+  async books(catalogId: string): Promise<TranslationBookSummary[] | null> {
+    const [row] = await this.db
+      .select({ id: translation.id })
+      .from(translation)
+      .where(eq(translation.catalogId, catalogId));
+    if (!row) return null;
+    const rows = await this.db
+      .select({
+        book: verseText.book,
+        chapters: sql<
+          number[]
+        >`array_agg(distinct ${verseText.chapter} order by ${verseText.chapter})`,
+      })
+      .from(verseText)
+      .where(eq(verseText.translationId, row.id))
+      .groupBy(verseText.book);
+    const number = (osis: string) => bookByOsis(osis)?.number ?? Number.MAX_SAFE_INTEGER;
+    return rows
+      .map((r) => ({ osis: r.book, chapters: r.chapters.map(Number) }))
+      .sort((a, b) => number(a.osis) - number(b.osis));
   }
 
   async passage(catalogId: string, reference: string): Promise<PassageOutcome> {

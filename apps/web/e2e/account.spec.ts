@@ -8,6 +8,15 @@ const shot = (name: string) => ({
   fullPage: true,
 });
 
+/**
+ * Each test arrives from its own address (a documentation range), as separate users would, so
+ * the per-address limits (apps/api `CODE_REQUESTS_PER_IP_PER_HOUR`) don't add up across runs.
+ */
+test.beforeEach(async ({ page }) => {
+  const address = `198.51.100.${1 + Math.floor(Math.random() * 254)}`;
+  await page.setExtraHTTPHeaders({ "x-forwarded-for": address });
+});
+
 /** The sign-in code in the newest email to `to`. */
 async function codeFor(page: Page, to: string): Promise<string> {
   let code: string | undefined;
@@ -67,6 +76,12 @@ test("vision §11: sign in with an emailed code, choose a handle and canon, sign
   await page.screenshot(shot("reader-additional"));
   await page.goto("/read/eng-web/john/1");
   await expect(page.locator(".canon-note")).toHaveCount(0);
+  await page.goto("/read/eng-web");
+  await expect(
+    page.getByRole("region", { name: "Additional writings" }).getByText("Tobit", { exact: true }),
+  ).toBeVisible();
+  await page.goto("/read/eng-web/malachi/4");
+  await expect(page.getByRole("link", { name: "Next: Matthew 1" })).toBeVisible();
 
   await page.goto("/account");
 
