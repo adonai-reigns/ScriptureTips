@@ -15,7 +15,7 @@ import { DATABASE, type Database } from "../database.ts";
 import { ZodPipe } from "../zod-pipe.ts";
 import type { Auth } from "./auth.ts";
 import type { AccountSettings } from "./config.ts";
-import { isReservedHandle } from "./reserved-handles.ts";
+import { isReservedHandle, isReservedName } from "./reserved-handles.ts";
 import { AUTH, fetchHeaders, SETTINGS } from "./tokens.ts";
 
 /** `@handle` (domain-model §1.6): 3–30 ASCII letters, digits and hyphens, stored lowercase. */
@@ -84,6 +84,8 @@ export class AccountController {
       if (current.handle !== null) throw new BadRequestException({ code: "handle-already-chosen" });
       if (isReservedHandle(body.handle)) throw new BadRequestException({ code: "handle-reserved" });
     }
+    if (body.name !== undefined && body.name !== current.name && isReservedName(body.name))
+      throw new BadRequestException({ code: "name-reserved" });
     try {
       const [updated] = await this.db
         .update(user)

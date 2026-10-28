@@ -52,3 +52,12 @@ test("an unknown book is answered in words", async ({ page }) => {
   await expect(page.getByRole("alert")).toHaveText("We couldn't find a book by that name.");
   await page.screenshot(shot("error"));
 });
+
+test("the credits page names every asset and data source (branding.md §1)", async ({ page }) => {
+  await page.goto("/credits");
+  const main = page.locator("main");
+  await expect(main.getByRole("heading", { name: "Credits" })).toBeVisible();
+  await expect(main.getByRole("link", { name: "The Big Username Blocklist" })).toBeVisible();
+  await expect(main.getByRole("link", { name: "shouldbee/reserved-usernames" })).toBeVisible();
+  await page.screenshot(shot("credits"));
+});

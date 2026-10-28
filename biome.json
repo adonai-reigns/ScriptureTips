@@ -11,7 +11,8 @@
       "!**/*.md",
       "!docs/license-evidence",
       "!pnpm-lock.yaml",
-      "!apps/web/public/brand"
+      "!apps/web/public/brand",
+      "!**/*.generated.ts"
     ]
   },
   "formatter": {

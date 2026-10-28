@@ -9,6 +9,7 @@ The identity carries over from the legacy apps: the book-and-quill logo, the sky
 | **Logo** (open book with a quill, in blues) | Commissioned from buzzzy on Fiverr (legacy `ScriptureTips-App/src/assets/images/site/st-logo-*.png`) | Commissioned for ScriptureTips | "Logo by buzzzy at Fiverr.com", as the legacy credits gave it |
 | **Clouds and birds** (background artwork) | "Clouds And Birds", freevector.com (legacy `bg-clouds-and-birds.svg`) | **CC BY-NC 4.0** ([license-evidence/clouds-and-birds](license-evidence/clouds-and-birds/SOURCE.md)). Non-commercial use only, which ScriptureTips always is | "Clouds And Birds" by Akira / Garcya.us, FreeVector.com, CC BY-NC 4.0, with links (which name, sources.md §8, item 19) |
 
+- **Data credited alongside the assets:** the reserved-username lists (The Big Username Blocklist and shouldbee/reserved-usernames, MIT: [license-evidence/big-username-blocklist](license-evidence/big-username-blocklist/SOURCE.md), [license-evidence/shouldbee-reserved-usernames](license-evidence/shouldbee-reserved-usernames/SOURCE.md)).
 - **Artwork isn't covered by the code's AGPL license.** Each asset keeps its own license, recorded here and in `license-evidence/`. Anyone reusing the code must check the artwork separately (CC BY-NC rules out a commercial fork using the background).
 - **A credits page** in the app lists every asset and font with its credit and license, as the legacy acknowledgements page did.
 

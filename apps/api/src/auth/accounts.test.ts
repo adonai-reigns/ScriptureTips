@@ -156,6 +156,9 @@ describe("domain-model §1.6: handles", () => {
     expect((await update(cookie, { handle: "Admin" })).json()).toMatchObject({
       code: "handle-reserved",
     });
+    expect((await update(cookie, { name: "The Lord" })).json()).toMatchObject({
+      code: "name-reserved",
+    });
   });
 });
 

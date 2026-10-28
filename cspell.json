@@ -32,6 +32,10 @@
     {
       "filename": "**/locales/en-NZ/**",
       "language": "en-GB"
+    },
+    {
+      "filename": "**/messages/en-NZ.json",
+      "language": "en-GB"
     }
   ]
 }

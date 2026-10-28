@@ -74,6 +74,7 @@
     "handle-invalid": "Use 3 to 30 letters, numbers or hyphens, not starting or ending with a hyphen.",
     "handle-already-chosen": "Your handle is already set.",
     "name-invalid": "Enter a display name of up to 60 characters.",
+    "name-reserved": "That name is reserved. Try another.",
     "unavailable": "Something went wrong. Please try again shortly."
   }
 }

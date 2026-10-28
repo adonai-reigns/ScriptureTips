@@ -21,6 +21,16 @@ export default async function Credits() {
           <a href="https://www.freevector.com/clouds-and-birds/">{t("background")}</a>{" "}
           <a href="https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a>
         </li>
+        <li>
+          {t.rich("reservedNames", {
+            big: (chunks) => (
+              <a href="https://github.com/marteinn/The-Big-Username-Blocklist">{chunks}</a>
+            ),
+            shouldbee: (chunks) => (
+              <a href="https://github.com/shouldbee/reserved-usernames">{chunks}</a>
+            ),
+          })}
+        </li>
         <li>{t("translations")}</li>
       </ul>
     </section>

@@ -529,3 +529,47 @@ export function isReservedHandle(handle: string): boolean {
     IMPERSONATION.has(handle.replaceAll("-", ""))
   );
 }
+
+/** God's names in other scripts, without vowel points or accents, as `nameForm` leaves them. */
+const OTHER_SCRIPTS = new Set([
+  "יהוה", // the Name, in Hebrew
+  "אדני", // Adonai
+  "אלהים", // Elohim
+  "ישוע", // Yeshua
+  "θεοσ", // Theos
+  "κυριοσ", // Kyrios
+  "ιησουσ", // Iesous
+  "χριστοσ", // Christos
+  "الله", // Allah
+]);
+
+/** The Name: refused anywhere in a display name, since it's never part of a person's name. */
+const THE_NAME = ["yhwh", "yhvh", "jhwh", "jhvh", "יהוה"];
+
+/**
+ * A display name reduced for matching: accents and vowel points removed (NFKD, so look-alike
+ * letters from other blocks fold too), lowercase, final sigma as sigma, then only letters and
+ * digits, normalized as a handle is.
+ */
+export function nameForm(name: string): string {
+  const plain = name
+    .normalize("NFKD")
+    .replace(/\p{M}/gu, "")
+    .toLowerCase()
+    .replaceAll("ς", "σ")
+    .replace(/[^\p{L}\p{N}]/gu, "");
+  return normalize(plain);
+}
+
+/**
+ * True if a display name claims to be one of the reserved names (`God`, `The Lord`,
+ * `Apostle Paul`, `Admin`) or contains the Name in any script. Ordinary names that include one
+ * (`Godfrey Smith`, `Paul`) are fine. The site paths and published lists don't apply: they only
+ * matter in URLs.
+ */
+export function isReservedName(name: string): boolean {
+  const form = nameForm(name);
+  return (
+    IMPERSONATION.has(form) || OTHER_SCRIPTS.has(form) || THE_NAME.some((n) => form.includes(n))
+  );
+}
