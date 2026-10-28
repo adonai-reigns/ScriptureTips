@@ -16,7 +16,7 @@
     "@scripturetips/passage": "workspace:*",
     "@scripturetips/reference": "workspace:*",
     "altcha": "3.3.0",
-    "next": "16.4.0",
+    "next": "16.4.3",
     "next-intl": "4.14.9",
     "react": "19.3.0",
     "react-dom": "19.3.0"
