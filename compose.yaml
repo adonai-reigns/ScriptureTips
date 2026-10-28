@@ -12,7 +12,50 @@ services:
       # Source texts live outside git, beside the repo (AGENTS.md, Licensing and sources).
       - ../source-texts:/source-texts
       - pnpm-store:/home/node/.local/share/pnpm/store
+    environment:
+      # The development database (`./dev up`), and the test server the integration tests
+      # create their databases on (testing.md §10). Local-only credentials, not secrets.
+      DATABASE_URL: postgres://scripturetips:scripturetips@postgres:5432/scripturetips
+      TEST_DATABASE_URL: postgres://scripturetips:scripturetips@postgres-test:5432/postgres
+    depends_on:
+      postgres-test:
+        condition: service_healthy
     profiles: [tools]
+
+  # Development database, started with ./dev up. Its data is kept in the pgdata volume.
+  postgres:
+    image: postgres:18.4-alpine
+    environment:
+      POSTGRES_USER: scripturetips
+      POSTGRES_PASSWORD: scripturetips
+      POSTGRES_DB: scripturetips
+    ports:
+      - 127.0.0.1:5432:5432
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: [CMD, pg_isready, -U, scripturetips]
+      interval: 2s
+      retries: 30
+    profiles: [dev]
+
+  # Integration-test server (testing.md §10): separate from development data, held in memory,
+  # started with the toolbox. Each test file gets its own database, cloned from a migrated
+  # template.
+  postgres-test:
+    image: postgres:18.4-alpine
+    environment:
+      POSTGRES_USER: scripturetips
+      POSTGRES_PASSWORD: scripturetips
+    command: [postgres, -c, fsync=off, -c, synchronous_commit=off, -c, full_page_writes=off]
+    tmpfs:
+      - /var/lib/postgresql
+    healthcheck:
+      test: [CMD, pg_isready, -U, scripturetips]
+      interval: 1s
+      retries: 30
+    profiles: [tools, test]
 
 volumes:
   pnpm-store:
+  pgdata:

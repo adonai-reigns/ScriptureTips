@@ -18,7 +18,7 @@ ScriptureTips is a large system that will be built largely with LLM coding agent
 | `pnpm verify` | Formatting, lint, type-check, dependency-boundary check, unit tests and integration tests **for the packages affected by the change** (Turborepo, with caching) | Under 1–2 minutes |
 | `pnpm verify:full` | Everything in `verify` for all packages, plus end-to-end, accessibility, PDF render and extension tests | 10–20 minutes |
 | `pnpm verify:nightly` | `verify:full` plus mutation testing on the core packages, large fixture corpora and performance budgets | Longer |
-| `pnpm dev:up` / `dev:down` | Starts or stops the full stack locally (Docker Compose) with seeded data | About 1 minute |
+| `./dev up` / `./dev down` | Starts or stops the full stack locally (Docker Compose) with seeded data. Run on the host: Docker isn't available inside the toolbox | About 1 minute |
 | `pnpm dev:seed [scenario]` | Loads a named data scenario (e.g. `empty`, `solo-user`, `group-with-publications`, `moderation-queue`) | Seconds |
 
 - **Run through the toolbox:** every command runs inside the development toolbox container (`./toolbox pnpm verify`). The host needs only Docker (AGENTS.md, "Development environment").
@@ -93,7 +93,7 @@ Each test opens the composer, inserts a link, and checks that the link is at the
   3. for UI changes, Playwright screenshots of the changed screens, checked by the agent;
   4. a short report: what changed, what was tested, anything skipped or weakened and why, and any open questions.
 - **Automatic checks in Claude Code:** project hooks run the formatter after edits, and the affected type-check and tests before the agent finishes its turn, so the agent sees failures before handing back.
-- **Seeing the running system:** the agent can start the stack (`pnpm dev:up`), load a scenario, read structured logs (one file per service) and take screenshots with Playwright.
+- **Seeing the running system:** the agent can start the stack (`./dev up`), load a scenario, read structured logs (one file per service) and take screenshots with Playwright.
 - **Small tasks:** work is planned as thin vertical slices (a feature from the database to the UI, with its tests), each small enough to review in one sitting. Package boundaries keep the code an agent needs to read small.
 - **Review by people stays the final step.** Agents never commit; you review and build the change set in your IDE, as now.
 

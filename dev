@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Start or stop the local development stack (testing.md §2): ./dev up, ./dev down, ./dev logs.
+# Runs on the host, since Docker isn't available inside the toolbox.
+set -euo pipefail
+cd "$(dirname "$0")"
+
+case "${1:-}" in
+  up) exec docker compose --profile dev up -d --wait ;;
+  down) exec docker compose --profile dev stop ;;
+  logs) exec docker compose --profile dev logs -f "${@:2}" ;;
+  *)
+    echo "Usage: ./dev up | down | logs [service]" >&2
+    exit 1
+    ;;
+esac

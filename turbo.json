@@ -7,7 +7,8 @@
     },
     "test": {
       "dependsOn": ["^typecheck"],
-      "outputs": []
+      "outputs": [],
+      "passThroughEnv": ["DATABASE_URL", "TEST_DATABASE_URL"]
     }
   }
 }

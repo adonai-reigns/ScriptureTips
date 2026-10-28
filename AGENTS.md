@@ -8,7 +8,7 @@ The project is being rebuilt from scratch as this monorepo. The legacy repos alo
 
 ## Status
 
-The monorepo is scaffolded. Built so far: the toolbox, `pnpm verify`, the core packages [`packages/passage`](packages/passage/AGENTS.md), [`packages/versification`](packages/versification/AGENTS.md) (mapping tables generated from TVTMS) and [`packages/reference`](packages/reference/AGENTS.md) (the reference parser), and the source-text converters in [`tools/source-conversion`](tools/source-conversion/AGENTS.md) (JPS 1917, and the TVTMS versification import). The rest of the stack below is decided but not yet built. Update this file as parts become real.
+The monorepo is scaffolded. Built so far: the toolbox, `pnpm verify`, the core packages [`packages/passage`](packages/passage/AGENTS.md), [`packages/versification`](packages/versification/AGENTS.md) (mapping tables generated from TVTMS) and [`packages/reference`](packages/reference/AGENTS.md) (the reference parser), [`packages/db`](packages/db/AGENTS.md) (PostgreSQL schema for scripture text, migrations, test databases), the translation import and loader in [`tools/scripture-import`](tools/scripture-import/AGENTS.md), and the source-text converters in [`tools/source-conversion`](tools/source-conversion/AGENTS.md) (JPS 1917, the LEB, and the TVTMS versification import). The rest of the stack below is decided but not yet built. Update this file as parts become real.
 
 ## Development environment
 
@@ -46,7 +46,7 @@ Run each through `./toolbox`.
 - `pnpm verify`: Biome lint and format check, dependency boundaries, spelling, then type-check and tests for the packages affected by the change. **Built.**
 - `pnpm verify:full`: the same for every package. **Built.** End-to-end, accessibility, PDF and extension tests are added as those parts are built.
 - `pnpm format`: apply Biome formatting, import sorting and safe fixes.
-- `pnpm dev:up` / `pnpm dev:down` / `pnpm dev:seed [scenario]`: start, stop and seed the local stack. **Planned.**
+- `./dev up` / `./dev down` / `./dev logs`: start, stop and follow the local stack, run on the host (Docker isn't available inside the toolbox). **Built** with PostgreSQL only; the other services are added as they're built. `pnpm dev:seed [scenario]` is **planned**.
 
 **Claude Code hooks** (`.claude/settings.json`, scripts in `scripts/claude-hooks/`): every edited file is formatted with Biome, and `pnpm verify` runs before the agent finishes a turn that changed code. A failure is sent back to the agent to fix.
 

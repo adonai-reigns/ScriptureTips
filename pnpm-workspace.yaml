@@ -7,3 +7,6 @@ packages:
 allowBuilds:
   tree-sitter: true
   tree-sitter-usfm3: true
+  # Through drizzle-kit. Its install script only checks the binary, which esbuild's platform
+  # package already provides.
+  esbuild: false
