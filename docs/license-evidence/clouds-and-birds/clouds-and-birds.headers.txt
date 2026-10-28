@@ -1,0 +1,22 @@
+GET https://www.freevector.com/clouds-and-birds -> 200
+alt-svc: h3=":443"; ma=86400
+cache-control: max-age=0, private, must-revalidate
+cf-cache-status: DYNAMIC
+cf-ray: a5179dbcbb56abdb-AKL
+content-encoding: zstd
+content-type: text/html; charset=utf-8
+date: Wed, 28 Oct 2026 05:42:16 GMT
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+priority: u=1,i
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=m3mXovXiOehm5Yhvqek%2FNvhYNT2aQTc%2F4Is7AQle2zkQuVR4U3%2FTUZD8E8LvABnz88m9thzambIDA82Cfytfx6FS03iKys8s%2FVtP89JoQyu0NktJRfeyMZU1UpBAUN5v0IzNh1Q%3D"}]}
+server: cloudflare
+server-timing: cfExtPri
+strict-transport-security: max-age=0
+via: 1.1 e378d76b15a8a826b288c2bd2a3ba86e.cloudfront.net (CloudFront)
+x-amz-cf-id: WHLgBCbNweCOgPg-sTfzdf5fIP8DAFp-UhgUXR65Aw6_sTenHrBjJg==
+x-amz-cf-pop: AKL53-P1
+x-cache: Miss from cloudfront
+x-content-type-options: nosniff
+x-request-id: bed04568-4ccf-48bc-a021-849e98077dc3
+x-runtime: 0.073688
+x-xss-protection: 1; mode=block

@@ -32,6 +32,7 @@ The repo is mounted at `/workspace` and commands run as your own user ID, so fil
 | [docs/domain-model.md](docs/domain-model.md) | Entities, visibility, publishing, versification, data rules |
 | [docs/testing.md](docs/testing.md) | Test layers, commands, definition of done |
 | [docs/book-designer.md](docs/book-designer.md) | Editions and print/PDF output |
+| [docs/branding.md](docs/branding.md) | Logo, palette, artwork and its rights, type |
 | [docs/licenses.md](docs/licenses.md), [docs/sources.md](docs/sources.md) | Translation and data licensing, ingestion |
 | [docs/license-evidence/](docs/license-evidence/) | Captured license terms and file hashes per source |
 
