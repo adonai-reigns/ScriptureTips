@@ -91,11 +91,13 @@ interface Item {
 }
 
 class Failure extends Error {
-  constructor(
-    readonly code: ParseErrorCode,
-    readonly index: number,
-  ) {
+  readonly code: ParseErrorCode;
+  readonly index: number;
+
+  constructor(code: ParseErrorCode, index: number) {
     super(code);
+    this.code = code;
+    this.index = index;
   }
 }
 
@@ -109,16 +111,17 @@ const PART = /[a-i](?!\p{L})/uy;
  * ("jn 3 16") and a book name alone; text found in a page is read more strictly.
  */
 class Reader {
+  readonly text: string;
+  readonly language: Language;
+  readonly lookup: boolean;
   pos: number;
   private readonly separator: RegExp;
   private readonly heading: RegExp;
 
-  constructor(
-    readonly text: string,
-    start: number,
-    readonly language: Language,
-    readonly lookup: boolean,
-  ) {
+  constructor(text: string, start: number, language: Language, lookup: boolean) {
+    this.text = text;
+    this.language = language;
+    this.lookup = lookup;
     this.pos = start;
     this.separator = lookup ? /\s*(?::|\.|vv?\.?|\s)\s*/y : /\s*(?::|\.|vv?\.?)\s*/y;
     this.heading = new RegExp(

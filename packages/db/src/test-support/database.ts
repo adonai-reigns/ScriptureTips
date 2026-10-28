@@ -30,7 +30,12 @@ const withDatabase = (url: string, name: string) => {
 };
 
 /** A fresh database cloned from the template. Call `drop` when the tests are done. */
-export async function testDatabase(): Promise<{ db: Database; drop: () => Promise<void> }> {
+export async function testDatabase(): Promise<{
+  db: Database;
+  /** Its URL, for code that opens its own connection (an app under test). */
+  url: string;
+  drop: () => Promise<void>;
+}> {
   const server = testServerUrl();
   const name = `test_${randomUUID().replaceAll("-", "")}`;
   const admin = postgres(server, { onnotice: () => {} });
@@ -39,9 +44,11 @@ export async function testDatabase(): Promise<{ db: Database; drop: () => Promis
   } finally {
     await admin.end();
   }
-  const { db, close } = connect(withDatabase(server, name));
+  const url = withDatabase(server, name);
+  const { db, close } = connect(url);
   return {
     db,
+    url,
     drop: async () => {
       await close();
       const cleanup = postgres(server, { onnotice: () => {} });

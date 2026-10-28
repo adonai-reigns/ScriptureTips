@@ -39,6 +39,24 @@ services:
       retries: 30
     profiles: [dev]
 
+  # The API (apps/api), rebuilt and restarted on every change. http://127.0.0.1:3001/api
+  api:
+    image: scripturetips-toolbox:dev
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    working_dir: /workspace
+    command: [pnpm, --filter, "@scripturetips/api", dev]
+    volumes:
+      - .:/workspace
+    environment:
+      DATABASE_URL: postgres://scripturetips:scripturetips@postgres:5432/scripturetips
+      PORT: "3001"
+    ports:
+      - 127.0.0.1:3001:3001
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles: [dev]
+
   # Integration-test server (testing.md §10): separate from development data, held in memory,
   # started with the toolbox. Each test file gets its own database, cloned from a migrated
   # template.

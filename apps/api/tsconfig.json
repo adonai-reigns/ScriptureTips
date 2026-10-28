@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"],
+    // NestJS decorators. Dependencies are injected by explicit token (`@Inject`), so no
+    // decorator metadata is emitted or needed.
+    "experimentalDecorators": true,
+    // Compiled, not run from source, so Nest's usual constructor parameter properties work.
+    "erasableSyntaxOnly": false
+  },
+  "include": ["src"]
+}

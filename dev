@@ -4,6 +4,8 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
+export HOST_UID="$(id -u)" HOST_GID="$(id -g)"
+
 case "${1:-}" in
   up) exec docker compose --profile dev up -d --wait ;;
   down) exec docker compose --profile dev stop ;;

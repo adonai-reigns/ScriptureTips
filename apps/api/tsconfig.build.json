@@ -1,0 +1,13 @@
+{
+  // Node can't run decorators from TypeScript source, so the API is compiled to dist/.
+  // Workspace packages are still loaded from their TypeScript source.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "dist",
+    "rootDir": "src",
+    "rewriteRelativeImportExtensions": true,
+    "sourceMap": true
+  },
+  "exclude": ["src/**/*.test.ts"]
+}
