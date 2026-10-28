@@ -7,6 +7,7 @@ const API = process.env["API_URL"] ?? "http://127.0.0.1:3001/api";
 const config: NextConfig = {
   // Workspace packages are TypeScript source.
   transpilePackages: [
+    "@scripturetips/canon",
     "@scripturetips/passage",
     "@scripturetips/reference",
     "@scripturetips/versification",

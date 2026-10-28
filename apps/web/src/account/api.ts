@@ -1,3 +1,4 @@
+import type { CanonId } from "@scripturetips/canon";
 import { cookies } from "next/headers";
 
 /** The signed-in user's account, from the API (apps/api/src/auth). */
@@ -6,6 +7,7 @@ export interface Account {
   handle: string | null;
   name: string;
   locale: string;
+  canon: CanonId | null;
   trustLevel: number;
 }
 

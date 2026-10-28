@@ -12,6 +12,7 @@
     "start": "next start --port 3000"
   },
   "dependencies": {
+    "@scripturetips/canon": "workspace:*",
     "@scripturetips/passage": "workspace:*",
     "@scripturetips/reference": "workspace:*",
     "altcha": "3.3.0",

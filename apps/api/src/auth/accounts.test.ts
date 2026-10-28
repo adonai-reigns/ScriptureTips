@@ -70,6 +70,7 @@ describe("vision §11: sign-in with a one-time email code", () => {
       handle: null,
       name: "",
       locale: "en-NZ",
+      canon: null,
       trustLevel: 0,
     });
   });
@@ -159,6 +160,22 @@ describe("domain-model §1.6: handles", () => {
     expect((await update(cookie, { name: "The Lord" })).json()).toMatchObject({
       code: "name-reserved",
     });
+  });
+});
+
+describe("vision §3.4: canon profile", () => {
+  it("has no default, is chosen from the profiles, and can be changed", async () => {
+    const cookie = await signIn("canon@example.com");
+    expect((await account(cookie)).json()).toMatchObject({ canon: null });
+    expect((await update(cookie, { canon: "catholic" })).json()).toMatchObject({
+      canon: "catholic",
+    });
+    expect((await update(cookie, { canon: "orthodox" })).json()).toMatchObject({
+      canon: "orthodox",
+    });
+    const unknown = await update(cookie, { canon: "mine" });
+    expect(unknown.statusCode).toBe(400);
+    expect((await account(cookie)).json()).toMatchObject({ canon: "orthodox" });
   });
 });
 

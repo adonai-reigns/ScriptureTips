@@ -15,6 +15,13 @@
       "when": 1793174799267,
       "tag": "0001_accounts",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793178597439,
+      "tag": "0002_canon",
+      "breakpoints": true
     }
   ]
 }

@@ -167,6 +167,8 @@ export const user = pgTable("user", {
   handle: text("handle").unique(),
   /** BCP 47 tag for the interface language. */
   locale: text("locale").notNull().default("en-NZ"),
+  /** Canon profile (`@scripturetips/canon`): no default, chosen after the first sign-in. */
+  canon: text("canon"),
   /** 0–4 (vision §4): what the account may do beyond private study. */
   trustLevel: integer("trust_level").notNull().default(0),
   ...timestamps,

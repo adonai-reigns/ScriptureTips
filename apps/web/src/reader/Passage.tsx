@@ -1,3 +1,4 @@
+import { type CanonId, standing } from "@scripturetips/canon";
 import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 import type { PassageResult } from "./api.ts";
@@ -105,16 +106,27 @@ export async function Passage({
   passage,
   index,
   direction,
+  canon,
 }: {
   passage: PassageResult;
   index: number;
   direction: "ltr" | "rtl";
+  /** The reader's canon profile; null when signed out or not chosen yet. */
+  canon: CanonId | null;
 }) {
   const t = await getTranslations("reader");
+  const tc = await getTranslations("canons");
+  // A passage's verses all come from its first book (translations.service `versesIn`).
+  const place = standing(passage.entered.split(".")[0] ?? "", canon);
   const { blocks, notes } = layOut(passage.verses, `p${index}`);
   return (
     <article className="passage" dir={direction}>
       <h1 className="passage-label">{passage.label}</h1>
+      {place === "additional" && canon ? (
+        <p className="canon-note">{t("additional", { canon: tc(canon) })}</p>
+      ) : place === "varies" ? (
+        <p className="canon-note">{t("varies")}</p>
+      ) : null}
       {passage.verses.length === 0 ? <p>{t("noVerses")}</p> : null}
       <div className="scripture">
         {blocks.map((b) => (

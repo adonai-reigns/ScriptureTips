@@ -1,14 +1,16 @@
 "use client";
 
+import { CANON_IDS } from "@scripturetips/canon";
 import { useTranslations } from "next-intl";
 import { type FormEvent, useState } from "react";
 import type { Account } from "./api.ts";
 import { type AccountError, accountError } from "./errors.ts";
 
-/** The handle (chosen once, for now) and display name. */
+/** The handle (chosen once, for now), display name and canon profile. */
 export function AccountForm({ account }: { account: Account }) {
   const t = useTranslations("account");
   const te = useTranslations("accountErrors");
+  const tc = useTranslations("canons");
   const [error, setError] = useState<AccountError | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -18,6 +20,7 @@ export function AccountForm({ account }: { account: Account }) {
     const body = {
       ...(account.handle === null ? { handle: String(form.get("handle") ?? "") } : {}),
       name: String(form.get("name") ?? ""),
+      ...(form.get("canon") ? { canon: String(form.get("canon")) } : {}),
     };
     setBusy(true);
     setError(null);
@@ -69,6 +72,24 @@ export function AccountForm({ account }: { account: Account }) {
         />
         <small>{t("nameHelp")}</small>
       </label>
+      <fieldset className="choices" aria-describedby="canon-help">
+        <legend>{t("canon")}</legend>
+        <small id="canon-help">{t("canonHelp")}</small>
+        {CANON_IDS.map((id) => (
+          <label key={id} className="choice">
+            <input
+              type="radio"
+              name="canon"
+              value={id}
+              required
+              defaultChecked={account.canon === id}
+            />
+            <span>
+              <strong>{tc(id)}</strong> <small>{tc(`${id}Help`)}</small>
+            </span>
+          </label>
+        ))}
+      </fieldset>
       {error && (
         <p role="alert" className="error">
           {te(error)}

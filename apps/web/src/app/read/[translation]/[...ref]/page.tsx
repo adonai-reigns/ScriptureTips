@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { currentAccount } from "../../../../account/api.ts";
 import { passage } from "../../../../reader/api.ts";
 import { Passage } from "../../../../reader/Passage.tsx";
 import { referenceFor } from "../../../../reader/paths.ts";
@@ -26,7 +27,10 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 }
 
 export default async function Read(props: Props) {
-  const { translation, reference, result } = await load(props);
+  const [{ translation, reference, result }, account] = await Promise.all([
+    load(props),
+    currentAccount(),
+  ]);
   const t = await getTranslations("errors");
   if (!result.ok && result.code === "unknown-translation") notFound();
   return (
@@ -34,7 +38,13 @@ export default async function Read(props: Props) {
       <SearchForm translation={translation} reference={reference} />
       {result.ok ? (
         result.passages.map((p, i) => (
-          <Passage key={p.entered} passage={p} index={i} direction={result.translation.direction} />
+          <Passage
+            key={p.entered}
+            passage={p}
+            index={i}
+            direction={result.translation.direction}
+            canon={account?.canon ?? null}
+          />
         ))
       ) : (
         <p className="error" role="alert">

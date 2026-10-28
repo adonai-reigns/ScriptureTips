@@ -219,6 +219,40 @@ main {
   align-self: flex-start;
 }
 
+.account-form .choices {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.account-form .choices legend {
+  padding: 0;
+  margin-bottom: 0.25rem;
+}
+
+.account-form .choice {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.5rem;
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.account-form .choice input {
+  margin-top: 0.3rem;
+  accent-color: var(--deep);
+}
+
+.account-form .choice small {
+  display: block;
+  color: var(--muted);
+}
+
 .account-form button:disabled {
   opacity: 0.6;
 }
@@ -245,6 +279,12 @@ main {
   font-family: var(--serif);
   font-size: 1.6rem;
   margin: 0 0 1rem;
+}
+
+.canon-note {
+  color: var(--muted);
+  font-style: italic;
+  margin: -0.5rem 0 1rem;
 }
 
 .scripture {

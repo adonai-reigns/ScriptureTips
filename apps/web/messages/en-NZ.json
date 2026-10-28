@@ -14,7 +14,9 @@
     "notes": "Translator's notes",
     "noteOn": "Note on verse {verse}",
     "title": "{passage} ({translation})",
-    "noVerses": "This passage isn't in this translation."
+    "noVerses": "This passage isn't in this translation.",
+    "additional": "Additional writings: not counted as scripture in the {canon} canon.",
+    "varies": "Counted as scripture in some traditions, not in others."
   },
   "errors": {
     "unknown-translation": "We don't have that translation.",
@@ -51,12 +53,14 @@
     "signInButton": "Sign in",
     "newCode": "Send a new code",
     "title": "Your account",
-    "welcome": "Welcome to ScriptureTips. Choose a handle and a display name to finish setting up your account.",
+    "welcome": "Welcome to ScriptureTips. Choose a handle, a display name and your canon to finish setting up your account.",
     "emailPrivate": "Signed in as {email}. Your email address is never shown to other people.",
     "handle": "Handle",
     "handleHelp": "Your name in links, e.g. /@{example}. Letters, numbers and hyphens, 3 to 30 characters. For now it can't be changed once chosen.",
     "name": "Display name",
     "nameHelp": "How your name is shown to others. Any language or script.",
+    "canon": "Your canon",
+    "canonHelp": "Which books you count as scripture. Books outside it are still there, labelled as additional writings. You can change this at any time.",
     "save": "Save",
     "signOut": "Sign out"
   },
@@ -76,5 +80,13 @@
     "name-invalid": "Enter a display name of up to 60 characters.",
     "name-reserved": "That name is reserved. Try another.",
     "unavailable": "Something went wrong. Please try again shortly."
+  },
+  "canons": {
+    "protestant": "Protestant",
+    "protestantHelp": "66 books. The Apocrypha is shown as additional writings.",
+    "catholic": "Catholic",
+    "catholicHelp": "73 books, with Tobit, Judith, 1 and 2 Maccabees, Wisdom, Sirach, Baruch and the Greek parts of Esther and Daniel.",
+    "orthodox": "Orthodox",
+    "orthodoxHelp": "76 books, the Greek Orthodox canon: the Catholic books with 1 Esdras, 3 Maccabees and Psalm 151."
   }
 }

@@ -26,7 +26,9 @@ async function codeFor(page: Page, to: string): Promise<string> {
   return code ?? "";
 }
 
-test("vision §11: sign in with an emailed code, choose a handle, sign out", async ({ page }) => {
+test("vision §11: sign in with an emailed code, choose a handle and canon, sign out", async ({
+  page,
+}) => {
   test.setTimeout(60_000);
   const stamp = `${Date.now()}${test.info().project.name}`;
   const email = `reader-${stamp}@example.com`;
@@ -45,15 +47,28 @@ test("vision §11: sign in with an emailed code, choose a handle, sign out", asy
   await page.getByRole("textbox", { name: "Code" }).fill(await codeFor(page, email));
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page).toHaveURL(/\/account$/);
-  await expect(page.getByText("Choose a handle and a display name")).toBeVisible();
+  await expect(page.getByText("Choose a handle, a display name and your canon")).toBeVisible();
   await page.screenshot(shot("account-new"));
 
   const handle = `reader-${stamp}`.slice(0, 30).replace(/-$/, "");
   await page.getByRole("textbox", { name: "Handle" }).fill(handle);
   await page.getByRole("textbox", { name: "Display name" }).fill("A Reader");
+  await page.getByRole("radio", { name: /^Protestant/ }).check();
   await page.getByRole("button", { name: "Save" }).click();
   await expect(page.getByRole("link", { name: `@${handle}` })).toBeVisible();
+  await expect(page.getByRole("radio", { name: /^Protestant/ })).toBeChecked();
   await page.screenshot(shot("account"));
+
+  // vision §3.4: books outside the reader's canon are labelled, never mixed in silently.
+  await page.goto("/read/eng-web/tobit/1");
+  await expect(
+    page.getByText("Additional writings: not counted as scripture in the Protestant canon."),
+  ).toBeVisible();
+  await page.screenshot(shot("reader-additional"));
+  await page.goto("/read/eng-web/john/1");
+  await expect(page.locator(".canon-note")).toHaveCount(0);
+
+  await page.goto("/account");
 
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(page.getByRole("link", { name: "Sign in" })).toBeVisible();

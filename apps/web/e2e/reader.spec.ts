@@ -53,6 +53,17 @@ test("an unknown book is answered in words", async ({ page }) => {
   await page.screenshot(shot("error"));
 });
 
+test("vision §3.4: without a canon, books the traditions disagree on are labelled", async ({
+  page,
+}) => {
+  await page.goto("/read/eng-web/tobit/1");
+  await expect(
+    page.getByText("Counted as scripture in some traditions, not in others."),
+  ).toBeVisible();
+  await page.goto("/read/eng-web/ruth/1");
+  await expect(page.locator(".canon-note")).toHaveCount(0);
+});
+
 test("the credits page names every asset and data source (branding.md §1)", async ({ page }) => {
   await page.goto("/credits");
   const main = page.locator("main");

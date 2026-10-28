@@ -9,6 +9,7 @@ import {
   Put,
   UnauthorizedException,
 } from "@nestjs/common";
+import { CANON_IDS } from "@scripturetips/canon";
 import { eq, user } from "@scripturetips/db";
 import { z } from "zod";
 import { DATABASE, type Database } from "../database.ts";
@@ -31,6 +32,8 @@ const AccountUpdate = z
     handle: Handle.optional(),
     /** Display name, in any script. */
     name: z.string().trim().min(1).max(60).optional(),
+    /** Canon profile (vision §3.4): chosen after the first sign-in, changeable any time. */
+    canon: z.enum(CANON_IDS).optional(),
   })
   .strict();
 
@@ -39,6 +42,7 @@ export interface AccountView {
   handle: string | null;
   name: string;
   locale: string;
+  canon: string | null;
   trustLevel: number;
 }
 
@@ -47,6 +51,7 @@ const view = (u: typeof user.$inferSelect): AccountView => ({
   handle: u.handle,
   name: u.name,
   locale: u.locale,
+  canon: u.canon,
   trustLevel: u.trustLevel,
 });
 
@@ -71,7 +76,7 @@ export class AccountController {
   }
 
   /**
-   * Sets the handle and display name. A handle is chosen once for now: changing one comes with
+   * Sets the handle, display name and canon profile. A handle is chosen once for now: changing one comes with
    * the redirect and retirement rules (domain-model §1.6), when there is published content.
    */
   @Put()
@@ -92,6 +97,7 @@ export class AccountController {
         .set({
           ...(body.handle !== undefined ? { handle: body.handle } : {}),
           ...(body.name !== undefined ? { name: body.name } : {}),
+          ...(body.canon !== undefined ? { canon: body.canon } : {}),
           updatedAt: new Date(),
         })
         .where(eq(user.id, current.id))
