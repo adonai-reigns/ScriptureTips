@@ -2,7 +2,7 @@
  * Edits to a verse's wording (domain-model §2.3, `edited`). The user edits the verse as plain
  * text; the change is carried back into the source verse's markup, so character styles (words
  * of Jesus, italics), idiom spans, note marks and paragraph breaks stay where they were. How many
- * words changed decides whether the edit can be a correction. Pure.
+ * words and punctuation marks changed decides whether the edit can be a correction. Pure.
  */
 
 import { createHash } from "node:crypto";
@@ -90,10 +90,11 @@ function diff(a: readonly Token[], b: readonly Token[]): Op[] {
 }
 
 /**
- * Words added, removed or replaced between two wordings. A replaced word counts once; changes
- * to punctuation and spacing don't count (a correction may fix punctuation freely).
+ * Words and punctuation marks added, removed or replaced between two wordings; a replaced one
+ * counts once. Punctuation counts like a word (domain-model §2.3: not a jot or tittle passes
+ * unnoticed, Matthew 5:18); only spacing doesn't.
  */
-export function wordsChanged(before: string, after: string): number {
+export function changes(before: string, after: string): number {
   let count = 0;
   let removed = 0;
   let added = 0;
@@ -104,8 +105,8 @@ export function wordsChanged(before: string, after: string): number {
   };
   for (const o of diff(tokens(before), tokens(after))) {
     if (o.op === "equal") flush();
-    else if (o.op === "delete") removed += o.a.kind === "word" ? 1 : 0;
-    else added += o.b.kind === "word" ? 1 : 0;
+    else if (o.op === "delete") removed += o.a.kind === "space" ? 0 : 1;
+    else added += o.b.kind === "space" ? 0 : 1;
   }
   flush();
   return count;

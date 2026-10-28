@@ -276,7 +276,7 @@ describe("domain-model §2.3: compilations", () => {
     expect(res.statusCode).toBe(201);
     expect(res.json()).toMatchObject({
       choice: { entered: "Joel.2.30", label: "Joel 2:30", origin: "source", source: { id: "kjv" } },
-      wordsChanged: 0,
+      changes: 0,
     });
     expect(await read("Joel 2:30")).toEqual(["2:30 KJV 2:30. (kjv; kjv note)"]);
   });
@@ -305,7 +305,7 @@ describe("domain-model §2.3: compilations", () => {
     });
     expect(res.json()).toMatchObject({
       choice: { origin: "edited", editKind: "correction", changeNote: "A word was missing." },
-      wordsChanged: 1,
+      changes: 1,
     });
     expect(await read("Joel 3:1")).toEqual(["3:1 KJV 3:1 amended. (kjv; kjv note)"]);
     const verse = (await get(owner, "/api/compilations/mine/passages?ref=Joel%203:1")).json()
@@ -323,11 +323,11 @@ describe("domain-model §2.3: compilations", () => {
       });
     expect((await save("Entirely new words for this verse.")).json()).toMatchObject({
       choice: { editKind: "adaptation" },
-      wordsChanged: 6,
+      changes: 6,
     });
     expect((await save("KJV 3:1 changed.", "adaptation")).json()).toMatchObject({
       choice: { editKind: "adaptation" },
-      wordsChanged: 1,
+      changes: 1,
     });
     // The source's own wording is a plain choice of that verse again.
     expect((await save("KJV 3:1.")).json()).toMatchObject({ choice: { origin: "source" } });

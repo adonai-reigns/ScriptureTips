@@ -137,7 +137,7 @@ export class CompilationsController {
     @Headers() headers: Record<string, string>,
     @Param("slug", new ZodPipe(Slug)) slug: string,
     @Body(new ZodPipe(VerseChoice)) body: z.infer<typeof VerseChoice>,
-  ): Promise<{ choice: VerseChoiceView; wordsChanged: number }> {
+  ): Promise<{ choice: VerseChoiceView; changes: number }> {
     return this.compilations.saveVerse(await this.user(headers), slug, body);
   }
 

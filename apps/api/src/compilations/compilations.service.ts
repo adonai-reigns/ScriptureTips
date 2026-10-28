@@ -47,11 +47,11 @@ import {
 import { type Layer, layersFor, matchingVerse, type RuleKind } from "./resolve.ts";
 import {
   applyWording,
+  changes,
   editableText,
   type Inline,
   snapshotHash,
   wordCount,
-  wordsChanged,
 } from "./wording.ts";
 
 export const SECTIONS = ["ot", "nt", "additional"] as const;
@@ -635,7 +635,7 @@ export class CompilationsService {
       kind?: EditKind | undefined;
       changeNote?: string | undefined;
     },
-  ): Promise<{ choice: VerseChoiceView; wordsChanged: number }> {
+  ): Promise<{ choice: VerseChoiceView; changes: number }> {
     const { c, base } = await this.find(owner, slug);
     const { verse, entered } = await this.oneVerse(c, base, input.reference);
     const [source] = await this.db
@@ -659,7 +659,7 @@ export class CompilationsService {
     if (edited && input.text !== undefined) {
       if (!canModify(source.licenseKey))
         throw new BadRequestException({ code: "modification-not-allowed" });
-      changed = wordsChanged(before, input.text);
+      changed = changes(before, input.text);
       const [latest] = await this.db
         .select({ id: translationImport.id })
         .from(translationImport)
@@ -720,7 +720,7 @@ export class CompilationsService {
     const counts = await this.translations.verseCounts(base.id);
     const [view] = await this.choiceViews(c.id, counts, saved.id);
     if (!view) throw new Error("no verse choice");
-    return { choice: view, wordsChanged: changed };
+    return { choice: view, changes: changed };
   }
 
   /** Removes a single-verse choice: the verse is inherited again. Its history is kept. */

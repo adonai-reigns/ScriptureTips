@@ -196,14 +196,14 @@ export function RemoveRuleButton({
 }) {
   const t = useTranslations("compilations");
   const router = useRouter();
-  const { error, busy, run } = useSubmit();
+  const { error, busy, hydrated, run } = useSubmit();
   return (
     <>
       <button
         type="button"
         className="link-button"
         aria-label={label}
-        disabled={busy}
+        disabled={busy || !hydrated}
         onClick={() =>
           run(
             () => send("DELETE", `/api/compilations/${slug}/rules/${rule}`),
@@ -220,13 +220,13 @@ export function RemoveRuleButton({
 
 export function DeleteCompilationButton({ slug, title }: { slug: string; title: string }) {
   const t = useTranslations("compilations");
-  const { error, busy, run } = useSubmit();
+  const { error, busy, hydrated, run } = useSubmit();
   return (
     <>
       <button
         type="button"
         className="link-button danger"
-        disabled={busy}
+        disabled={busy || !hydrated}
         onClick={() => {
           if (window.confirm(t("confirmDelete", { title })))
             run(
@@ -336,14 +336,14 @@ export function VerseEditForm({
           if (!res.ok) return errorCode(res);
           const body = (await res.json()) as {
             choice: { origin: string; editKind: string | null; source: { abbreviation: string } };
-            wordsChanged: number;
+            changes: number;
           };
           const { choice } = body;
           setSaved(
             choice.origin === "source"
               ? t("savedSource", { source: choice.source.abbreviation })
               : choice.editKind === "adaptation" && kind === "correction"
-                ? t("becameAdaptation", { count: body.wordsChanged })
+                ? t("becameAdaptation", { count: body.changes })
                 : choice.editKind === "adaptation"
                   ? t("savedAdaptation")
                   : t("savedCorrection"),

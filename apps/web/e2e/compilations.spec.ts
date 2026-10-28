@@ -103,7 +103,7 @@ test("domain-model §2.3: take a single verse, correct one and adapt another, cr
     .fill("The earth had no shape and was empty.");
   await page.getByRole("button", { name: "Save" }).click();
   await expect(page.getByRole("status")).toHaveText(
-    /^Saved as an adaptation: \d+ words changed, more than a correction allows\.$/,
+    /^Saved as an adaptation: \d+ changes to words or punctuation, more than a correction allows\.$/,
   );
 
   // The reader marks and credits each change.

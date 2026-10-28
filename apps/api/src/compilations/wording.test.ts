@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   applyWording,
+  changes,
   editableText,
   type Inline,
   plainText,
   snapshotHash,
   wordCount,
-  wordsChanged,
 } from "./wording.ts";
 
 const verse: Inline[] = [
@@ -26,12 +26,16 @@ describe("domain-model §2.3: editing a verse's wording", () => {
     ).toBe("In the beginning");
   });
 
-  it("counts words added, removed or replaced, but not punctuation or spacing", () => {
-    expect(wordsChanged("the heaven and the earth", "the heavens and the earth")).toBe(1);
-    expect(wordsChanged("light, and there was light", "light; and there was light.")).toBe(0);
-    expect(wordsChanged("the big dog", "a small cat")).toBe(3);
-    expect(wordsChanged("God created", "God truly created all")).toBe(2);
-    expect(wordsChanged("And God said", "God  said")).toBe(1);
+  it("counts words and punctuation marks added, removed or replaced, but not spacing", () => {
+    expect(changes("the heaven and the earth", "the heavens and the earth")).toBe(1);
+    expect(changes("light, and there was light", "light; and there was light.")).toBe(2);
+    expect(changes("there was light", "there was light.")).toBe(1);
+    // A moved mark is removed in one place and added in another.
+    expect(changes("light, and there", "light and, there")).toBe(2);
+    expect(changes("And God said", "And  God\nsaid")).toBe(0);
+    expect(changes("the big dog", "a small cat")).toBe(3);
+    expect(changes("God created", "God truly created all")).toBe(2);
+    expect(changes("And God said", "God  said")).toBe(1);
     expect(wordCount("In the beginning, God's word.")).toBe(5);
   });
 

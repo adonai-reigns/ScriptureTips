@@ -24,7 +24,7 @@ export type LicenseRule =
   | { readonly type: "reporting_obligation" }
   | { readonly type: "not_as_base" }
   | { readonly type: "no_modification" }
-  /** Overrides how many words a correction may change (domain-model §2.3, `edited`). */
+  /** Overrides how many words or punctuation marks a correction may change (domain-model §2.3). */
   | { readonly type: "correction_limit"; readonly words: number };
 
 export interface License {
@@ -92,7 +92,7 @@ export const canCompile = (key: string): boolean => LICENSES.has(key);
 export const canModify = (key: string): boolean =>
   LICENSES.has(key) && !has(key, "no_modification");
 
-/** Words a correction may change (added, removed or replaced) before it counts as an adaptation. */
+/** Words or punctuation marks a correction may change (each added, removed or replaced). */
 export const CORRECTION_LIMIT = 3;
 
 /** The correction limit for verses under this license: its own, or `CORRECTION_LIMIT`. */
