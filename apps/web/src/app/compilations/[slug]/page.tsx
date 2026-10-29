@@ -10,15 +10,18 @@ import { BookTabs } from "../../../compilations/BookTabs.tsx";
 import { CompositionChart } from "../../../compilations/Composition.tsx";
 import { DeleteCompilationForm, InPlaceField, PublishForm } from "../../../compilations/forms.tsx";
 import { ModalButton } from "../../../compilations/ModalButton.tsx";
+import { READING_MODES, ReadingArea, readingHref } from "../../../compilations/ReadingArea.tsx";
 import { bookSource } from "../../../compilations/sources.ts";
 import { LocalDate } from "../../../dates.tsx";
 import { PdfBuilds } from "../../../pdf-builds/PdfBuilds.tsx";
 import { myPublication, publicationPath } from "../../../publications/api.ts";
 import { books, translations } from "../../../reader/api.ts";
-import { arrangeBooks } from "../../../reader/books.ts";
+import { arrangeBooks, readingOrder } from "../../../reader/books.ts";
 
 interface Props {
   params: Promise<{ slug: string }>;
+  /** The reading area's book (OSIS), chapter and mode. */
+  searchParams: Promise<{ book?: string; chapter?: string; mode?: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -27,11 +30,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 /**
- * The compilation editor (vision §3.1): the composition overview (each book's source), the
- * layered choices with "reset to inherited" (remove), and a form to add one; and publishing it,
- * with its published versions; and printing it as a PDF.
+ * The compilation editor (vision §3.1): its heading and composition, the books by section with
+ * their menus, the Publish, Build PDF and Delete dialogs, and under them the reading area (a
+ * chapter, read, compared or edited; `?book=&chapter=&mode=`).
  */
-export default async function CompilationEditor({ params }: Props) {
+export default async function CompilationEditor({ params, searchParams }: Props) {
   const account = await currentAccount();
   if (!account) redirect("/sign-in");
   const c = await myCompilation((await params).slug);
@@ -46,6 +49,15 @@ export default async function CompilationEditor({ params }: Props) {
     myPdfBuilds(c.slug),
   ]);
   const sections = arrangeBooks(available ?? [], account.canon);
+  // The reading area: the book and chapter asked for, or the first chapter of the first book.
+  const order = readingOrder(sections);
+  const asked = await searchParams;
+  const mode = READING_MODES.find((m) => m === asked.mode) ?? "read";
+  const book =
+    (available ?? []).find((b) => b.osis === asked.book) ??
+    (available ?? []).find((b) => b.osis === order[0]?.osis);
+  const chapter =
+    book?.chapters.find((n) => String(n) === asked.chapter) ?? book?.chapters[0] ?? null;
   const compilable = all.filter((s) => canCompile(s.license));
   // What the composition depends on: each choice and where it takes its verses from.
   const choices = [
@@ -148,12 +160,26 @@ export default async function CompilationEditor({ params }: Props) {
                   source: s.source.id,
                   abbreviation: s.source.abbreviation,
                   overridden: s.rule !== undefined,
+                  href: readingHref(b.osis, b.chapters[0] ?? 1, mode),
+                  current: b.osis === book?.osis,
                 };
               }),
             }))}
           />
         </div>
       </div>
+      {book && chapter !== null ? (
+        <ReadingArea
+          c={c}
+          osis={book.osis}
+          chapter={chapter}
+          chapters={book.chapters}
+          order={order}
+          mode={mode}
+          canon={account.canon}
+          all={all}
+        />
+      ) : null}
     </div>
   );
 }

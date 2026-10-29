@@ -126,3 +126,9 @@ zaln
 zidiom
 ZWNBSP
 Ελληνικά
+networkidle
+trackpad
+journaling
+gpgsig
+toplevel
+unpushed

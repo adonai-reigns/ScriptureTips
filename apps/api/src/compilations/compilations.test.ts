@@ -291,6 +291,145 @@ describe("domain-model §2.3: compilations", () => {
     expect((await call("DELETE", owner, url)).statusCode).toBe(204);
   });
 
+  it("vision §3.1: give one chapter a new source; a passage running past it keeps the rest", async () => {
+    await post(owner, "/api/compilations", { title: "Part", abbreviation: "Part", base: "kjv" });
+    const url = "/api/compilations/part";
+    await post(owner, `${url}/rules`, { scope: { reference: "Joel" }, source: "other" });
+    await post(owner, `${url}/rules`, { scope: { reference: "Joel 2:29-3:2" }, source: "heb" });
+    await post(owner, `${url}/verses`, { reference: "Joel 2:28", source: "heb" });
+
+    const res = await put(owner, `${url}/chapters/Joel.2/source`, { source: "kjv" });
+    expect(res.statusCode).toBe(200);
+    const view = res.json();
+    expect(view.verses).toEqual([]);
+    const rules = view.rules.map((r: { kind: string; entered: string; source: { id: string } }) => [
+      r.kind,
+      r.entered,
+      r.source.id,
+    ]);
+    expect(rules).toHaveLength(3);
+    // The test data's Joel has only 2:28-3:2, so whole chapters are spelled out.
+    expect(rules).toContainEqual(["book", "Joel.2.28-Joel.3.2", "other"]);
+    expect(rules).toContainEqual(["chapter", "Joel.2.28-Joel.2.30", "kjv"]);
+    expect(rules).toContainEqual(["range", "Joel.3.1-Joel.3.2", "heb"]);
+    // Every verse of the chapter is the new source's; the rest of the passage keeps its own.
+    const rows = (await get(owner, `${url}/compare?ref=Joel%202:28-3:2`)).json().rows;
+    expect(
+      rows.map((r: { verse: { chapter: number; source: string } }) => [
+        r.verse.chapter,
+        r.verse.source,
+      ]),
+    ).toEqual([
+      [2, "kjv"],
+      [2, "kjv"],
+      [2, "kjv"],
+      [3, "heb"],
+      // The HEB lacks KJV 3:2, so the book's source supplies it.
+      [3, "other"],
+    ]);
+
+    expect((await put(owner, `${url}/chapters/Joel.99/source`, { source: "kjv" })).statusCode).toBe(
+      400,
+    );
+    expect((await put(owner, `${url}/chapters/Joel/source`, { source: "kjv" })).statusCode).toBe(
+      400,
+    );
+    expect((await put(other, `${url}/chapters/Joel.2/source`, { source: "kjv" })).statusCode).toBe(
+      404,
+    );
+    expect((await call("DELETE", owner, url)).statusCode).toBe(204);
+  });
+
+  it("line a passage up beside other translations by canonical verse, whatever their numbering", async () => {
+    await post(owner, "/api/compilations", { title: "Side", abbreviation: "Side", base: "kjv" });
+    const res = await get(
+      owner,
+      "/api/compilations/side/compare?ref=Joel%202:28-3:2&with=heb,other",
+    );
+    expect(res.statusCode).toBe(200);
+    const view = res.json();
+    expect(view).toMatchObject({
+      label: expect.stringContaining("Joel"),
+      columns: [
+        { id: "heb", abbreviation: "HEB", compilable: true },
+        { id: "other", abbreviation: "OTHER", compilable: true },
+      ],
+    });
+    const cell = (c: { chapter: number; verse: number }[]) =>
+      c.map((v) => `${v.chapter}:${v.verse}`);
+    // KJV 2:28 is 3:1 in the Hebrew numbering, and KJV 3:1 is its 4:1; it lacks 4:2.
+    expect(
+      view.rows.map(
+        (r: {
+          verse: { chapter: number; verse: number };
+          compare: { chapter: number; verse: number }[][];
+        }) => [
+          `${r.verse.chapter}:${r.verse.verse}`,
+          cell(r.compare[0] ?? []),
+          cell(r.compare[1] ?? []),
+        ],
+      ),
+    ).toEqual([
+      ["2:28", ["3:1"], ["2:28"]],
+      ["2:29", ["3:2"], ["2:29"]],
+      ["2:30", ["3:3"], ["2:30"]],
+      ["3:1", ["4:1"], ["3:1"]],
+      ["3:2", [], ["3:2"]],
+    ]);
+    expect(
+      (
+        await get(
+          owner,
+          "/api/compilations/side/compare?ref=Joel%202:28&with=a,b,c,d,e,f,g,h,i,j,k",
+        )
+      ).statusCode,
+    ).toBe(400);
+    expect((await get(other, "/api/compilations/side/compare?ref=Joel%202:28")).statusCode).toBe(
+      404,
+    );
+  });
+
+  it("remember the translations it's compared with, in column order", async () => {
+    const url = "/api/compilations/side";
+    expect((await get(owner, url)).json().compareWith).toEqual([]);
+    const set = await put(owner, `${url}/compare-with`, { translations: ["other", "heb"] });
+    expect(set.json().compareWith).toEqual(["other", "heb"]);
+    expect((await get(owner, url)).json().compareWith).toEqual(["other", "heb"]);
+    expect(
+      (await put(owner, `${url}/compare-with`, { translations: ["nowhere"] })).json(),
+    ).toMatchObject({
+      code: "unknown-translation",
+    });
+    expect(
+      (await put(owner, `${url}/compare-with`, { translations: [..."abcdefghijk"] })).statusCode,
+    ).toBe(400);
+  });
+
+  it("take several verses at once, each from its source", async () => {
+    const url = "/api/compilations/side";
+    const res = await post(owner, `${url}/verses/batch`, {
+      choices: [
+        { reference: "Joel 2:28", source: "other" },
+        { reference: "Joel 2:29", source: "other" },
+      ],
+    });
+    expect(res.statusCode).toBe(201);
+    expect(res.json()).toEqual({ saved: 2 });
+    const rows = (await get(owner, `${url}/compare?ref=Joel%202:28-29`)).json().rows;
+    expect(rows.map((r: { verse: { source: string } }) => r.verse.source)).toEqual([
+      "other",
+      "other",
+    ]);
+    expect(
+      (
+        await post(owner, `${url}/verses/batch`, {
+          choices: [{ reference: "Joel 2:30", source: "unrecorded" }],
+        })
+      ).json(),
+    ).toMatchObject({ code: "source-not-allowed" });
+    expect((await call("DELETE", owner, url)).statusCode).toBe(204);
+  });
+
   it("rename it in place, checked as when it was created; a new abbreviation moves its path", async () => {
     const titled = await patch(owner, "/api/compilations/mine", { title: "  My Own Bible " });
     expect(titled.statusCode).toBe(200);

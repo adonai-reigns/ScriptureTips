@@ -22,10 +22,12 @@ import { PdfBuildsService } from "../pdf-builds/pdf-builds.service.ts";
 import { ZodPipe } from "../zod-pipe.ts";
 import { MAX_TEXT } from "./authorship.service.ts";
 import {
+  type CompareView,
   type CompilationSummary,
   CompilationsService,
   type CompilationView,
   type CompositionView,
+  MAX_COMPARE,
   SECTIONS,
   type VerseChoiceView,
   type VerseEditorView,
@@ -63,7 +65,31 @@ const NewRule = z
 
 /** An OSIS book ID ("Gen", "1Kgs"). */
 const BookId = z.string().regex(/^[1-4]?[A-Z][A-Za-z]{1,8}$/);
+/** One chapter of a book, in OSIS: `Gen.1`. */
+const ChapterId = z.string().regex(/^[1-4]?[A-Z][A-Za-z]{1,8}\.\d{1,3}$/);
 const BookSource = z.object({ source: TranslationId }).strict();
+
+const CompareQuery = z.object({
+  ref: z.string().trim().min(1).max(200),
+  with: z
+    .string()
+    .optional()
+    .transform((s) => (s ? s.split(",").filter(Boolean) : []))
+    .pipe(z.array(TranslationId).max(MAX_COMPARE)),
+});
+
+const CompareWith = z.object({ translations: z.array(TranslationId).max(MAX_COMPARE) }).strict();
+
+const TakeVerses = z
+  .object({
+    choices: z
+      .array(
+        z.object({ reference: z.string().trim().min(1).max(200), source: TranslationId }).strict(),
+      )
+      .min(1)
+      .max(200),
+  })
+  .strict();
 
 const PassageQuery = z.object({ ref: z.string().trim().min(1).max(200) });
 
@@ -181,6 +207,39 @@ export class CompilationsController {
     return this.compilations.composition(await this.user(headers), slug);
   }
 
+  /**
+   * A passage beside other translations, lined up verse by verse:
+   * `?ref=Genesis 1&with=leb,eng-web` (CompareView).
+   */
+  @Get(":slug/compare")
+  async compare(
+    @Headers() headers: Record<string, string>,
+    @Param("slug", new ZodPipe(Slug)) slug: string,
+    @Query(new ZodPipe(CompareQuery)) query: z.infer<typeof CompareQuery>,
+  ): Promise<CompareView> {
+    return this.compilations.compare(await this.user(headers), slug, query.ref, query.with);
+  }
+
+  /** The translations the editor compares it with: `{translations}`, in column order. */
+  @Put(":slug/compare-with")
+  async setCompareWith(
+    @Headers() headers: Record<string, string>,
+    @Param("slug", new ZodPipe(Slug)) slug: string,
+    @Body(new ZodPipe(CompareWith)) body: z.infer<typeof CompareWith>,
+  ): Promise<CompilationView> {
+    return this.compilations.setCompareWith(await this.user(headers), slug, body.translations);
+  }
+
+  /** Several verses taken unchanged at once: `{choices: [{reference, source}]}`. */
+  @Post(":slug/verses/batch")
+  async takeVerses(
+    @Headers() headers: Record<string, string>,
+    @Param("slug", new ZodPipe(Slug)) slug: string,
+    @Body(new ZodPipe(TakeVerses)) body: z.infer<typeof TakeVerses>,
+  ): Promise<{ saved: number }> {
+    return this.compilations.takeVerses(await this.user(headers), slug, body.choices);
+  }
+
   /** Renames it: `{title?, abbreviation?}`. A new abbreviation moves it to a new slug. */
   @Patch(":slug")
   async rename(
@@ -223,6 +282,20 @@ export class CompilationsController {
     @Body(new ZodPipe(BookSource)) body: z.infer<typeof BookSource>,
   ): Promise<CompilationView> {
     return this.compilations.replaceBook(await this.user(headers), slug, book, body.source);
+  }
+
+  /**
+   * A new source for one whole chapter (`Gen.1`, `{source}`), throwing away every narrower
+   * choice within it.
+   */
+  @Put(":slug/chapters/:chapter/source")
+  async replaceChapter(
+    @Headers() headers: Record<string, string>,
+    @Param("slug", new ZodPipe(Slug)) slug: string,
+    @Param("chapter", new ZodPipe(ChapterId)) chapter: string,
+    @Body(new ZodPipe(BookSource)) body: z.infer<typeof BookSource>,
+  ): Promise<CompilationView> {
+    return this.compilations.replaceChapter(await this.user(headers), slug, chapter, body.source);
   }
 
   @Delete(":slug/rules/:rule")

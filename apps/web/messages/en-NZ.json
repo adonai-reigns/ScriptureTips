@@ -344,5 +344,33 @@
     "newBaseFor": "Change the translation of {book}",
     "current": "(current)",
     "confirmReplace": "Use the {source} for the whole of {book}?\n\nThis throws away every change you've made within {book}: passages and chapters taken from other translations, and single verses, including corrections, adaptations and your own renderings. This can't be undone."
+  },
+  "reading": {
+    "chapters": "Chapters",
+    "previous": "Previous: {chapter}",
+    "next": "Next: {chapter}",
+    "modes": "Reading mode",
+    "mode": {
+      "read": "Read",
+      "compare": "Compare",
+      "edit": "Edit"
+    },
+    "unavailable": "This chapter can't be shown right now.",
+    "columnLabel": "Translation for column {n}",
+    "notCompilable": "Its licence doesn't allow taking its verses.",
+    "taking": "Taking {count, plural, one {# verse} other {# verses}}…",
+    "taken": "Took {count, plural, one {# verse} other {# verses}}.",
+    "takeFrom": "Take from the {source}:",
+    "own": "Your own",
+    "pasted": "Pasted",
+    "correction": "Corrected from the {source}",
+    "adaptation": "Adapted from the {source}",
+    "chapterMenu": "Options for {chapter}",
+    "chapterSource": "Change the translation of {chapter}",
+    "confirmChapter": "Use the {source} for the whole of {chapter}?\n\nThis throws away every change you've made within {chapter}: passages taken from other translations, and single verses, including corrections, adaptations and your own renderings. This can't be undone.",
+    "addColumn": "Add a column after the {source}",
+    "removeColumn": "Remove the {source} column",
+    "removeTooltip": "Remove this column",
+    "addTooltip": "Add a column after this one"
   }
 }

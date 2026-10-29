@@ -1,16 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
-import {
-  type CSSProperties,
-  type KeyboardEvent,
-  type ReactNode,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import { errorCode, useErrorText } from "./errors.ts";
+import { type KeyboardEvent, type ReactNode, useRef, useState } from "react";
+import { type BookSourceChoice, SourceMenu } from "./SourceMenu.tsx";
 
 export interface BookTab {
   id: string;
@@ -25,19 +18,18 @@ export interface BookTab {
     source: string;
     abbreviation: string;
     overridden: boolean;
+    /** Opens the book in the reading area. */
+    href: string;
+    /** It's the book the reading area shows. */
+    current: boolean;
   }[];
-}
-
-/** A translation a book can be taken from. */
-export interface BookSourceChoice {
-  id: string;
-  label: string;
 }
 
 /**
  * The compilation's books by section (Old Testament, New Testament, other writings) as tabs: one
  * section's books show at a time. Arrow keys move between tabs, as the ARIA tabs pattern has it;
- * Tab moves through the books, each followed by its menu.
+ * Tab moves through the books, each followed by its menu. A book's link opens it in the
+ * reading area.
  */
 export function BookTabs({
   slug,
@@ -53,7 +45,11 @@ export function BookTabs({
   /** Buttons at the right end of the tab row. */
   actions?: ReactNode;
 }) {
-  const [current, setCurrent] = useState(tabs[0]?.id);
+  const t = useTranslations("bookTabs");
+  // Opens on the section of the book being read.
+  const [current, setCurrent] = useState(
+    (tabs.find((tab) => tab.books.some((b) => b.current)) ?? tabs[0])?.id,
+  );
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
   const selected = tabs.find((t) => t.id === current) ?? tabs[0];
 
@@ -108,156 +104,25 @@ export function BookTabs({
       >
         {selected.books.map((b) => (
           <li key={b.osis}>
-            {/* It will open the book in the verse editor; until it has that link, Tab reaches it. */}
-            {/* biome-ignore lint/a11y/useValidAnchor: the link comes with the verse editor. */}
-            <a tabIndex={0} className={b.overridden ? "overridden" : undefined}>
+            <Link
+              href={b.href}
+              scroll={false}
+              className={b.overridden ? "overridden" : undefined}
+              aria-current={b.current ? "page" : undefined}
+            >
               {b.name} <strong>{b.abbreviation}</strong>
-            </a>
-            <BookMenu slug={slug} book={b} sources={sources} />
+            </Link>
+            <SourceMenu
+              label={t("menuFor", { book: b.name })}
+              heading={t("newBaseFor", { book: b.name })}
+              current={b.source}
+              confirmText={(source) => t("confirmReplace", { book: b.name, source: source.label })}
+              endpoint={`/api/compilations/${slug}/books/${b.osis}/source`}
+              sources={sources}
+            />
           </li>
         ))}
       </ul>
-    </div>
-  );
-}
-
-/**
- * A book's menu, opened from the icon at the end of its row: the translations to give the whole
- * book; choosing one, once the warning is confirmed, throws away every narrower choice within it.
- */
-function BookMenu({
-  slug,
-  book,
-  sources,
-}: {
-  slug: string;
-  book: BookTab["books"][number];
-  sources: BookSourceChoice[];
-}) {
-  const t = useTranslations("bookTabs");
-  const errorText = useErrorText();
-  const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  // Where the open menu sits, against the window: it stays out of the book columns, which would
-  // otherwise re-balance around it.
-  const [place, setPlace] = useState<CSSProperties>({});
-  const root = useRef<HTMLDivElement>(null);
-  const toggle = useRef<HTMLButtonElement>(null);
-  const menu = useRef<HTMLDivElement>(null);
-
-  const close = (refocus: boolean) => {
-    setOpen(false);
-    setError(null);
-    if (refocus) toggle.current?.focus();
-  };
-
-  const show = () => {
-    const r = toggle.current?.getBoundingClientRect();
-    if (r) {
-      const right = window.innerWidth - r.right;
-      // Opens upward when there isn't room below.
-      setPlace(
-        window.innerHeight - r.bottom < 360
-          ? { right, bottom: window.innerHeight - r.top + 4 }
-          : { right, top: r.bottom + 4 },
-      );
-    }
-    setOpen(true);
-  };
-
-  // Closes on Escape (back to the icon), a click outside or a scroll, and focuses the first item
-  // of what opens.
-  useEffect(() => {
-    if (!open) return;
-    menu.current?.querySelector<HTMLButtonElement>("[role=menuitem]")?.focus();
-    const shut = () => {
-      setOpen(false);
-      setError(null);
-    };
-    const outside = (e: PointerEvent) => {
-      if (!root.current?.contains(e.target as Node)) shut();
-    };
-    const away = (e: Event) => {
-      if (!menu.current?.contains(e.target as Node)) shut();
-    };
-    const onEscape = (e: globalThis.KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      shut();
-      toggle.current?.focus();
-    };
-    document.addEventListener("pointerdown", outside);
-    document.addEventListener("keydown", onEscape);
-    window.addEventListener("scroll", away, true);
-    window.addEventListener("resize", away);
-    return () => {
-      document.removeEventListener("pointerdown", outside);
-      document.removeEventListener("keydown", onEscape);
-      window.removeEventListener("scroll", away, true);
-      window.removeEventListener("resize", away);
-    };
-  }, [open]);
-
-  const choose = async (source: BookSourceChoice) => {
-    if (!window.confirm(t("confirmReplace", { book: book.name, source: source.label }))) return;
-    setBusy(true);
-    setError(null);
-    try {
-      const res = await fetch(`/api/compilations/${slug}/books/${book.osis}/source`, {
-        method: "PUT",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ source: source.id }),
-      });
-      if (!res.ok) return setError(await errorCode(res));
-      close(true);
-      router.refresh();
-    } catch {
-      setError("unavailable");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <div ref={root} className={`book-menu${open ? " open" : ""}`}>
-      <button
-        ref={toggle}
-        type="button"
-        className="book-menu-toggle"
-        aria-haspopup="menu"
-        aria-expanded={open}
-        aria-label={t("menuFor", { book: book.name })}
-        onClick={() => (open ? close(false) : show())}
-      >
-        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
-          <circle cx="8" cy="3" r="1.5" />
-          <circle cx="8" cy="8" r="1.5" />
-          <circle cx="8" cy="13" r="1.5" />
-        </svg>
-      </button>
-      {open ? (
-        <div ref={menu} role="menu" style={place} aria-label={t("newBaseFor", { book: book.name })}>
-          <p className="book-menu-heading">{t("newBaseFor", { book: book.name })}</p>
-          {sources.map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              role="menuitem"
-              disabled={busy}
-              onClick={() => choose(s)}
-            >
-              {s.label}
-              {s.id === book.source ? <small> {t("current")}</small> : null}
-            </button>
-          ))}
-          {error ? (
-            <p role="alert" className="error">
-              {errorText(error)}
-            </p>
-          ) : null}
-        </div>
-      ) : null}
     </div>
   );
 }

@@ -140,6 +140,36 @@ export interface CompilationView extends CompilationSummary {
   readonly scheme: string;
   readonly rules: RuleView[];
   readonly verses: VerseChoiceView[];
+  /** The translations the editor compares it with (catalog IDs), in column order. */
+  readonly compareWith: string[];
+}
+
+/** The most translations the editor compares a compilation with at once. */
+export const MAX_COMPARE = 10;
+
+/**
+ * A passage of the compilation beside other translations (the editor's compare and edit
+ * modes): one row per verse of the compilation, each with the verses of every compared
+ * translation that cover the same canonical verses, so they line up whatever their numbering.
+ * A compared verse spanning several rows is shown in the first.
+ */
+export interface CompareView {
+  readonly label: string;
+  /** OSIS, in the compilation's numbering. */
+  readonly entered: string;
+  readonly columns: {
+    readonly id: string;
+    readonly abbreviation: string;
+    readonly name: string;
+    readonly direction: "ltr" | "rtl";
+    /** Whether a compilation may take its verses (its license allows compiling). */
+    readonly compilable: boolean;
+  }[];
+  readonly rows: {
+    readonly verse: CompilationVerse;
+    /** One list per column, in column order. */
+    readonly compare: PassageVerse[][];
+  }[];
 }
 
 /**
@@ -326,11 +356,106 @@ export class CompilationsService {
         })
         .returning();
       if (!created) throw new Error("no compilation");
-      return { ...summary(owner, created, base), scheme: created.scheme, rules: [], verses: [] };
+      return {
+        ...summary(owner, created, base),
+        scheme: created.scheme,
+        compareWith: created.compareWith,
+        rules: [],
+        verses: [],
+      };
     } catch (e) {
       if (isUniqueViolation(e)) throw new ConflictException({ code: "abbreviation-taken" });
       throw e;
     }
+  }
+
+  /** Sets the translations the editor compares it with, in column order. */
+  async setCompareWith(owner: User, slug: string, ids: string[]): Promise<CompilationView> {
+    const { c } = await this.find(owner, slug);
+    const unique = [...new Set(ids)];
+    if (unique.length > 0) {
+      const known = await this.db
+        .select({ id: translation.catalogId })
+        .from(translation)
+        .where(inArray(translation.catalogId, unique));
+      if (known.length !== unique.length)
+        throw new BadRequestException({ code: "unknown-translation" });
+    }
+    await this.db.update(compilation).set({ compareWith: unique }).where(eq(compilation.id, c.id));
+    return this.view(owner, slug);
+  }
+
+  /** One passage (a chapter, usually) of the compilation beside `withIds` (CompareView). */
+  async compare(
+    owner: User,
+    slug: string,
+    reference: string,
+    withIds: string[],
+  ): Promise<CompareView> {
+    const { base } = await this.find(owner, slug);
+    const { passages } = await this.passage(owner, slug, reference);
+    const [p, ...more] = passages;
+    if (!p || more.length > 0) throw new BadRequestException({ code: "one-reference" });
+    // The base's verses again, for their canonical ranges (the resolved ones don't carry them).
+    const baseVerses = await this.translations.versesIn(base.id, parseOsisPassage(p.entered));
+    const ranges = baseVerses.map((v) => v.range);
+    const known = ranges.filter((r): r is OrdinalRange => r !== null);
+    const span = known.length
+      ? {
+          start: Math.min(...known.map((r) => r.start)),
+          end: Math.max(...known.map((r) => r.end)),
+        }
+      : null;
+    const rows = await this.db
+      .select()
+      .from(translation)
+      .where(inArray(translation.catalogId, withIds.length ? withIds : [""]));
+    const columns = withIds.flatMap((id) => {
+      const t = rows.find((r) => r.catalogId === id);
+      return t ? [t] : [];
+    });
+    const compare = await Promise.all(
+      columns.map(async (t) => {
+        const cells: PassageVerse[][] = p.verses.map(() => []);
+        if (!span) return cells;
+        for (const v of await this.translations.versesOverlapping(t.id, span)) {
+          const { range, ...verse } = v;
+          const at = range
+            ? ranges.findIndex((r) => r && r.start <= range.end && range.start <= r.end)
+            : -1;
+          if (at >= 0) cells[at]?.push(verse);
+        }
+        return cells;
+      }),
+    );
+    return {
+      label: p.label,
+      entered: p.entered,
+      columns: columns.map((t) => ({
+        id: t.catalogId,
+        abbreviation: t.abbreviation,
+        name: t.name,
+        direction: t.direction as "ltr" | "rtl",
+        compilable: canCompile(t.licenseKey),
+      })),
+      rows: p.verses.map((verse, i) => ({
+        verse,
+        compare: compare.map((cells) => cells[i] ?? []),
+      })),
+    };
+  }
+
+  /**
+   * Takes several verses at once, each unchanged from its source (the editor's edit mode), in
+   * order. Each is saved as a single verse taken on its own would be.
+   */
+  async takeVerses(
+    owner: User,
+    slug: string,
+    choices: { reference: string; source: string }[],
+  ): Promise<{ saved: number }> {
+    for (const choice of choices) await this.saveVerse(owner, slug, choice);
+    return { saved: choices.length };
   }
 
   /**
@@ -381,6 +506,7 @@ export class CompilationsService {
     return {
       ...summary(owner, c, base),
       scheme: c.scheme,
+      compareWith: c.compareWith,
       verses: await this.choiceViews(c.id, counts),
       rules: rules.map(({ r, source }) => ({
         id: r.id,
@@ -490,11 +616,30 @@ export class CompilationsService {
    * it (its book, chapter and passage rules, and its single verses, edits and own renderings
    * included) is thrown away, as each would be removed on its own. A section rule stays.
    */
-  async replaceBook(
+  replaceBook(owner: User, slug: string, osis: string, sourceId: string): Promise<CompilationView> {
+    return this.replaceScope(owner, slug, osis, sourceId, "book");
+  }
+
+  /**
+   * Gives one chapter (`Gen.1`) a new source, as `replaceBook` does a book: its chapter and
+   * passage rules and its single verses go. A passage running past the chapter keeps its verses
+   * outside it. Book and section rules stay, below the chapter's.
+   */
+  replaceChapter(
     owner: User,
     slug: string,
     osis: string,
     sourceId: string,
+  ): Promise<CompilationView> {
+    return this.replaceScope(owner, slug, osis, sourceId, "chapter");
+  }
+
+  private async replaceScope(
+    owner: User,
+    slug: string,
+    osis: string,
+    sourceId: string,
+    kind: "book" | "chapter",
   ): Promise<CompilationView> {
     const { c, base } = await this.find(owner, slug);
     const [source] = await this.db
@@ -505,28 +650,55 @@ export class CompilationsService {
     if (!canCompile(source.licenseKey))
       throw new BadRequestException({ code: "source-not-allowed" });
     const counts = await this.translations.verseCounts(base.id);
-    const parsed = parseReference(osis, { scheme: c.scheme as SchemeId, verses: counts });
-    const ref = parsed.ok && parsed.references.length === 1 ? parsed.references[0] : undefined;
+    const canonical = (text: string) => {
+      const parsed = parseReference(text, { scheme: c.scheme as SchemeId, verses: counts });
+      return parsed.ok && parsed.references.length === 1 ? parsed.references[0] : undefined;
+    };
+    const ref = canonical(osis);
     if (
       !ref?.canonical ||
-      ref.entered.start.book !== osis ||
-      kindOf(ref.entered, counts) !== "book"
+      ref.entered.start.book !== osis.split(".")[0] ||
+      kindOf(ref.entered, counts) !== kind
     )
       throw new BadRequestException({ code: "not-in-base" });
     const scope = toOrdinalRange(ref.canonical);
     const within = (column: typeof compilationRule.scope | typeof compilationVerse.scope) =>
       sql`${column} && int4range(${scope.start}, ${scope.end}, '[]')`;
+    const narrower: RuleKind[] =
+      kind === "book" ? ["book", "chapter", "range"] : ["chapter", "range"];
 
     await this.db.transaction(async (tx) => {
-      await tx
+      const removedRules = await tx
         .delete(compilationRule)
         .where(
           and(
             eq(compilationRule.compilationId, c.id),
-            inArray(compilationRule.kind, ["book", "chapter", "range"]),
+            inArray(compilationRule.kind, narrower),
             within(compilationRule.scope),
           ),
-        );
+        )
+        .returning();
+      // A passage running past the chapter keeps the verses outside it, still a passage.
+      if (kind === "chapter") {
+        for (const r of removedRules) {
+          if (r.kind !== "range") continue;
+          for (const rest of outsideChapter(parseOsisPassage(r.entered), ref.entered, counts)) {
+            // In the form the reference parser reads (`Joel.3.1-3.2`): one book, chapters and verses.
+            const { start, end } = rest;
+            const restRef = canonical(
+              `${start.book}.${start.chapter}.${start.verse}-${end.chapter}.${end.verse}`,
+            );
+            if (!restRef?.canonical) continue;
+            await tx.insert(compilationRule).values({
+              compilationId: c.id,
+              kind: "range",
+              scope: toOrdinalRange(restRef.canonical),
+              entered: formatOsisPassage(restRef.entered),
+              sourceTranslationId: r.sourceTranslationId,
+            });
+          }
+        }
+      }
       const removed = await tx
         .delete(compilationVerse)
         .where(and(eq(compilationVerse.compilationId, c.id), within(compilationVerse.scope)))
@@ -539,7 +711,7 @@ export class CompilationsService {
       }
       await tx.insert(compilationRule).values({
         compilationId: c.id,
-        kind: "book",
+        kind,
         scope,
         entered: formatOsisPassage(ref.entered),
         sourceTranslationId: source.id,
@@ -1610,6 +1782,23 @@ const sourceView = (t: typeof translation.$inferSelect): SourceView => ({
   abbreviation: t.abbreviation,
   name: t.name,
 });
+
+/**
+ * The parts of a passage before and after one chapter of its book (in the compilation's
+ * numbering): what's left of it when that chapter is given to another source.
+ */
+function outsideChapter(p: Passage, chapter: Passage, counts: VerseCounts): Passage[] {
+  const { book, chapter: n } = chapter.start;
+  const at = (ch: number, verse: number) => ({ book, chapter: ch, verse, part: 0 });
+  const rest: Passage[] = [];
+  const before = counts.verses(book, n - 1);
+  if (p.start.book === book && p.start.chapter < n && before)
+    rest.push({ start: p.start, end: at(n - 1, before.last) });
+  const after = counts.verses(book, n + 1);
+  if (p.end.book === book && p.end.chapter > n && after)
+    rest.push({ start: at(n + 1, after.first), end: p.end });
+  return rest;
+}
 
 const summary = (
   owner: User,

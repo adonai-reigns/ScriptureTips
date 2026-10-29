@@ -251,6 +251,8 @@ export const compilation = pgTable(
       .references(() => translation.id),
     /** Versification scheme ID: the base's. */
     scheme: text("scheme").notNull(),
+    /** The translations the editor compares it with, by catalog ID, in column order (at most 10). */
+    compareWith: jsonb("compare_with").$type<string[]>().notNull().default([]),
     ...timestamps,
   },
   (t) => [unique().on(t.ownerId, t.slug)],

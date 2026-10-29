@@ -1,0 +1,1 @@
+ALTER TABLE "compilation" ADD COLUMN "compare_with" jsonb DEFAULT '[]'::jsonb NOT NULL;

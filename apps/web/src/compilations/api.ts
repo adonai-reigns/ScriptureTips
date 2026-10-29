@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import type { Verse } from "../reader/api.ts";
 
 /** The signed-in user's compilations (apps/api `CompilationsController`). Server components only. */
 
@@ -49,7 +50,29 @@ export interface VerseChoice {
   sourceChanged: boolean;
 }
 
+/** A passage of the compilation beside other translations (apps/api `CompareView`). */
+export interface CompareView {
+  label: string;
+  entered: string;
+  columns: {
+    id: string;
+    abbreviation: string;
+    name: string;
+    direction: "ltr" | "rtl";
+    compilable: boolean;
+  }[];
+  rows: { verse: Verse; compare: Verse[][] }[];
+}
+
+/** `ref` in the compilation's numbering beside `with` (catalog IDs), or null. */
+export function compareView(slug: string, ref: string, ids: string[]): Promise<CompareView | null> {
+  const query = new URLSearchParams({ ref, with: ids.join(",") });
+  return get<CompareView>(`/${encodeURIComponent(slug)}/compare?${query}`);
+}
+
 export interface Compilation extends CompilationSummary {
+  /** The translations the editor compares it with (catalog IDs), in column order. */
+  compareWith: string[];
   scheme: string;
   rules: Rule[];
   verses: VerseChoice[];

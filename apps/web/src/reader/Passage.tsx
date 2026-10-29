@@ -2,80 +2,8 @@ import { type CanonId, standing } from "@scripturetips/canon";
 import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 import type { PassageResult } from "./api.ts";
-import {
-  type Block,
-  type DesignationOf,
-  layOut,
-  noteBody,
-  type Shown,
-  type VerseMark,
-} from "./layout.ts";
-
-/** Lower corner brackets (U+2E24, U+2E25): the LEB's marks around an idiomatic phrase. */
-const IDIOM_OPEN = String.fromCharCode(0x2e24);
-const IDIOM_CLOSE = String.fromCharCode(0x2e25);
-
-/** Character styles drawn as elements; any other style is a `span` with its marker as class. */
-const ELEMENTS: Readonly<Record<string, "em" | "strong" | "sup">> = {
-  it: "em",
-  em: "em",
-  tl: "em",
-  fq: "em",
-  fqa: "em",
-  bd: "strong",
-  fk: "strong",
-  fr: "strong",
-  xo: "strong",
-  sup: "sup",
-  fv: "sup",
-};
-
-/** Word-level markup (Strong's numbers, lemmas) has no look of its own. */
-const PLAIN = new Set(["w", "wh", "wg", "wa", "ft", "xt"]);
-
-export function ShownText({ nodes }: { nodes: readonly Shown[] }): ReactNode {
-  return nodes.map((n, i) => {
-    const key = `${i}`;
-    if (typeof n === "string") return n;
-    if (n.type === "designation")
-      return (
-        <span key={key} className="designation">
-          {" ("}
-          {n.url ? <a href={n.url}>{n.text}</a> : n.text}
-          {")"}
-        </span>
-      );
-    if (n.type === "mark")
-      return (
-        <sup key={key} className="note-mark">
-          <a href={`#${n.noteId}`} id={`${n.noteId}-mark`}>
-            {n.letter}
-          </a>
-        </sup>
-      );
-    if (n.type === "span")
-      return (
-        <span key={key} className="idiom">
-          {IDIOM_OPEN}
-          <ShownText nodes={n.content} />
-          {IDIOM_CLOSE}
-        </span>
-      );
-    if (PLAIN.has(n.marker)) return <ShownText key={key} nodes={n.content} />;
-    const Element = ELEMENTS[n.marker];
-    if (Element)
-      return (
-        <Element key={key}>
-          <ShownText nodes={n.content} />
-        </Element>
-      );
-    return (
-      <span key={key} className={`c-${n.marker}`}>
-        <ShownText nodes={n.content} />
-      </span>
-    );
-  });
-}
+import { type Block, type DesignationOf, layOut, noteBody, type VerseMark } from "./layout.ts";
+import { ShownText } from "./ShownText.tsx";
 
 const HEADINGS: Readonly<Record<string, "h2" | "h3" | "h4" | "p">> = {
   ms: "h2",
@@ -148,7 +76,10 @@ export async function Passage({
   canon,
   sources,
   designationOf,
+  showLabel = true,
 }: {
+  /** False where the page already names the passage (the compilation editor). */
+  showLabel?: boolean;
   /** The attribution each verse's text must be followed by (`attributions.ts`). */
   designationOf?: DesignationOf | undefined;
   passage: PassageResult;
@@ -166,7 +97,7 @@ export async function Passage({
   const { blocks, notes } = layOut(passage.verses, `p${index}`, designationOf);
   return (
     <article className="passage" dir={direction}>
-      <h1 className="passage-label">{passage.label}</h1>
+      {showLabel ? <h1 className="passage-label">{passage.label}</h1> : null}
       {place === "additional" && canon ? (
         <p className="canon-note">{t("additional", { canon: tc(canon) })}</p>
       ) : place === "varies" ? (

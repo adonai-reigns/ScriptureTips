@@ -120,14 +120,17 @@ main {
   margin-bottom: 1.5rem;
 }
 
+/* The heading and chart take a share of the width (at most 26rem), so as the window narrows
+   they shrink with it, and the book list keeps its proportion. */
 .compilation-top-side {
-  flex: 0 1 auto;
-  min-width: 0;
+  flex: 1 1 0;
+  min-width: 14rem;
+  max-width: 26rem;
 }
 
 .compilation-top-main {
-  flex: 1 1 24rem;
-  min-width: 0;
+  flex: 2.6 1 0;
+  min-width: 24rem;
 }
 
 /* The books by section, as tabs: one section's books at a time, in columns. */
@@ -385,7 +388,7 @@ main {
 /* Placed against the window by the script (top or bottom, and right), clear of the columns. */
 .book-menu [role="menu"] {
   position: fixed;
-  z-index: 3;
+  z-index: 5;
   display: flex;
   flex-direction: column;
   min-width: 16rem;
@@ -438,8 +441,7 @@ main {
  * legend underneath.
  */
 .composition {
-  width: 26rem;
-  max-width: 100%;
+  width: 100%;
   margin: 1rem 0 0;
 }
 
@@ -574,6 +576,8 @@ main {
  * abbreviation under them (in grey, to set it apart), each changed in place.
  */
 .compilation-heading {
+  /* The browser's h1 size (2rem) on wide windows, smaller as the window narrows. */
+  font-size: clamp(1.4rem, 0.9rem + 1.6vw, 2rem);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1346,4 +1350,398 @@ button.secondary {
 
 .versions small {
   color: var(--muted);
+}
+
+/*
+ * The compilation editor's reading area: a chapter read in columns, or lined up beside other
+ * translations in a table, one row per verse.
+ */
+.reading {
+  /* The sticky head's height, which the comparison table's sticky headings sit under. */
+  --reading-head: 6.75rem;
+  border-top: 1px solid var(--rule);
+  padding-top: 0.5rem;
+}
+
+/* The mode buttons and the chapter bar, held at the top of the window. Fixed heights, so the
+   table's headings know where to stick. */
+.reading-head {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  height: var(--reading-head);
+  padding: 0.5rem 0;
+  margin-bottom: 0.5rem;
+  background: var(--paper);
+}
+
+/*
+ * The reading pane's header: previous and next at the ends, the book and chapter in the middle.
+ * The chapter number opens a list of every chapter while hovered or focused (no script needed).
+ */
+.reading-bar {
+  display: grid;
+  grid-template-columns: 3rem 1fr 3rem;
+  align-items: center;
+  height: 3rem;
+  padding: 0 0.5rem;
+  border-radius: 6px;
+  background: #81daf8;
+  color: var(--ink);
+}
+
+.reading-step {
+  font-size: 1.8rem;
+  line-height: 1;
+  text-align: center;
+  text-decoration: none;
+  color: var(--ink);
+  border-radius: 4px;
+}
+
+.reading-step:last-child {
+  grid-column: 3;
+}
+
+a.reading-step:hover,
+a.reading-step:focus-visible {
+  background: rgb(255 255 255 / 45%);
+}
+
+.reading-title {
+  position: relative;
+  justify-self: center;
+}
+
+.reading-title h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  text-align: center;
+}
+
+.chapter-button {
+  font: inherit;
+  color: inherit;
+  padding: 0 0.3rem;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.chapter-button:hover,
+.chapter-button:focus-visible,
+.reading-title:has(.chapter-list:hover, .chapter-list:focus-within) .chapter-button {
+  background: rgb(255 255 255 / 55%);
+  border-color: rgb(29 35 42 / 25%);
+}
+
+.chapter-list {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  z-index: 3;
+  transform: translateX(-50%);
+  grid-template-columns: repeat(auto-fill, 2.5rem);
+  width: min(22rem, 90vw);
+  max-height: 20rem;
+  overflow-y: auto;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  background: #fff;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 15%);
+}
+
+.reading-title:has(.chapter-button:hover, .chapter-button:focus) .chapter-list,
+.chapter-list:hover,
+.chapter-list:focus-within {
+  display: grid;
+}
+
+.chapter-list a {
+  padding: 0.25rem 0;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 4px;
+}
+
+.chapter-list a:hover,
+.chapter-list a:focus-visible {
+  background: var(--pale);
+}
+
+.chapter-list a[aria-current="page"] {
+  background: var(--deep);
+  color: #fff;
+}
+
+.reading-modes {
+  display: flex;
+  flex: none;
+  height: 2.25rem;
+  width: fit-content;
+  margin-left: auto;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.reading-modes a {
+  display: flex;
+  align-items: center;
+  padding: 0 0.9rem;
+  text-decoration: none;
+  color: var(--ink);
+}
+
+.reading-modes a + a {
+  border-left: 1px solid var(--rule);
+}
+
+.reading-modes a[aria-current="page"] {
+  background: var(--deep);
+  color: #fff;
+}
+
+.reading-columns .scripture {
+  columns: 22rem;
+  column-gap: 2.5rem;
+}
+
+.compare-status {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 1.4rem;
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+}
+
+/*
+ * Past three comparison columns, the table is wider than its box by a quarter of the box per
+ * extra column. The box clips it rather than scrolling (a scrolling box would scroll down too,
+ * and the headings couldn't stick to the window); the scrollbar above slides it by `--x`, and
+ * the compilation's column slides back by as much, so it stays at the left.
+ */
+.compare-pane.scrolls {
+  overflow-x: clip;
+}
+
+.compare-pane.scrolls .compare-grid {
+  width: calc(100% * var(--columns) / 4);
+  transform: translateX(calc(-1 * var(--x, 0px)));
+}
+
+.compare-pane.scrolls .compare-grid .compare-own {
+  transform: translateX(var(--x, 0px));
+  box-shadow:
+    1px 0 0 var(--rule),
+    4px 0 6px -4px rgb(0 0 0 / 20%);
+}
+
+.compare-pane.scrolls .compare-grid td.compare-own {
+  position: relative;
+  z-index: 1;
+}
+
+.compare-pane.scrolls .compare-grid th.compare-own {
+  z-index: 3;
+}
+
+/* The table's scrollbar, under the sticky head, always shown (some systems hide scrollbars until
+   they're used), so the columns past the right edge are seen to be there. */
+.compare {
+  --scrollbar: 14px;
+}
+
+.compare-scrollbar {
+  position: sticky;
+  top: var(--reading-head);
+  z-index: 3;
+  height: var(--scrollbar);
+  overflow-x: scroll;
+  overflow-y: hidden;
+  background: var(--paper);
+}
+
+.compare-scrollbar > div {
+  height: 1px;
+}
+
+.compare-scrollbar::-webkit-scrollbar {
+  height: var(--scrollbar);
+}
+
+.compare-scrollbar::-webkit-scrollbar-track {
+  background: var(--rule);
+  border-radius: 7px;
+}
+
+.compare-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--sky-mid);
+  border: 3px solid var(--rule);
+  border-radius: 7px;
+}
+
+.compare-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--deep);
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  .compare-scrollbar {
+    scrollbar-width: auto;
+    scrollbar-color: var(--sky-mid) var(--rule);
+  }
+}
+
+/* With the scrollbar above them, the headings stick under it. */
+.compare-pane.scrolls .compare-grid th {
+  top: calc(var(--reading-head) + var(--scrollbar));
+}
+
+.compare-grid {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.compare-grid th {
+  position: sticky;
+  top: var(--reading-head);
+  z-index: 1;
+  background: var(--paper);
+  text-align: left;
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  padding: 0.4rem 0.6rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.compare-grid th select {
+  width: calc(100% - 3.6rem);
+}
+
+.compare-column-button {
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-left: 0.2rem;
+  padding: 0;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--muted);
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.compare-column-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.compare-column-button:hover:not(:disabled),
+.compare-column-button:focus-visible {
+  color: var(--ink);
+  border-color: var(--rule);
+  background: #fff;
+}
+
+/* The edit mode's chapter menu, at the right of the compilation's heading, always shown. */
+.compare-edit .compare-grid th.compare-own {
+  padding-right: 2.2rem;
+}
+
+.compare-grid th .book-menu {
+  right: 0.3rem;
+}
+
+.compare-grid th .book-menu-toggle {
+  opacity: 1;
+}
+
+.compare-grid td {
+  vertical-align: top;
+  padding: 0.35rem 0.6rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.compare-grid .compare-own {
+  background: color-mix(in srgb, var(--pale) 35%, var(--paper));
+}
+
+.compare-number {
+  font-family: var(--sans);
+  font-size: 0.65em;
+  color: var(--muted);
+}
+
+.compare-heading {
+  display: block;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.9em;
+  margin-bottom: 0.2rem;
+}
+
+.compare-tag,
+.compare-note {
+  display: block;
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-weight: normal;
+}
+
+.compare-take {
+  display: block;
+  width: 100%;
+  margin: -0.15rem -0.3rem;
+  padding: 0.15rem 0.3rem;
+  box-sizing: content-box;
+  font: inherit;
+  text-align: inherit;
+  color: inherit;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.compare-take:hover,
+.compare-take:focus-visible {
+  border-color: var(--sky-mid);
+  background: color-mix(in srgb, var(--pale) 40%, transparent);
+}
+
+.compare-take.picked {
+  border-color: var(--deep);
+  background: var(--pale);
+}
+
+.compare-take:disabled {
+  cursor: progress;
+}
+
+@media (max-width: 48rem) {
+  .reading-modes {
+    margin-left: 0;
+  }
+
+  .compare {
+    overflow-x: auto;
+  }
+
+  .compare-grid {
+    min-width: 40rem;
+  }
 }

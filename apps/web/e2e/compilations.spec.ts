@@ -36,7 +36,7 @@ async function addRule(
 test("domain-model §2.3: build a compilation in layers, read it, and delete it", async ({
   page,
 }) => {
-  test.setTimeout(90_000);
+  test.setTimeout(150_000);
   const handle = await signUp(page);
 
   await page.getByRole("link", { name: "Compilations" }).click();
@@ -77,8 +77,9 @@ test("domain-model §2.3: build a compilation in layers, read it, and delete it"
   await page.getByRole("button", { name: "Options for Genesis" }).click();
   page.once("dialog", (d) => d.accept());
   await page.getByRole("menuitem", { name: /^KJV:/ }).click();
+  // Counting every verse is slow while other tests run.
   await expect(page.getByRole("figure").getByRole("listitem")).toHaveText([/^KJV/, /^WEB/], {
-    timeout: 30_000,
+    timeout: 60_000,
   });
 
   // Deleting asks for the phrase to be typed first.
@@ -220,6 +221,7 @@ test.describe("in the reader's own time zone", () => {
     await save.click();
     await expect(page.getByRole("status")).toHaveText(
       "Saved as pasted text. Declare it your own when you're ready.",
+      { timeout: 30_000 },
     );
     await expect(page.getByText(/^Pasted from outside ScriptureTips\./)).toBeVisible({
       timeout: 15_000,

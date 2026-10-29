@@ -71,6 +71,13 @@
       "when": 1793265414423,
       "tag": "0009_pdf_builds",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793272858797,
+      "tag": "0010_compare_with",
+      "breakpoints": true
     }
   ]
 }
