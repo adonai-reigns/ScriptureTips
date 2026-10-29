@@ -159,6 +159,22 @@ export interface SnapshotBook {
   readonly chapters: { readonly chapter: number; readonly verses: CompilationVerse[] }[];
 }
 
+/**
+ * Where a compilation's verses come from, for the editor's chart: each translation's count and
+ * share (in percent, one decimal), largest first, then the user's own wording.
+ */
+export interface CompositionView {
+  readonly verses: number;
+  readonly sources: {
+    readonly id: string;
+    readonly abbreviation: string;
+    readonly name: string;
+    readonly verses: number;
+    readonly share: number;
+  }[];
+  readonly own: { readonly verses: number; readonly share: number };
+}
+
 /** The whole compilation, resolved, for publishing (`CompilationsService.snapshot`). */
 export interface CompilationSnapshot {
   readonly compilation: typeof compilation.$inferSelect;
@@ -296,14 +312,7 @@ export class CompilationsService {
       .where(eq(translation.catalogId, input.base));
     if (!base) throw new BadRequestException({ code: "unknown-translation" });
     if (!canBeBase(base.licenseKey)) throw new BadRequestException({ code: "base-not-allowed" });
-    // A compilation mustn't pass for a published translation (e.g. the WEB's name rule, licenses.md §3.3).
-    const [clash] = await this.db
-      .select({ id: translation.id })
-      .from(translation)
-      .where(
-        sql`lower(${translation.abbreviation}) = ${input.abbreviation.toLowerCase()} or lower(${translation.name}) = ${input.title.toLowerCase()}`,
-      );
-    if (clash) throw new BadRequestException({ code: "name-of-translation" });
+    await this.refuseTranslationName(input.title, input.abbreviation);
     try {
       const [created] = await this.db
         .insert(compilation)
@@ -322,6 +331,42 @@ export class CompilationsService {
       if (isUniqueViolation(e)) throw new ConflictException({ code: "abbreviation-taken" });
       throw e;
     }
+  }
+
+  /**
+   * Renames the compilation: its title, or its abbreviation (and with it the slug in its path),
+   * checked as when it was created.
+   */
+  async rename(
+    owner: User,
+    slug: string,
+    input: { title?: string | undefined; abbreviation?: string | undefined },
+  ): Promise<CompilationView> {
+    const { c } = await this.find(owner, slug);
+    const title = input.title ?? c.title;
+    const abbreviation = input.abbreviation ?? c.abbreviation;
+    await this.refuseTranslationName(title, abbreviation);
+    try {
+      await this.db
+        .update(compilation)
+        .set({ title, abbreviation, slug: abbreviation.toLowerCase() })
+        .where(eq(compilation.id, c.id));
+    } catch (e) {
+      if (isUniqueViolation(e)) throw new ConflictException({ code: "abbreviation-taken" });
+      throw e;
+    }
+    return this.view(owner, abbreviation);
+  }
+
+  /** A compilation mustn't pass for a published translation (e.g. the WEB's name rule, licenses.md §3.3). */
+  private async refuseTranslationName(title: string, abbreviation: string): Promise<void> {
+    const [clash] = await this.db
+      .select({ id: translation.id })
+      .from(translation)
+      .where(
+        sql`lower(${translation.abbreviation}) = ${abbreviation.toLowerCase()} or lower(${translation.name}) = ${title.toLowerCase()}`,
+      );
+    if (clash) throw new BadRequestException({ code: "name-of-translation" });
   }
 
   async view(owner: User, slug: string): Promise<CompilationView> {
@@ -433,6 +478,70 @@ export class CompilationsService {
         kind,
         scope,
         entered,
+        sourceTranslationId: source.id,
+      });
+      await tx.update(compilation).set({ updatedAt: new Date() }).where(eq(compilation.id, c.id));
+    });
+    return this.view(owner, slug);
+  }
+
+  /**
+   * Gives a whole book a new base: the book comes from `source`, and every narrower choice within
+   * it (its book, chapter and passage rules, and its single verses, edits and own renderings
+   * included) is thrown away, as each would be removed on its own. A section rule stays.
+   */
+  async replaceBook(
+    owner: User,
+    slug: string,
+    osis: string,
+    sourceId: string,
+  ): Promise<CompilationView> {
+    const { c, base } = await this.find(owner, slug);
+    const [source] = await this.db
+      .select()
+      .from(translation)
+      .where(eq(translation.catalogId, sourceId));
+    if (!source) throw new BadRequestException({ code: "unknown-translation" });
+    if (!canCompile(source.licenseKey))
+      throw new BadRequestException({ code: "source-not-allowed" });
+    const counts = await this.translations.verseCounts(base.id);
+    const parsed = parseReference(osis, { scheme: c.scheme as SchemeId, verses: counts });
+    const ref = parsed.ok && parsed.references.length === 1 ? parsed.references[0] : undefined;
+    if (
+      !ref?.canonical ||
+      ref.entered.start.book !== osis ||
+      kindOf(ref.entered, counts) !== "book"
+    )
+      throw new BadRequestException({ code: "not-in-base" });
+    const scope = toOrdinalRange(ref.canonical);
+    const within = (column: typeof compilationRule.scope | typeof compilationVerse.scope) =>
+      sql`${column} && int4range(${scope.start}, ${scope.end}, '[]')`;
+
+    await this.db.transaction(async (tx) => {
+      await tx
+        .delete(compilationRule)
+        .where(
+          and(
+            eq(compilationRule.compilationId, c.id),
+            inArray(compilationRule.kind, ["book", "chapter", "range"]),
+            within(compilationRule.scope),
+          ),
+        );
+      const removed = await tx
+        .delete(compilationVerse)
+        .where(and(eq(compilationVerse.compilationId, c.id), within(compilationVerse.scope)))
+        .returning({ entered: compilationVerse.entered });
+      for (const { entered } of removed) {
+        await tx
+          .insert(compilationVerseRevision)
+          .values({ compilationId: c.id, entered, authorId: owner.id });
+        await this.authorship.clear(tx, c.id, entered);
+      }
+      await tx.insert(compilationRule).values({
+        compilationId: c.id,
+        kind: "book",
+        scope,
+        entered: formatOsisPassage(ref.entered),
         sourceTranslationId: source.id,
       });
       await tx.update(compilation).set({ updatedAt: new Date() }).where(eq(compilation.id, c.id));
@@ -635,6 +744,26 @@ export class CompilationsService {
    * every book of its base, each verse resolved through the layers as the reader has it, with
    * the translations it draws on and the verses still pasted.
    */
+  /** Its composition by source; reads every verse, so it's asked for separately from the view. */
+  async composition(owner: User, slug: string): Promise<CompositionView> {
+    const s = await this.snapshot(owner, slug);
+    const verses = s.sources.reduce((n, x) => n + x.verses, 0) + s.own;
+    const share = (n: number) => (verses ? Math.round((1000 * n) / verses) / 10 : 0);
+    return {
+      verses,
+      sources: s.sources
+        .map(({ translation: t, verses: n }) => ({
+          id: t.catalogId,
+          abbreviation: t.abbreviation,
+          name: t.name,
+          verses: n,
+          share: share(n),
+        }))
+        .sort((a, b) => b.verses - a.verses),
+      own: { verses: s.own, share: share(s.own) },
+    };
+  }
+
   /** `books`: only these (OSIS IDs), as a PDF build of part of the compilation takes it. */
   async snapshot(
     owner: User,

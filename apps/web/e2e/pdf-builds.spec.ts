@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { arriveFromOwnAddress, shot, signUp } from "./support.ts";
+import { arriveFromOwnAddress, openEditorDialog, shot, signUp } from "./support.ts";
 
 arriveFromOwnAddress();
 
@@ -15,6 +15,7 @@ test("book-designer.md §9: build a PDF of part of a compilation, and download t
   await page.getByRole("button", { name: "Create" }).click();
   await expect(page).toHaveURL(/\/compilations\/print$/, { timeout: 15_000 });
 
+  await openEditorDialog(page, "Build PDF", "Print as a PDF");
   await expect(page.getByText("No PDFs built yet.")).toBeVisible();
   await page.getByRole("textbox", { name: "Books or chapters (optional)" }).fill("Ruth");
   await page.getByRole("button", { name: "Build a PDF" }).click();

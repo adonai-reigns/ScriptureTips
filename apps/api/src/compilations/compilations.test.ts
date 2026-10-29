@@ -133,7 +133,7 @@ afterAll(async () => {
 });
 
 const call = (
-  method: "GET" | "POST" | "PUT" | "DELETE",
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
   cookie: string,
   url: string,
   payload?: object,
@@ -141,6 +141,7 @@ const call = (
 const put = (cookie: string, url: string, payload: object) => call("PUT", cookie, url, payload);
 const post = (cookie: string, url: string, payload: object) => call("POST", cookie, url, payload);
 const get = (cookie: string, url: string) => call("GET", cookie, url);
+const patch = (cookie: string, url: string, payload: object) => call("PATCH", cookie, url, payload);
 
 const startJournal = (reference: string) =>
   post(owner, "/api/compilations/mine/journals", { reference });
@@ -230,6 +231,103 @@ describe("domain-model §2.3: compilations", () => {
         })
       ).json(),
     ).toMatchObject({ code: "base-not-allowed" });
+  });
+
+  it("vision §3.1: give its composition, each source's verses and share, largest first", async () => {
+    await post(owner, "/api/compilations", { title: "Mixed", abbreviation: "Mixed", base: "kjv" });
+    expect((await get(owner, "/api/compilations/mixed/composition")).json()).toEqual({
+      verses: 5,
+      sources: [
+        { id: "kjv", abbreviation: "KJV", name: expect.any(String), verses: 5, share: 100 },
+      ],
+      own: { verses: 0, share: 0 },
+    });
+    await post(owner, "/api/compilations/mixed/verses", { reference: "Joel 3:1", source: "other" });
+    expect((await get(owner, "/api/compilations/mixed/composition")).json()).toMatchObject({
+      verses: 5,
+      sources: [
+        { id: "kjv", verses: 4, share: 80 },
+        { id: "other", verses: 1, share: 20 },
+      ],
+    });
+    expect((await get(other, "/api/compilations/mixed/composition")).statusCode).toBe(404);
+    expect((await call("DELETE", owner, "/api/compilations/mixed")).statusCode).toBe(204);
+  });
+
+  it("vision §3.1: give a whole book a new base, throwing away every narrower choice within it", async () => {
+    await post(owner, "/api/compilations", { title: "Whole", abbreviation: "Whole", base: "kjv" });
+    const url = "/api/compilations/whole";
+    await post(owner, `${url}/rules`, { scope: { section: "ot" }, source: "kjv" });
+    await post(owner, `${url}/rules`, { scope: { reference: "Joel 3" }, source: "other" });
+    await post(owner, `${url}/verses`, {
+      reference: "Joel 2:28",
+      source: "other",
+      text: "OTHER 2:28!",
+    });
+    expect((await get(owner, url)).json().verses).toHaveLength(1);
+
+    const res = await put(owner, `${url}/books/Joel/source`, { source: "other" });
+    expect(res.statusCode).toBe(200);
+    const view = res.json();
+    expect(view.rules).toMatchObject([
+      { kind: "section", entered: "ot", source: { id: "kjv" } },
+      { kind: "book", source: { id: "other" } },
+    ]);
+    expect(view.rules).toHaveLength(2);
+    expect(view.verses).toEqual([]);
+    // Choosing again replaces the book's rule rather than adding another.
+    const again = (await put(owner, `${url}/books/Joel/source`, { source: "kjv" })).json();
+    expect(again.rules.map((r: { kind: string }) => r.kind)).toEqual(["section", "book"]);
+
+    expect((await put(owner, `${url}/books/Matt/source`, { source: "other" })).statusCode).toBe(
+      400,
+    );
+    expect(
+      (await put(owner, `${url}/books/Joel/source`, { source: "unrecorded" })).json(),
+    ).toMatchObject({ code: "source-not-allowed" });
+    expect((await put(other, `${url}/books/Joel/source`, { source: "other" })).statusCode).toBe(
+      404,
+    );
+    expect((await call("DELETE", owner, url)).statusCode).toBe(204);
+  });
+
+  it("rename it in place, checked as when it was created; a new abbreviation moves its path", async () => {
+    const titled = await patch(owner, "/api/compilations/mine", { title: "  My Own Bible " });
+    expect(titled.statusCode).toBe(200);
+    expect(titled.json()).toMatchObject({
+      title: "My Own Bible",
+      abbreviation: "Mine",
+      slug: "mine",
+    });
+
+    await post(owner, "/api/compilations", { title: "Spare", abbreviation: "Spare", base: "kjv" });
+    const moved = await patch(owner, "/api/compilations/spare", { abbreviation: "Spare2" });
+    expect(moved.json()).toMatchObject({ title: "Spare", abbreviation: "Spare2", slug: "spare2" });
+    expect((await get(owner, "/api/compilations/spare")).statusCode).toBe(404);
+    expect((await get(owner, "/api/compilations/spare2")).statusCode).toBe(200);
+
+    const taken = await patch(owner, "/api/compilations/spare2", { abbreviation: "MINE" });
+    expect(taken.statusCode).toBe(409);
+    expect(taken.json()).toMatchObject({ code: "abbreviation-taken" });
+    expect(
+      (await patch(owner, "/api/compilations/spare2", { abbreviation: "kjv" })).json(),
+    ).toMatchObject({
+      code: "name-of-translation",
+    });
+    for (const bad of [{ abbreviation: "a" }, { abbreviation: "no spaces" }, { title: " " }, {}])
+      expect((await patch(owner, "/api/compilations/spare2", bad)).statusCode).toBe(400);
+    expect((await patch(other, "/api/compilations/spare2", { title: "Mine now" })).statusCode).toBe(
+      404,
+    );
+    // Changing only the case of its own abbreviation keeps the path.
+    expect(
+      (await patch(owner, "/api/compilations/spare2", { abbreviation: "SPARE2" })).json(),
+    ).toMatchObject({
+      abbreviation: "SPARE2",
+      slug: "spare2",
+    });
+    expect((await call("DELETE", owner, "/api/compilations/spare2")).statusCode).toBe(204);
+    await patch(owner, "/api/compilations/mine", { title: "My Bible" });
   });
 
   it("read the base where no rule applies", async () => {

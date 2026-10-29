@@ -81,3 +81,11 @@ export async function passBotCheck(page: Page): Promise<void> {
     await expect(solution).not.toHaveValue("", { timeout: 5_000 });
   }).toPass({ timeout: 30_000 });
 }
+
+/** Opens one of the compilation editor's dialogs (Publish, Build PDF) and returns it. */
+export async function openEditorDialog(page: Page, button: string, title: string) {
+  await page.locator(".book-tabs-actions").getByRole("button", { name: button }).click();
+  const dialog = page.getByRole("dialog", { name: title });
+  await expect(dialog).toBeVisible();
+  return dialog;
+}

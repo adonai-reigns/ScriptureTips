@@ -7,7 +7,9 @@ import {
   HttpCode,
   Inject,
   Param,
+  Patch,
   Post,
+  Put,
   Query,
   Res,
 } from "@nestjs/common";
@@ -23,6 +25,7 @@ import {
   type CompilationSummary,
   CompilationsService,
   type CompilationView,
+  type CompositionView,
   SECTIONS,
   type VerseChoiceView,
   type VerseEditorView,
@@ -32,17 +35,21 @@ import { MAX_NOTE, type NoteEditView } from "./notes.ts";
 const Slug = z.string().regex(/^[a-z0-9]{2,12}$/i);
 const TranslationId = z.string().regex(/^[A-Za-z0-9_-]{1,40}$/);
 
+const Title = z.string().trim().min(1).max(100);
+/** 2–12 letters and digits; its lowercase form is the compilation's path segment. */
+const Abbreviation = z
+  .string()
+  .trim()
+  .regex(/^[A-Za-z0-9]{2,12}$/);
+
 const NewCompilation = z
-  .object({
-    title: z.string().trim().min(1).max(100),
-    /** 2–12 letters and digits; its lowercase form is the compilation's path segment. */
-    abbreviation: z
-      .string()
-      .trim()
-      .regex(/^[A-Za-z0-9]{2,12}$/),
-    base: TranslationId,
-  })
+  .object({ title: Title, abbreviation: Abbreviation, base: TranslationId })
   .strict();
+
+const Rename = z
+  .object({ title: Title.optional(), abbreviation: Abbreviation.optional() })
+  .strict()
+  .refine((r) => r.title !== undefined || r.abbreviation !== undefined);
 
 const NewRule = z
   .object({
@@ -53,6 +60,10 @@ const NewRule = z
     source: TranslationId,
   })
   .strict();
+
+/** An OSIS book ID ("Gen", "1Kgs"). */
+const BookId = z.string().regex(/^[1-4]?[A-Z][A-Za-z]{1,8}$/);
+const BookSource = z.object({ source: TranslationId }).strict();
 
 const PassageQuery = z.object({ ref: z.string().trim().min(1).max(200) });
 
@@ -161,6 +172,25 @@ export class CompilationsController {
     return this.compilations.view(await this.user(headers), slug);
   }
 
+  /** Where its verses come from (CompositionView); reads every verse. */
+  @Get(":slug/composition")
+  async composition(
+    @Headers() headers: Record<string, string>,
+    @Param("slug", new ZodPipe(Slug)) slug: string,
+  ): Promise<CompositionView> {
+    return this.compilations.composition(await this.user(headers), slug);
+  }
+
+  /** Renames it: `{title?, abbreviation?}`. A new abbreviation moves it to a new slug. */
+  @Patch(":slug")
+  async rename(
+    @Headers() headers: Record<string, string>,
+    @Param("slug", new ZodPipe(Slug)) slug: string,
+    @Body(new ZodPipe(Rename)) body: z.infer<typeof Rename>,
+  ): Promise<CompilationView> {
+    return this.compilations.rename(await this.user(headers), slug, body);
+  }
+
   @Delete(":slug")
   @HttpCode(204)
   async remove(
@@ -180,6 +210,19 @@ export class CompilationsController {
     @Body(new ZodPipe(NewRule)) body: z.infer<typeof NewRule>,
   ): Promise<CompilationView> {
     return this.compilations.addRule(await this.user(headers), slug, body);
+  }
+
+  /**
+   * A new base for one whole book (`{source}`), throwing away every narrower choice within it.
+   */
+  @Put(":slug/books/:book/source")
+  async replaceBook(
+    @Headers() headers: Record<string, string>,
+    @Param("slug", new ZodPipe(Slug)) slug: string,
+    @Param("book", new ZodPipe(BookId)) book: string,
+    @Body(new ZodPipe(BookSource)) body: z.infer<typeof BookSource>,
+  ): Promise<CompilationView> {
+    return this.compilations.replaceBook(await this.user(headers), slug, book, body.source);
   }
 
   @Delete(":slug/rules/:rule")

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { arriveFromOwnAddress, shot, signUp } from "./support.ts";
+import { arriveFromOwnAddress, openEditorDialog, shot, signUp } from "./support.ts";
 
 arriveFromOwnAddress();
 
@@ -16,10 +16,11 @@ test("domain-model §2.3: publish unlisted, then publicly as version 2, each ver
   await page.getByRole("button", { name: "Create" }).click();
   await expect(page).toHaveURL(/\/compilations\/plain$/, { timeout: 15_000 });
 
-  // Version 1, for anyone with the link.
-  await expect(page.getByText("Not published yet.")).toBeVisible();
+  // Version 1, for anyone with the link, from the Publish dialog.
+  let dialog = await openEditorDialog(page, "Publish", "Publish");
+  await expect(dialog.getByText("Not published yet.")).toBeVisible();
   // §1.4: the checks first, then consent.
-  await page.getByRole("button", { name: "Check before publishing" }).click();
+  await page.getByRole("button", { name: "Run pre-publishing checks" }).click();
   const checks = page.getByRole("region", { name: "Before you publish" });
   await expect(checks).toContainText("check found nothing that stops this", {
     timeout: 30_000,
@@ -29,8 +30,8 @@ test("domain-model §2.3: publish unlisted, then publicly as version 2, each ver
   );
   await page.getByRole("checkbox", { name: /^I understand that what I publish/ }).check();
   await page.screenshot(shot("publish-checks"));
-  await page.getByRole("button", { name: "Publish", exact: true }).click();
-  await expect(page.getByRole("status")).toHaveText("Published as version 1.", {
+  await dialog.getByRole("button", { name: "Publish", exact: true }).click();
+  await expect(dialog.getByRole("status")).toHaveText("Published as version 1.", {
     timeout: 120_000,
   });
   const first = page.getByRole("link", { name: /^Version 1,/ });
@@ -57,12 +58,13 @@ test("domain-model §2.3: publish unlisted, then publicly as version 2, each ver
 
   // Version 2, for everyone.
   await page.goto("/compilations/plain");
+  dialog = await openEditorDialog(page, "Publish", "Publish");
   await page.getByRole("radio", { name: /^Everyone/ }).check();
   await page.getByRole("textbox", { name: "What changed (optional)" }).fill("Heavens, plural.");
-  await page.getByRole("button", { name: "Check before publishing" }).click();
+  await page.getByRole("button", { name: "Run pre-publishing checks" }).click();
   await page.getByRole("checkbox", { name: /^I understand that what I publish/ }).check();
   await page.getByRole("button", { name: "Publish a new version" }).click();
-  await expect(page.getByRole("status")).toHaveText("Published as version 2.", {
+  await expect(dialog.getByRole("status")).toHaveText("Published as version 2.", {
     timeout: 120_000,
   });
   await expect(page.getByText("1 verse changed")).toBeVisible({ timeout: 15_000 });

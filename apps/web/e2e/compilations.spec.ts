@@ -1,8 +1,37 @@
 import { readFileSync } from "node:fs";
-import { expect, test } from "@playwright/test";
-import { arriveFromOwnAddress, shot, signUp } from "./support.ts";
+import { expect, type Locator, type Page, test } from "@playwright/test";
+import { arriveFromOwnAddress, openEditorDialog, shot, signUp } from "./support.ts";
 
 arriveFromOwnAddress();
+
+/** A book's link in the book tabs: its name, then its translation's abbreviation. */
+const bookLink = (panel: Locator, name: string) =>
+  panel.locator("li > a").filter({ hasText: new RegExp(`^${name} `) });
+
+/**
+ * Takes a section, book, chapter or passage from another translation through the API (the
+ * editor no longer has a form for it), then reloads the page.
+ */
+async function addRule(
+  page: Page,
+  slug: string,
+  scope: { section: string } | { reference: string },
+  source: string,
+) {
+  const status = await page.evaluate(
+    async ([url, body]) =>
+      (
+        await fetch(url, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body,
+        })
+      ).status,
+    [`/api/compilations/${slug}/rules`, JSON.stringify({ scope, source })] as const,
+  );
+  expect(status).toBe(201);
+  await page.reload();
+}
 
 test("domain-model §2.3: build a compilation in layers, read it, and delete it", async ({
   page,
@@ -17,32 +46,19 @@ test("domain-model §2.3: build a compilation in layers, read it, and delete it"
   await page.getByRole("combobox", { name: "Base translation" }).selectOption("eng-kjv");
   await page.getByRole("button", { name: "Create" }).click();
   await expect(page).toHaveURL(/\/compilations\/mine$/, { timeout: 15_000 });
-  await expect(page.getByRole("heading", { name: "My Study Bible (Mine)" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "My Study Bible Mine", level: 1 })).toBeVisible();
 
   // Genesis 1 from the LEB, and the New Testament from the WEB.
-  await page.getByRole("textbox", { name: "Book, chapter or passage" }).fill("Genesis 1");
-  await page.getByRole("combobox", { name: "From" }).selectOption("leb");
-  await page.getByRole("button", { name: "Add" }).click();
-  // The editor refreshes from the server after each change.
-  await expect(page.getByText("Genesis 1 from the LEB")).toBeVisible({ timeout: 15_000 });
-  await page.getByRole("radio", { name: "A whole section" }).check();
-  await page.getByRole("combobox", { name: "Section" }).selectOption("nt");
-  await page.getByRole("combobox", { name: "From" }).selectOption("eng-web");
-  await page.getByRole("button", { name: "Add" }).click();
-  await expect(page.getByText("New Testament from the WEB")).toBeVisible({ timeout: 15_000 });
-
-  // The same passage again is refused, in words.
-  await page.getByRole("radio", { name: "A book, chapter or passage" }).check();
-  await page.getByRole("textbox", { name: "Book, chapter or passage" }).fill("Genesis 1");
-  await page.getByRole("combobox", { name: "From" }).selectOption("eng-web");
-  await page.getByRole("button", { name: "Add" }).click();
-  await expect(page.getByRole("main").getByRole("alert")).toHaveText(
-    "That overlaps a choice you've already made. Remove that one first, or choose a narrower passage.",
+  await addRule(page, "mine", { reference: "Genesis 1" }, "leb");
+  await addRule(page, "mine", { section: "nt" }, "eng-web");
+  const panel = page.getByRole("tabpanel");
+  await expect(bookLink(panel, "Genesis")).toHaveText("Genesis KJV");
+  await page.getByRole("tab", { name: "New Testament" }).click();
+  await expect(bookLink(panel, "Matthew")).toHaveText("Matthew WEB");
+  await expect(page.getByRole("figure").getByRole("listitem")).toHaveText(
+    [/^KJV/, /^WEB/, /^LEB/],
+    { timeout: 30_000 },
   );
-  await expect(page.locator(".book-sources li", { hasText: "Genesis" })).toContainText(
-    "and 1 passage from elsewhere",
-  );
-  await expect(page.locator(".book-sources li", { hasText: "Matthew" })).toContainText("WEB");
   await page.screenshot(shot("compilation-editor"));
 
   // Reading it: each verse from its layer, credited.
@@ -54,13 +70,27 @@ test("domain-model §2.3: build a compilation in layers, read it, and delete it"
   await page.goto(`/read/@${handle}/mine`);
   await expect(page.getByRole("heading", { name: "Books of the Mine" })).toBeVisible();
 
-  // Removing a choice resets its verses to the base.
+  // Giving Genesis the base again drops the passage taken from elsewhere.
   await page.goto("/compilations/mine");
-  await page.getByRole("button", { name: "Remove Genesis 1 from the LEB" }).click();
-  await expect(page.getByText("Genesis 1 from the LEB")).toHaveCount(0);
-
+  const genesis = bookLink(page.getByRole("tabpanel"), "Genesis");
+  await genesis.hover();
+  await page.getByRole("button", { name: "Options for Genesis" }).click();
   page.once("dialog", (d) => d.accept());
-  await page.getByRole("button", { name: "Delete this compilation" }).click();
+  await page.getByRole("menuitem", { name: /^KJV:/ }).click();
+  await expect(page.getByRole("figure").getByRole("listitem")).toHaveText([/^KJV/, /^WEB/], {
+    timeout: 30_000,
+  });
+
+  // Deleting asks for the phrase to be typed first.
+  const dialog = await openEditorDialog(page, "Delete", "Delete this compilation");
+  await expect(dialog).toContainText("This can't be undone.");
+  const confirm = dialog.getByRole("button", { name: "Delete this compilation" });
+  await expect(confirm).toBeDisabled();
+  await dialog.getByRole("textbox", { name: /^Type/ }).fill("delete this");
+  await expect(confirm).toBeDisabled();
+  await dialog.getByRole("textbox", { name: /^Type/ }).fill("delete this compilation");
+  await page.screenshot(shot("compilation-delete"));
+  await confirm.click();
   await expect(page).toHaveURL(/\/compilations$/);
   await expect(page.getByText("You haven't made a compilation yet.")).toBeVisible();
 });
@@ -78,8 +108,7 @@ test("domain-model §2.3: take a single verse, correct one and adapt another, cr
   await expect(page).toHaveURL(/\/compilations\/verses$/, { timeout: 15_000 });
 
   // One verse from the LEB.
-  await page.getByRole("textbox", { name: /^Verse/ }).fill("Genesis 1:3");
-  await page.getByRole("button", { name: "Open" }).click();
+  await page.goto("/compilations/verses/verse?ref=Genesis%201:3");
   await expect(page.getByRole("heading", { name: "Genesis 1:3", level: 1 })).toBeVisible();
   await page.getByRole("button", { name: "Use the LEB's wording" }).click();
   await expect(page.getByText("From the LEB.")).toBeVisible({ timeout: 15_000 });
@@ -93,7 +122,8 @@ test("domain-model §2.3: take a single verse, correct one and adapt another, cr
     .getByRole("textbox", { name: "Why you changed it (optional)" })
     .fill("Plural in Hebrew.");
   await page.getByRole("button", { name: "Save", exact: true }).click();
-  await expect(page.getByRole("status")).toHaveText("Saved as a correction.");
+  // Saving resolves the verse against every translation; slow when the whole suite runs at once.
+  await expect(page.getByRole("status")).toHaveText("Saved as a correction.", { timeout: 30_000 });
   await expect(page.getByText("Corrected from the KJV.")).toBeVisible({ timeout: 15_000 });
   await page.screenshot(shot("compilation-verse"));
 
@@ -105,6 +135,7 @@ test("domain-model §2.3: take a single verse, correct one and adapt another, cr
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(page.getByRole("status")).toHaveText(
     /^Saved as an adaptation: \d+ changes to words or punctuation, more than a correction allows\.$/,
+    { timeout: 15_000 },
   );
 
   // The reader marks and credits each change.
@@ -118,15 +149,11 @@ test("domain-model §2.3: take a single verse, correct one and adapt another, cr
   await expect(page.locator(".verse.edited")).toHaveCount(2);
   await page.screenshot(shot("compilation-reader-edited"));
 
-  // Resetting a verse returns it to the base.
-  await page.goto("/compilations/verses");
-  await expect(page.getByText("Genesis 1:1, corrected from the KJV")).toBeVisible();
-  await expect(page.getByText("Genesis 1:2, adapted from the KJV")).toBeVisible();
-  await expect(page.getByText("Genesis 1:3 from the LEB")).toBeVisible();
+  // Resetting a verse, in its editor, returns it to the base.
+  await page.goto("/compilations/verses/verse?ref=Genesis%201:1");
+  await expect(page.getByText("Corrected from the KJV.")).toBeVisible();
   await page.getByRole("button", { name: "Reset Genesis 1:1 to inherited" }).click();
-  await expect(page.getByText("Genesis 1:1, corrected from the KJV")).toHaveCount(0, {
-    timeout: 15_000,
-  });
+  await expect(page.getByText("Corrected from the KJV.")).toHaveCount(0, { timeout: 15_000 });
 });
 
 test.describe("in the reader's own time zone", () => {
@@ -268,4 +295,169 @@ test("domain-model §2.3: reword a translation's note, editing its verse, and ad
 test("a compilation is private to its owner", async ({ page }) => {
   await page.goto("/read/@someone/mine/genesis/1");
   await expect(page.getByText(/not found|could not be found/i).first()).toBeVisible();
+});
+
+test("vision §3.1: rename a compilation in place, its title and its abbreviation, checked as when created", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  await signUp(page);
+  await page.goto("/compilations");
+  await page.getByRole("textbox", { name: "Title" }).fill("Draft Words");
+  await page.getByRole("textbox", { name: "Abbreviation" }).fill("Draft");
+  await page.getByRole("combobox", { name: "Base translation" }).selectOption("eng-kjv");
+  await page.getByRole("button", { name: "Create" }).click();
+  await expect(page).toHaveURL(/\/compilations\/draft$/, { timeout: 15_000 });
+  const heading = page.getByRole("heading", { level: 1 });
+  await expect(heading).toHaveText(/Draft Words\s*Draft/);
+  await page.screenshot(shot("compilation-heading"));
+
+  // The title: click, type, Enter.
+  await heading.getByRole("button", { name: "Draft Words" }).click();
+  const title = page.getByRole("textbox", { name: "Title" });
+  await expect(title).toBeFocused();
+  await title.fill("Final Words");
+  await title.press("Enter");
+  await expect(heading.getByRole("button", { name: "Final Words" })).toBeVisible();
+
+  // Escape leaves it as it was.
+  await heading.getByRole("button", { name: "Final Words" }).click();
+  await page.getByRole("textbox", { name: "Title" }).fill("Not this");
+  await page.getByRole("textbox", { name: "Title" }).press("Escape");
+  await expect(heading.getByRole("button", { name: "Final Words" })).toBeVisible();
+
+  // The abbreviation keeps the create form's rules: a published translation's is refused.
+  await heading.getByRole("button", { name: "Draft", exact: true }).click();
+  const abbreviation = page.getByRole("textbox", { name: "Abbreviation" });
+  await abbreviation.fill("KJV");
+  await abbreviation.press("Enter");
+  await expect(heading.getByRole("alert")).toHaveText(/name of a published translation/);
+  await page.screenshot(shot("compilation-heading-error"));
+
+  // A new one moves the compilation to its new link.
+  await abbreviation.fill("Final");
+  await abbreviation.press("Enter");
+  await expect(page).toHaveURL(/\/compilations\/final$/, { timeout: 15_000 });
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/Final Words\s*Final/);
+});
+
+test("vision §3.1: the editor shows where the verses come from, and each section's books", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  await signUp(page);
+  await page.goto("/compilations");
+  await page.getByRole("textbox", { name: "Title" }).fill("Mixed Sources");
+  await page.getByRole("textbox", { name: "Abbreviation" }).fill("Mixed");
+  await page.getByRole("combobox", { name: "Base translation" }).selectOption("eng-kjv");
+  await page.getByRole("button", { name: "Create" }).click();
+  await expect(page).toHaveURL(/\/compilations\/mixed$/, { timeout: 15_000 });
+  // Until the first count arrives, a skeleton and a spinner.
+  let release = () => {};
+  const held = new Promise<void>((r) => {
+    release = r;
+  });
+  await page.route("**/composition", async (route) => {
+    await held;
+    // A request the reload aborted is already done with.
+    await route.continue().catch(() => {});
+  });
+  await addRule(page, "mixed", { reference: "Genesis" }, "leb");
+  await expect(page.locator(".composition .skeleton")).toBeVisible();
+  await expect(page.locator(".composition .spinner")).toBeVisible();
+  await page.screenshot(shot("compilation-composition-loading"));
+  release();
+  await page.unroute("**/composition");
+
+  // The chart loads after the page; its legend names each source and its share.
+  const chart = page.getByRole("figure");
+  await expect(
+    chart.getByRole("img", { name: "Where this compilation's verses come from" }),
+  ).toBeVisible({
+    timeout: 30_000,
+  });
+  await expect(chart.getByRole("listitem")).toHaveText([
+    /^KJV\s*\d+(\.\d)?%$/,
+    /^LEB\s*\d+(\.\d)?%$/,
+  ]);
+
+  // Each section is a tab showing its books; the Old Testament first.
+  const tabs = page.getByRole("tablist", { name: "Books by section" });
+  const panel = page.getByRole("tabpanel");
+  await expect(tabs.getByRole("tab", { name: "Old Testament" })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+  await expect(bookLink(panel, "Genesis")).toBeVisible();
+  await expect(bookLink(panel, "Matthew")).toHaveCount(0);
+  await tabs.getByRole("tab", { name: "New Testament" }).click();
+  await expect(bookLink(panel, "Matthew")).toBeVisible();
+  await expect(bookLink(panel, "Genesis")).toHaveCount(0);
+  // The arrow keys move between tabs.
+  await page.keyboard.press("ArrowLeft");
+  await expect(tabs.getByRole("tab", { name: "Old Testament" })).toBeFocused();
+  await expect(bookLink(panel, "Genesis")).toBeVisible();
+  // Tab moves from the tabs into the books.
+  await page.keyboard.press("Tab");
+  await expect(bookLink(panel, "Genesis")).toBeFocused();
+  await page.screenshot(shot("compilation-top"));
+});
+
+test("vision §3.1: give a whole book a new base from its menu, after a warning", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  await signUp(page);
+  await page.goto("/compilations");
+  await page.getByRole("textbox", { name: "Title" }).fill("Book Bases");
+  await page.getByRole("textbox", { name: "Abbreviation" }).fill("Bases");
+  await page.getByRole("combobox", { name: "Base translation" }).selectOption("eng-kjv");
+  await page.getByRole("button", { name: "Create" }).click();
+  await expect(page).toHaveURL(/\/compilations\/bases$/, { timeout: 15_000 });
+  await addRule(page, "bases", { reference: "Genesis 1" }, "leb");
+  await page.goto("/compilations/bases/verse?ref=Genesis%202:1");
+  await page.getByRole("button", { name: "Use the LEB's wording" }).click();
+  await expect(page.getByText("From the LEB.")).toBeVisible({ timeout: 15_000 });
+  await page.goto("/compilations/bases");
+
+  // Tab goes through each book and then its menu.
+  const panel = page.getByRole("tabpanel");
+  await page.getByRole("tab", { name: "Old Testament" }).focus();
+  await page.keyboard.press("Tab");
+  await expect(bookLink(panel, "Genesis")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(panel.getByRole("button", { name: "Options for Genesis" })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(bookLink(panel, "Exodus")).toBeFocused();
+
+  // The menu's first item lists the translations; declining the warning changes nothing.
+  await bookLink(panel, "Genesis").hover();
+  const options = panel.getByRole("button", { name: "Options for Genesis" });
+  await options.click();
+  // Escape closes it, back to its icon.
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("menu")).toHaveCount(0);
+  await expect(options).toBeFocused();
+  await options.click();
+  await page.screenshot(shot("compilation-book-menu"));
+  const web = page.getByRole("menuitem", { name: /^WEB:/ });
+  const legend = page.getByRole("figure").getByRole("listitem");
+  page.once("dialog", (d) => d.dismiss());
+  await web.click();
+  await expect(bookLink(panel, "Genesis")).toHaveText("Genesis KJV");
+  await expect(legend).toHaveText([/^KJV/, /^LEB/], { timeout: 30_000 });
+
+  // Accepting it gives Genesis the WEB, and throws away the choices within it.
+  page.once("dialog", (d) => {
+    expect(d.message()).toContain("This throws away every change you've made within Genesis");
+    d.accept();
+  });
+  await web.click();
+  await expect(bookLink(panel, "Genesis")).toHaveText("Genesis WEB", { timeout: 15_000 });
+  // The bar counts again by itself: the LEB's passage has gone, and the WEB has Genesis.
+  await expect(page.getByRole("figure").getByRole("listitem")).toHaveText(
+    [/^KJV\s*[\d.]+%$/, /^WEB\s*[\d.]+%$/],
+    { timeout: 30_000 },
+  );
+  await expect(page.getByRole("menu")).toHaveCount(0);
 });

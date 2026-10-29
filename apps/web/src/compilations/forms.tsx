@@ -103,145 +103,42 @@ export function NewCompilationForm({ bases }: { bases: Choice[] }) {
   );
 }
 
-export function AddRuleForm({ slug, sources }: { slug: string; sources: Choice[] }) {
+/**
+ * Deletes the compilation, in its Delete dialog: the warning, then the phrase typed to confirm,
+ * before the button works.
+ */
+export function DeleteCompilationForm({ slug, title }: { slug: string; title: string }) {
   const t = useTranslations("compilations");
-  const router = useRouter();
-  const [kind, setKind] = useState<"passage" | "section">("passage");
   const { error, busy, hydrated, run } = useSubmit();
-  const submit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const target = e.currentTarget;
-    const form = new FormData(target);
-    const scope =
-      kind === "section"
-        ? { section: String(form.get("section") ?? "") }
-        : { reference: String(form.get("reference") ?? "") };
-    run(
-      () =>
-        send("POST", `/api/compilations/${slug}/rules`, {
-          scope,
-          source: String(form.get("source") ?? ""),
-        }),
-      () => {
-        target.reset();
-        router.refresh();
-      },
-    );
-  };
+  const [typed, setTyped] = useState("");
+  const confirmed = typed.trim().toLowerCase() === t("deletePhrase");
   return (
-    <form className="account-form" onSubmit={submit}>
-      <fieldset className="choices">
-        <legend>{t("scope")}</legend>
-        <label className="choice">
-          <input
-            type="radio"
-            name="kind"
-            checked={kind === "passage"}
-            onChange={() => setKind("passage")}
-          />
-          <span>{t("scopePassage")}</span>
-        </label>
-        <label className="choice">
-          <input
-            type="radio"
-            name="kind"
-            checked={kind === "section"}
-            onChange={() => setKind("section")}
-          />
-          <span>{t("scopeSection")}</span>
-        </label>
-      </fieldset>
-      {kind === "passage" ? (
-        <label>
-          <span>{t("passage")}</span>
-          <input name="reference" required maxLength={200} />
-          <small>{t("passageHelp")}</small>
-        </label>
-      ) : (
-        <label>
-          <span>{t("section")}</span>
-          <select name="section">
-            {(["ot", "nt", "additional"] as const).map((s) => (
-              <option key={s} value={s}>
-                {t(`sections.${s}`)}
-              </option>
-            ))}
-          </select>
-        </label>
-      )}
+    <form
+      className="account-form"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (confirmed)
+          run(
+            () => send("DELETE", `/api/compilations/${slug}`),
+            () => window.location.assign("/compilations"),
+          );
+      }}
+    >
+      <p className="warning">{t("deleteWarning", { title })}</p>
       <label>
-        <span>{t("source")}</span>
-        <select name="source" required defaultValue="">
-          <option value="" disabled />
-          {sources.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.label}
-            </option>
-          ))}
-        </select>
+        <span>{t("deleteTypeLabel", { phrase: t("deletePhrase") })}</span>
+        <input
+          value={typed}
+          onChange={(e) => setTyped(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+        />
       </label>
       <ErrorText code={error} />
-      <button type="submit" disabled={busy || !hydrated}>
-        {t("add")}
+      <button type="submit" className="danger-button" disabled={!confirmed || busy || !hydrated}>
+        {t("deleteConfirm")}
       </button>
     </form>
-  );
-}
-
-export function RemoveRuleButton({
-  slug,
-  rule,
-  label,
-}: {
-  slug: string;
-  rule: string;
-  label: string;
-}) {
-  const t = useTranslations("compilations");
-  const router = useRouter();
-  const { error, busy, hydrated, run } = useSubmit();
-  return (
-    <>
-      <button
-        type="button"
-        className="link-button"
-        aria-label={label}
-        disabled={busy || !hydrated}
-        onClick={() =>
-          run(
-            () => send("DELETE", `/api/compilations/${slug}/rules/${rule}`),
-            () => router.refresh(),
-          )
-        }
-      >
-        {t("remove")}
-      </button>
-      <ErrorText code={error} />
-    </>
-  );
-}
-
-export function DeleteCompilationButton({ slug, title }: { slug: string; title: string }) {
-  const t = useTranslations("compilations");
-  const { error, busy, hydrated, run } = useSubmit();
-  return (
-    <>
-      <button
-        type="button"
-        className="link-button danger"
-        disabled={busy || !hydrated}
-        onClick={() => {
-          if (window.confirm(t("confirmDelete", { title })))
-            run(
-              () => send("DELETE", `/api/compilations/${slug}`),
-              () => window.location.assign("/compilations"),
-            );
-        }}
-      >
-        {t("deleteCompilation")}
-      </button>
-      <ErrorText code={error} />
-    </>
   );
 }
 
@@ -1070,10 +967,121 @@ export function PublishForm({
           {published ? t("publishAgain") : t("publishFirst")}
         </button>
       ) : (
-        <button type="button" onClick={runCheck} disabled={busy || !hydrated}>
+        <button
+          type="button"
+          className="primary-button"
+          onClick={runCheck}
+          disabled={busy || !hydrated}
+        >
           {check ? t("checkAgain") : t("checkFirst")}
         </button>
       )}
     </form>
+  );
+}
+
+/**
+ * A heading part changed in place: the compilation's title or abbreviation, shown as text until
+ * clicked, then an input with the create form's rules. Enter or leaving the field saves; Escape
+ * cancels. A new abbreviation moves the compilation to its new path.
+ */
+export function InPlaceField({
+  slug,
+  field,
+  value,
+}: {
+  slug: string;
+  field: "title" | "abbreviation";
+  value: string;
+}) {
+  const t = useTranslations("compilations");
+  const router = useRouter();
+  const [editing, setEditing] = useState(false);
+  // What's typed, mirrored into the wrapper so the input is exactly as wide as its text.
+  const [text, setText] = useState(value);
+  const { error, busy, hydrated, run } = useSubmit();
+  const errorText = useErrorText();
+  const input = useRef<HTMLInputElement>(null);
+  const label = field === "title" ? t("titleField") : t("abbreviation");
+
+  const save = () => {
+    const el = input.current;
+    if (!el || busy) return;
+    const next = el.value.trim();
+    if (next === value) return setEditing(false);
+    if (!el.reportValidity()) return;
+    run(
+      async () => {
+        try {
+          const res = await fetch(`/api/compilations/${slug}`, {
+            method: "PATCH",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ [field]: next }),
+          });
+          return res.ok ? null : await errorCode(res);
+        } catch {
+          return "unavailable";
+        }
+      },
+      () => {
+        setEditing(false);
+        if (field === "abbreviation" && next.toLowerCase() !== slug)
+          window.location.replace(`/compilations/${next.toLowerCase()}`);
+        else router.refresh();
+      },
+    );
+  };
+
+  if (!editing)
+    return (
+      <button
+        type="button"
+        className={`in-place in-place-${field}`}
+        disabled={!hydrated}
+        title={field === "title" ? t("changeTitle") : t("changeAbbreviation")}
+        onClick={() => {
+          setText(value);
+          setEditing(true);
+        }}
+      >
+        {value}
+      </button>
+    );
+  return (
+    <span className={`in-place-editor in-place-${field}`} data-text={text}>
+      <input
+        ref={input}
+        // biome-ignore lint/a11y/noAutofocus: the user just asked to edit this field.
+        autoFocus
+        defaultValue={value}
+        aria-label={label}
+        aria-describedby={`in-place-help-${field}`}
+        required
+        {...(field === "title"
+          ? { maxLength: 100 }
+          : { maxLength: 12, pattern: "[A-Za-z0-9]{2,12}" })}
+        size={1}
+        onInput={(e) => setText(e.currentTarget.value)}
+        disabled={busy}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            save();
+          } else if (e.key === "Escape") setEditing(false);
+        }}
+        onBlur={save}
+      />
+      {/* Floats below the field, over what follows, so the heading keeps its size. */}
+      <span className="in-place-notes">
+        <small id={`in-place-help-${field}`}>
+          {field === "abbreviation" ? t("abbreviationHelp") : t("inPlaceHelp")}
+        </small>
+        {error ? (
+          <span role="alert" className="error">
+            {errorText(error)}
+          </span>
+        ) : null}
+      </span>
+    </span>
   );
 }
