@@ -323,6 +323,12 @@ importers:
         specifier: workspace:*
         version: link:../passage
 
+  tools/pdf-trial:
+    dependencies:
+      '@scripturetips/reference':
+        specifier: workspace:*
+        version: link:../../packages/reference
+
   tools/scripture-import:
     dependencies:
       '@scripturetips/db':

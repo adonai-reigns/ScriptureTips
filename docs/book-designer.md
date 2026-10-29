@@ -203,6 +203,10 @@ The prototype used LaTeX (as did `tex-bible`). Typst is the strongest alternativ
 
 Whichever engine wins, the designer produces a **neutral book description** (JSON: regions, elements, resolved content, settings), and the engine-specific renderer turns that into a PDF. The engine can then be replaced without touching the designer or the data.
 
+**Decided (project owner, 2026-10-29):** whichever engine wins, production builds run in a **queue worker** (BullMQ on Valkey, vision §7) in **its own Docker container**, with the engine and fonts installed there, never in the API or web containers. The trial runs in the toolbox.
+
+**Trial run (2026-10-29):** results and a recommendation (Typst) in [pdf-engine-trial.md](pdf-engine-trial.md); the choice is the project owner's, after judging the PDFs.
+
 ## 10. Assets and the map library
 
 - **Assets:** uploaded images and maps, with metadata: pixel size, effective dpi at each placement, color profile, rights status (`own_work` · `public_domain` · `licensed` (+ license) · `permission_confirmed`), credit line.

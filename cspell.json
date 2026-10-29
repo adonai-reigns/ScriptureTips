@@ -26,7 +26,8 @@
     "packages/reference/src/languages/**",
     "**/dist/**",
     "**/.next/**",
-    "**/test-results/**"
+    "**/test-results/**",
+    "**/.work/**"
   ],
   "overrides": [
     {
@@ -36,6 +37,11 @@
     {
       "filename": "**/messages/en-NZ.json",
       "language": "en-GB"
+    },
+    {
+      "filename": ["tools/pdf-trial/src/latex.ts", "tools/pdf-trial/templates/**"],
+      "dictionaries": ["latex"],
+      "ignoreRegExpList": ["/\\\\+[A-Za-z@]+/g"]
     }
   ]
 }
