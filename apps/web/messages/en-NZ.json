@@ -318,6 +318,31 @@
     "pasted-verses": "Some verses are still pasted from outside ScriptureTips. Declare them your own, or replace them, before publishing.",
     "slug-published": "You've already published something else with this abbreviation. Give this compilation another one.",
     "publish-returned": "The licence check found problems. They're listed under \"Before you publish\".",
-    "consent-outdated": "The consent statement has changed. Reload the page and read it again."
+    "consent-outdated": "The consent statement has changed. Reload the page and read it again.",
+    "build-in-progress": "A PDF is already being built. Wait for it to finish, then try again.",
+    "daily-build-limit": "You've reached today's limit of PDF builds. Try again tomorrow.",
+    "build-not-allowed": "A translation in this compilation doesn't allow its text to be used this way, so it can't be printed.",
+    "nothing-to-build": "There's no text in those books or chapters to print.",
+    "file-not-ready": "That file isn't ready yet."
+  },
+  "pdfBuilds": {
+    "title": "Print as a PDF",
+    "intro": "Build a print-ready PDF of this compilation for your own use: the book, its cover with the spine sized to the page count, and the files it's made from. A whole Bible takes a few minutes.",
+    "scope": "Books or chapters (optional)",
+    "scopeHelp": "For example, Ruth or Genesis 1–11. Leave it empty for the whole compilation.",
+    "build": "Build a PDF",
+    "none": "No PDFs built yet.",
+    "whole": "Whole compilation",
+    "queued": "Waiting to be built",
+    "building": "Building…",
+    "done": "Ready: {pages, plural, one {# page} other {# pages}}, spine {spine} mm",
+    "failed": "Couldn't be built",
+    "files": {
+      "book-pdf": "Book (PDF)",
+      "cover-pdf": "Cover (PDF)",
+      "book-json": "Book description (JSON)",
+      "book-typ": "Book layout (Typst source)",
+      "cover-typ": "Cover layout (Typst source)"
+    }
   }
 }

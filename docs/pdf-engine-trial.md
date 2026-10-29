@@ -1,6 +1,6 @@
 # PDF engine trial: Typst vs LuaLaTeX
 
-> 2026-10-29. The trial asked for in [book-designer.md](book-designer.md) §9. Code: [`tools/pdf-trial`](../tools/pdf-trial/AGENTS.md). **Decision pending:** the project owner judges the PDFs.
+> 2026-10-29. The trial asked for in [book-designer.md](book-designer.md) §9. Code: [`tools/pdf-trial`](../tools/pdf-trial/AGENTS.md). **Decided (project owner, 2026-10-29): Typst**, with the follow-ups in §3.
 
 ## 1. What was built
 

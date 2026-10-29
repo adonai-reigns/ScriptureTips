@@ -18,6 +18,7 @@ import { testDatabase } from "@scripturetips/db/test-support";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createApp } from "../app.ts";
 import { signIn, testAccounts } from "../auth/test-support.ts";
+import { testBuilds } from "../pdf-builds/test-support.ts";
 
 let db: Database;
 let drop: () => Promise<void>;
@@ -112,7 +113,11 @@ beforeAll(async () => {
 
   const accounts = testAccounts();
   sent = accounts.sent;
-  app = await createApp({ databaseUrl: url, accounts: accounts.settings });
+  app = await createApp({
+    databaseUrl: url,
+    accounts: accounts.settings,
+    builds: testBuilds().settings,
+  });
   await app.init();
   await app.getHttpAdapter().getInstance().ready();
 

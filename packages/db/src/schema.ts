@@ -14,6 +14,7 @@ import {
   jsonb,
   pgTable,
   primaryKey,
+  real,
   text,
   timestamp,
   unique,
@@ -638,4 +639,35 @@ export const publishRequest = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("publish_request_compilation_idx").on(t.compilationId, t.createdAt)],
+);
+
+/**
+ * A PDF build of a compilation (book-designer.md §8, `EditionBuild`; editions come later). Its
+ * files are kept in the file store under `pdf-builds/{id}/` (packages/book `BUILD_FILES`); the
+ * PDF worker renders it from the queue (book-designer.md §9). Deleted with its compilation.
+ */
+export const pdfBuild = pgTable(
+  "pdf_build",
+  {
+    id: id(),
+    compilationId: uuid("compilation_id")
+      .notNull()
+      .references(() => compilation.id, { onDelete: "cascade" }),
+    requestedBy: uuid("requested_by")
+      .notNull()
+      .references(() => user.id),
+    /** What it covers, as entered ("Ruth"), or null for the whole compilation. */
+    scope: text("scope"),
+    status: text("status", { enum: ["queued", "building", "done", "failed"] }).notNull(),
+    pages: integer("pages"),
+    /** The cover's spine width, in mm. */
+    spine: real("spine"),
+    error: text("error"),
+    requestedAt: timestamp("requested_at", { withTimezone: true }).notNull().defaultNow(),
+    finishedAt: timestamp("finished_at", { withTimezone: true }),
+  },
+  (t) => [
+    index("pdf_build_compilation_idx").on(t.compilationId, t.requestedAt),
+    index("pdf_build_requested_by_idx").on(t.requestedBy, t.requestedAt),
+  ],
 );

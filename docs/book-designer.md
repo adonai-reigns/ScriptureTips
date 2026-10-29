@@ -186,7 +186,7 @@ Anchors use canonical passages, so most inserts survive a swap automatically. Th
 - **Versions:** every build is an immutable `EditionBuild` (inputs + output files), so a user can go back to "the edition I printed in March".
 - **Collaboration (later):** a group can co-design a church edition (e.g. a congregation's Bible with their own maps and study material).
 
-## 9. Rendering engine: decision needed
+## 9. Rendering engine: Typst (decided)
 
 The prototype used LaTeX (as did `tex-bible`). Typst is the strongest alternative. **This is the most important technical decision for the designer**, and should be settled with a short trial before any designer UI is built.
 
@@ -205,7 +205,11 @@ Whichever engine wins, the designer produces a **neutral book description** (JSO
 
 **Decided (project owner, 2026-10-29):** whichever engine wins, production builds run in a **queue worker** (BullMQ on Valkey, vision §7) in **its own Docker container**, with the engine and fonts installed there, never in the API or web containers. The trial runs in the toolbox.
 
-**Trial run (2026-10-29):** results and a recommendation (Typst) in [pdf-engine-trial.md](pdf-engine-trial.md); the choice is the project owner's, after judging the PDFs.
+**Trial run (2026-10-29):** results in [pdf-engine-trial.md](pdf-engine-trial.md).
+
+**Built (2026-10-29):** PDF builds of a compilation, before editions exist: the API describes the book (packages/book), keeps its `book.json` in the file store and queues it; the PDF worker (apps/pdf-worker) renders the interior and the cover, and keeps the PDFs and the Typst sources beside it, all downloadable (the project owner's wish: the working files are assets too). The format is fixed at the trial's for now.
+
+**Decided (project owner, 2026-10-29): Typst.** Before editions ship, it needs the three follow-ups in pdf-engine-trial.md §3: drop caps that text wraps around, TrimBox and BleedBox (and PDF/X where a printer profile asks) set by a post-processing step, and a font for the LEB's 〚 〛 marks.
 
 ## 10. Assets and the map library
 
@@ -215,7 +219,7 @@ Whichever engine wins, the designer produces a **neutral book description** (JSO
 
 ## 11. Open questions
 
-1. Rendering engine: LaTeX or Typst, decided by the proof-of-concept trial (§9).
+1. ~~Rendering engine~~: **Typst** (§9).
 2. Which printer profiles to support first, with a recommended shortlist and reasons. **Deferred** until after the first public release, which ships with the generic profile only.
 3. Which binding layouts the exporter supports at launch. Printing and binding are done by the printer (files are download only), but the PDF must be laid out for the binding: the cover's spine width, a hardcover case wrap's extra bleed, and inner margins. Recommended: perfect-bound paperback first, hardcover from the printer shortlist.
 4. A rich-text editor for notes pages and the preface (a new dependency). Recommended: TipTap's open-source core (MIT, built on ProseMirror, React, custom elements for scripture references, Yjs support for groups), without its paid add-ons; alternative: Lexical (MIT).

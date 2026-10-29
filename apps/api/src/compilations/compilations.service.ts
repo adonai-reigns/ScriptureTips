@@ -635,7 +635,12 @@ export class CompilationsService {
    * every book of its base, each verse resolved through the layers as the reader has it, with
    * the translations it draws on and the verses still pasted.
    */
-  async snapshot(owner: User, slug: string): Promise<CompilationSnapshot> {
+  /** `books`: only these (OSIS IDs), as a PDF build of part of the compilation takes it. */
+  async snapshot(
+    owner: User,
+    slug: string,
+    books?: ReadonlySet<string>,
+  ): Promise<CompilationSnapshot> {
     const { c, base } = await this.find(owner, slug);
     const layers = await this.layers(c.id);
     const choices = await this.db
@@ -660,8 +665,9 @@ export class CompilationsService {
     let corrected = 0;
     let adapted = 0;
 
-    const books: SnapshotBook[] = [];
+    const resolvedBooks: SnapshotBook[] = [];
     for (const b of (await this.translations.books(base.catalogId)) ?? []) {
+      if (books && !books.has(b.osis)) continue;
       const resolved = await this.resolve(
         await this.translations.bookVerses(base.id, b.osis),
         b.osis,
@@ -686,7 +692,7 @@ export class CompilationsService {
         });
         chapters.set(verse.chapter, list);
       }
-      books.push({
+      resolvedBooks.push({
         osis: b.osis,
         chapters: [...chapters].map(([chapter, verses]) => ({ chapter, verses })),
       });
@@ -695,7 +701,7 @@ export class CompilationsService {
     return {
       compilation: c,
       base,
-      books,
+      books: resolvedBooks,
       sources: [...used].flatMap(([id, verses]) => {
         const t = translations.get(id);
         return t ? [{ translation: t, verses }] : [];

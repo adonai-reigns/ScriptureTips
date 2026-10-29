@@ -35,7 +35,20 @@ RUN apt-get update \
   && install -m 0755 /tmp/typst-x86_64-unknown-linux-musl/typst /usr/local/bin/typst \
   && rm -rf /tmp/typst*
 
-ENV PNPM_HOME=/home/node/.local/share/pnpm \
+# The PDF fonts, as in the PDF worker's image (infra/docker/pdf-worker), for the render tests.
+RUN mkdir -p /fonts \
+  && curl -fsSL -o /tmp/gentium.zip \
+    https://github.com/silnrsi/font-gentium/releases/download/v7.000/Gentium-7.000.zip \
+  && echo "313e64963ba27851356060a725d36ce01680e5c5c63f46e4b40f15741c043e21  /tmp/gentium.zip" | sha256sum -c - \
+  && curl -fsSL -o /tmp/ezra.zip https://software.sil.org/downloads/r/ezra/EzraSIL-2.51.zip \
+  && echo "f16bcb3ec4473ac6a9f138ee0dbde7cc2f835e93a90cbe8649b3f32677760cc1  /tmp/ezra.zip" | sha256sum -c - \
+  && unzip -j -q /tmp/gentium.zip "*.ttf" -d /fonts \
+  && unzip -j -q /tmp/ezra.zip "*.ttf" -d /fonts \
+  && chmod -R a+rX /fonts \
+  && rm /tmp/*.zip
+
+ENV FONT_PATH=/fonts \
+  PNPM_HOME=/home/node/.local/share/pnpm \
   PNPM_STORE_DIR=/home/node/.local/share/pnpm/store \
   # Node 24's V8 headers need C++20; some native modules (tree-sitter 0.25) still ask for C++17.
   CXXFLAGS=-std=c++20 \

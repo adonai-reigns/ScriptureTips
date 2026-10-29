@@ -17,8 +17,17 @@ services:
       # create their databases on (testing.md §10). Local-only credentials, not secrets.
       DATABASE_URL: postgres://scripturetips:scripturetips@postgres:5432/scripturetips
       TEST_DATABASE_URL: postgres://scripturetips:scripturetips@postgres-test:5432/postgres
+      # The test file store (packages/storage), set up by the tests' global setup.
+      TEST_GARAGE_ADMIN_URL: http://garage-test:3903
+      TEST_GARAGE_ADMIN_TOKEN: development-only-garage-admin-token
+      TEST_STORAGE_ENDPOINT: http://garage-test:3900
+      TEST_STORAGE_ACCESS_KEY: &storage-key GKb2e75133b9874f5cb7b7cf92
+      TEST_STORAGE_SECRET_KEY: &storage-secret 85d4c95d964ccd37bdb8d4e2de648db19b390cc768945fc1c77f126471578445
+      TEST_STORAGE_BUCKET: scripturetips-test
     depends_on:
       postgres-test:
+        condition: service_healthy
+      garage-test:
         condition: service_healthy
     profiles: [tools]
 
@@ -68,6 +77,11 @@ services:
       VALKEY_URL: redis://valkey:6379
       SMTP_URL: smtp://mailpit:1025
       MAIL_FROM: ScriptureTips <no-reply@scripturetips.localhost>
+      <<: &storage
+        STORAGE_ENDPOINT: http://garage:3900
+        STORAGE_ACCESS_KEY: *storage-key
+        STORAGE_SECRET_KEY: *storage-secret
+        STORAGE_BUCKET: scripturetips
     ports:
       - 127.0.0.1:3001:3001
     depends_on:
@@ -77,6 +91,60 @@ services:
         condition: service_healthy
       mailpit:
         condition: service_started
+      garage-init:
+        condition: service_completed_successfully
+    profiles: [dev]
+
+  # Builds PDFs (apps/pdf-worker, book-designer.md §9): Typst and the fonts in an image of its
+  # own, taking jobs from Valkey. Runs the workspace's code, restarted on every change.
+  pdf-worker:
+    build: infra/docker/pdf-worker
+    image: scripturetips-pdf-worker:dev
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    working_dir: /workspace
+    command: [node, --watch, apps/pdf-worker/src/main.ts]
+    volumes:
+      - .:/workspace
+    environment:
+      VALKEY_URL: redis://valkey:6379
+      <<: *storage
+    depends_on:
+      valkey:
+        condition: service_healthy
+      garage-init:
+        condition: service_completed_successfully
+    profiles: [dev]
+
+  # The file store (vision §7): Garage, S3-compatible. Holds each PDF build's files.
+  garage:
+    image: dxflrs/garage:v2.4.1
+    volumes:
+      - ./infra/garage/garage.toml:/etc/garage.toml:ro
+      - garage:/var/lib/garage
+    environment: &garage-secrets # Development-only secrets: production sets its own.
+      GARAGE_RPC_SECRET: 483d6e7676f649fcc7ca9cbbd7cc4af430b259aec4543e0612c3b3ae4f57652a
+      GARAGE_ADMIN_TOKEN: development-only-garage-admin-token
+    healthcheck:
+      test: [CMD, /garage, status]
+      interval: 2s
+      retries: 30
+    profiles: [dev]
+
+  # Sets up the development store once Garage is up: node role, access key and bucket.
+  garage-init:
+    image: scripturetips-toolbox:dev
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    working_dir: /workspace
+    command: [node, infra/garage/init.ts]
+    volumes:
+      - .:/workspace
+    environment:
+      GARAGE_ADMIN_URL: http://garage:3903
+      GARAGE_ADMIN_TOKEN: development-only-garage-admin-token
+      <<: *storage
+    depends_on:
+      garage:
+        condition: service_healthy
     profiles: [dev]
 
   # Rate limits and bot-check replay protection (later also BullMQ jobs). Nothing in it needs
@@ -147,6 +215,22 @@ services:
       retries: 30
     profiles: [tools, test]
 
+  # Integration-test file store, held in memory, started with the toolbox. The tests' global
+  # setup gives it its access key and bucket (packages/storage).
+  garage-test:
+    image: dxflrs/garage:v2.4.1
+    volumes:
+      - ./infra/garage/garage.toml:/etc/garage.toml:ro
+    tmpfs:
+      - /var/lib/garage
+    environment: *garage-secrets
+    healthcheck:
+      test: [CMD, /garage, status]
+      interval: 1s
+      retries: 30
+    profiles: [tools, test]
+
 volumes:
   pnpm-store:
   pgdata:
+  garage:

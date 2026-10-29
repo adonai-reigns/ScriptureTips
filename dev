@@ -15,11 +15,11 @@ case "${1:-}" in
       export LAN_BIND=0.0.0.0 DEV_ORIGINS="$(paste -sd, <<<"$addresses")"
       LAN_ORIGINS="$(for a in $addresses; do printf 'http://%s:3000\n' "$a"; done | paste -sd,)"
       export LAN_ORIGINS
-      docker compose --profile dev up -d --wait --force-recreate web api
+      docker compose --profile dev up -d --wait --force-recreate web api pdf-worker
       for a in $addresses; do echo "Web app on the network: http://$a:3000"; done
       exit
     fi
-    exec docker compose --profile dev up -d --wait --force-recreate web api
+    exec docker compose --profile dev up -d --wait --force-recreate web api pdf-worker
     ;;
   down) exec docker compose --profile dev stop ;;
   logs) exec docker compose --profile dev logs -f "${@:2}" ;;

@@ -144,3 +144,27 @@ export async function verseEditor(
     return { ok: false, code: "unavailable" };
   }
 }
+
+/** A PDF build of the compilation (apps/api `PdfBuildsController`). */
+export interface PdfBuild {
+  id: string;
+  /** The books or chapters it covers, as entered; null for the whole compilation. */
+  scope: string | null;
+  status: "queued" | "building" | "done" | "failed";
+  pages: number | null;
+  /** The cover's spine width, in mm. */
+  spine: number | null;
+  error: string | null;
+  requestedAt: string;
+  finishedAt: string | null;
+  /** The files that can be downloaded now. */
+  files: PdfBuildFile[];
+}
+
+export type PdfBuildFile = "book.pdf" | "cover.pdf" | "book.json" | "book.typ" | "cover.typ";
+
+export async function myPdfBuilds(slug: string): Promise<PdfBuild[]> {
+  return (
+    (await get<{ builds: PdfBuild[] }>(`/${encodeURIComponent(slug)}/pdf-builds`))?.builds ?? []
+  );
+}

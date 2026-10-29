@@ -10,6 +10,7 @@ import { testDatabase } from "@scripturetips/db/test-support";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createApp } from "../app.ts";
 import { signIn, testAccounts } from "../auth/test-support.ts";
+import { testBuilds } from "../pdf-builds/test-support.ts";
 
 let db: Database;
 let drop: () => Promise<void>;
@@ -89,7 +90,11 @@ beforeAll(async () => {
   await addTranslation("leb", [[1, 1, "LEB 1:1."]], "leb");
   await addTranslation("net", [[1, 1, "NET 1:1."]], "net-bible", true);
   const accounts = testAccounts();
-  app = await createApp({ databaseUrl: url, accounts: accounts.settings });
+  app = await createApp({
+    databaseUrl: url,
+    accounts: accounts.settings,
+    builds: testBuilds().settings,
+  });
   await app.init();
   await app.getHttpAdapter().getInstance().ready();
   owner = await signIn(app, accounts.sent, "publisher@example.com");

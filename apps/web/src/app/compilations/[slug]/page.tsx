@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { currentAccount } from "../../../account/api.ts";
-import { myCompilation } from "../../../compilations/api.ts";
+import { myCompilation, myPdfBuilds } from "../../../compilations/api.ts";
 import {
   AddRuleForm,
   DeleteCompilationButton,
@@ -14,6 +14,7 @@ import {
 } from "../../../compilations/forms.tsx";
 import { bookSource } from "../../../compilations/sources.ts";
 import { LocalDate } from "../../../dates.tsx";
+import { PdfBuilds } from "../../../pdf-builds/PdfBuilds.tsx";
 import { myPublication, publicationPath } from "../../../publications/api.ts";
 import { books, translations } from "../../../reader/api.ts";
 import { arrangeBooks } from "../../../reader/books.ts";
@@ -30,7 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 /**
  * The compilation editor (vision §3.1): the composition overview (each book's source), the
  * layered choices with "reset to inherited" (remove), and a form to add one; and publishing it,
- * with its published versions.
+ * with its published versions; and printing it as a PDF.
  */
 export default async function CompilationEditor({ params }: Props) {
   const account = await currentAccount();
@@ -39,10 +40,12 @@ export default async function CompilationEditor({ params }: Props) {
   if (!c) notFound();
   const t = await getTranslations("compilations");
   const tr = await getTranslations("reader");
-  const [available, all, published] = await Promise.all([
+  const tp = await getTranslations("pdfBuilds");
+  const [available, all, published, pdfBuilds] = await Promise.all([
     books(c.id),
     translations().catch(() => []),
     myPublication(c.slug),
+    myPdfBuilds(c.slug),
   ]);
   const scopeLabel = (r: (typeof c.rules)[number]) =>
     r.kind === "section" ? t(`sections.${r.entered as "ot" | "nt" | "additional"}`) : r.label;
@@ -192,6 +195,10 @@ export default async function CompilationEditor({ params }: Props) {
           </ol>
         </>
       ) : null}
+
+      <h2>{tp("title")}</h2>
+      <p>{tp("intro")}</p>
+      <PdfBuilds slug={c.slug} initial={pdfBuilds} />
 
       <p>
         <DeleteCompilationButton slug={c.slug} title={c.title} />

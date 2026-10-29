@@ -16,6 +16,7 @@ import type { Auth } from "../auth/auth.ts";
 import { signedInUser, type User } from "../auth/session.ts";
 import { AUTH, type FastifyReplyLike } from "../auth/tokens.ts";
 import { DATABASE, type Database } from "../database.ts";
+import { PdfBuildsService } from "../pdf-builds/pdf-builds.service.ts";
 import { ZodPipe } from "../zod-pipe.ts";
 import { MAX_TEXT } from "./authorship.service.ts";
 import {
@@ -134,6 +135,7 @@ export class CompilationsController {
     @Inject(AUTH) private readonly auth: Auth,
     @Inject(DATABASE) private readonly db: Database,
     @Inject(CompilationsService) private readonly compilations: CompilationsService,
+    @Inject(PdfBuildsService) private readonly builds: PdfBuildsService,
   ) {}
 
   @Get()
@@ -165,7 +167,10 @@ export class CompilationsController {
     @Headers() headers: Record<string, string>,
     @Param("slug", new ZodPipe(Slug)) slug: string,
   ): Promise<void> {
-    await this.compilations.remove(await this.user(headers), slug);
+    const user = await this.user(headers);
+    // Its builds' rows go with it; their files are in the file store, so they're deleted first.
+    await this.builds.removeFiles(user, slug);
+    await this.compilations.remove(user, slug);
   }
 
   @Post(":slug/rules")

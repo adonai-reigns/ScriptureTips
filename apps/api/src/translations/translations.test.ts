@@ -10,6 +10,7 @@ import { testDatabase } from "@scripturetips/db/test-support";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createApp } from "../app.ts";
 import { testAccounts } from "../auth/test-support.ts";
+import { testBuilds } from "../pdf-builds/test-support.ts";
 
 let db: Database;
 let drop: () => Promise<void>;
@@ -60,7 +61,11 @@ beforeAll(async () => {
     caller: "+",
     body: ["A note."],
   });
-  app = await createApp({ databaseUrl: url, accounts: testAccounts().settings });
+  app = await createApp({
+    databaseUrl: url,
+    accounts: testAccounts().settings,
+    builds: testBuilds().settings,
+  });
   await app.init();
   await app.getHttpAdapter().getInstance().ready();
 });

@@ -428,8 +428,8 @@ All TypeScript, in one monorepo. Full rationale: see [architecture.md](architect
 | Web | Next.js (React), server-rendered public pages |
 | Mobile (later) | Expo / React Native |
 | Real-time | NestJS WebSockets; Yjs for collaborative editing later |
-| Files | S3-compatible storage (MinIO in development) |
-| Print / PDF | LaTeX worker (proven), Typst under evaluation |
+| Files | S3-compatible storage (Garage in development; only the S3 operations every provider supports, so a cloud provider can replace it: packages/storage) |
+| Print / PDF | Typst, in its own queue worker container (chosen by trial: [pdf-engine-trial.md](pdf-engine-trial.md)) |
 | i18n | next-intl, default locale `en-NZ`, right-to-left support |
 | Testing | Vitest, Playwright |
 | AI | Moderation: a panel of models from several providers. Vercel AI SDK as the single interface to providers. User features: bring your own key, any provider or local model. |
@@ -475,7 +475,7 @@ The first three stages complete the primary purpose: **ScriptureTips as a study 
 |---|---|
 | **1. Compilations and publications** | Foundations first: monorepo, testing framework (testing.md), accounts, canon choice, versification, reference parser, public-domain translations, passages API. Then compilations (bases, layered overrides, own wording with authorship evidence, modified translation verses as corrections or adaptations), the publishing procedure with the automated check and the age declaration it requires (§5.2), versions, published history and URLs. |
 | **2. Study tools** | Interlinear, Strong's, lexicons, Paleo-Hebrew letter forms, personal research libraries, scripture links, external references, annotations, tags, annotation collections, search of the user's own content. |
-| **3. Book designer** | Editions, the PDF engine (after the LaTeX vs Typst trial), printer profiles, preflight checks. |
+| **3. Book designer** | Editions, the PDF engine (Typst, in a queue worker), printer profiles, preflight checks. |
 | **4. Sharing and the browser extension** | Notes with placement tracking; the rewritten browser extension (v1.0.3 parity, tooltips, note insert flow), released as an update to the existing Web Store listing; the website widget and its JavaScript API; the WordPress plugin. Built together because they share most of their code. Until then, v1.0.3 stays live as it is. |
 | **5. Your data** | Full export, account deletion with its options, legacy contact. |
 | **Later** | The social features: discussion, groups and collaboration, public content search, guardian links for minors (§5.2). Also notifications beyond the basics, offline and mobile, AI assistance (BYOK), content in other languages, volunteer UI translation, federation, satellite installations. |

@@ -14,3 +14,6 @@ allowBuilds:
   # prebuilt platform package is found, and one is.
   "@parcel/watcher": false
   "@swc/core": false
+  # Through BullMQ (msgpackr). Its install script only builds from source when no prebuilt
+  # platform package is found, and one is.
+  msgpackr-extract: false

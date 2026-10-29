@@ -121,3 +121,7 @@ xcolor
 cnotesfor
 cnotesout
 cnotetext
+bullmq
+Streamable
+dxflrs
+msgpackr

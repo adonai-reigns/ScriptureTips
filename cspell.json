@@ -39,7 +39,11 @@
       "language": "en-GB"
     },
     {
-      "filename": ["tools/pdf-trial/src/latex.ts", "tools/pdf-trial/templates/**"],
+      "filename": [
+        "tools/pdf-trial/src/latex.ts",
+        "tools/pdf-trial/templates/**",
+        "packages/book/templates/**"
+      ],
       "dictionaries": ["latex"],
       "ignoreRegExpList": ["/\\\\+[A-Za-z@]+/g"]
     }

@@ -2,6 +2,7 @@ import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import { testDatabase } from "@scripturetips/db/test-support";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createApp } from "../app.ts";
+import { testBuilds } from "../pdf-builds/test-support.ts";
 import { CODE, CODES_PER_ADDRESS_PER_HOUR } from "./auth.ts";
 import { memoryStore } from "./store.ts";
 import { solve, testAccounts } from "./test-support.ts";
@@ -15,7 +16,11 @@ beforeAll(async () => {
   ({ url, drop } = await testDatabase());
   const accounts = testAccounts();
   sent = accounts.sent;
-  app = await createApp({ databaseUrl: url, accounts: accounts.settings });
+  app = await createApp({
+    databaseUrl: url,
+    accounts: accounts.settings,
+    builds: testBuilds().settings,
+  });
   await app.init();
 });
 
