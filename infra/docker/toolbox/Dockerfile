@@ -19,14 +19,12 @@ RUN npx -y playwright@1.64.0 install --with-deps chromium \
   && chmod -R a+rX /ms-playwright \
   && rm -rf /var/lib/apt/lists/* /root/.npm
 
-# The PDF engine trial (book-designer.md §9): Typst, and LuaLaTeX with the packages a Bible
-# layout needs (columns, drop caps, footnote series, Hebrew). Production builds will run in their
-# own worker container instead. poppler-utils counts and previews the pages.
+# Typst and poppler-utils (page counts and previews), as in the PDF worker's image
+# (infra/docker/pdf-worker), for the render tests and the engine trial (tools/pdf-trial).
 ARG TYPST_VERSION=0.15.1
 ARG TYPST_SHA256=a6d077d0a95eed5a2eba715b2dae06be954f624ccbf85758a03f389ded33118c
 RUN apt-get update \
   && apt-get install -y --no-install-recommends curl xz-utils unzip poppler-utils \
-    texlive-luatex texlive-latex-recommended texlive-latex-extra texlive-lang-other \
   && rm -rf /var/lib/apt/lists/* \
   && curl -fsSL -o /tmp/typst.tar.xz \
     "https://github.com/typst/typst/releases/download/v${TYPST_VERSION}/typst-x86_64-unknown-linux-musl.tar.xz" \

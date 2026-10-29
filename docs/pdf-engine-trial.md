@@ -1,6 +1,6 @@
 # PDF engine trial: Typst vs LuaLaTeX
 
-> 2026-10-29. The trial asked for in [book-designer.md](book-designer.md) §9. Code: [`tools/pdf-trial`](../tools/pdf-trial/AGENTS.md). **Decided (project owner, 2026-10-29): Typst**, with the follow-ups in §3.
+> 2026-10-29. The trial asked for in [book-designer.md](book-designer.md) §9. Code: [`tools/pdf-trial`](../tools/pdf-trial/AGENTS.md). **Decided (project owner, 2026-10-29): Typst**, with the follow-ups in §3. Follow-ups 1 and 2 (drop caps, print boxes) are deferred to later. In production (the PDF worker), a whole Bible built in about 50 s on the project owner's machine (a Threadripper).
 
 ## 1. What was built
 
