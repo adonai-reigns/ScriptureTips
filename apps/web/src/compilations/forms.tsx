@@ -747,9 +747,9 @@ function MarkAfter({
   );
 }
 
-/** Sends one change to a verse's notes (`POST …/verses/{id}/notes`). */
-const changeNote = (slug: string, id: string, change: object) =>
-  send("POST", `/api/compilations/${slug}/verses/${id}/notes`, change);
+/** Sends one change to a verse's notes (`POST …/notes`). */
+const changeNote = (slug: string, reference: string, change: object) =>
+  send("POST", `/api/compilations/${slug}/notes`, { reference, change });
 
 /**
  * One of a verse's translator's notes (domain-model §2.3): a source's note reworded, removed or
@@ -757,14 +757,14 @@ const changeNote = (slug: string, id: string, change: object) =>
  */
 function NoteForm({
   slug,
-  id,
+  reference,
   note,
   n,
   words,
   source,
 }: {
   slug: string;
-  id: string;
+  reference: string;
   note: NoteEdit;
   /** Its number in the editor's list, for labels. */
   n: number;
@@ -779,7 +779,7 @@ function NoteForm({
   const { error, busy, hydrated, run } = useSubmit();
   const act = (change: object) =>
     run(
-      () => changeNote(slug, id, { position: note.position, ...change }),
+      () => changeNote(slug, reference, { position: note.position, ...change }),
       () => router.refresh(),
     );
   const submit = (e: FormEvent<HTMLFormElement>) => {
@@ -854,7 +854,15 @@ function NoteForm({
 }
 
 /** Adds a translator's note of the user's own, marked after one of the verse's words. */
-function AddNoteForm({ slug, id, words }: { slug: string; id: string; words: readonly string[] }) {
+function AddNoteForm({
+  slug,
+  reference,
+  words,
+}: {
+  slug: string;
+  reference: string;
+  words: readonly string[];
+}) {
   const t = useTranslations("compilations");
   const router = useRouter();
   const [text, setText] = useState("");
@@ -863,7 +871,7 @@ function AddNoteForm({ slug, id, words }: { slug: string; id: string; words: rea
   const submit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     run(
-      () => changeNote(slug, id, { add: { text, after } }),
+      () => changeNote(slug, reference, { add: { text, after } }),
       () => {
         setText("");
         router.refresh();
@@ -893,18 +901,18 @@ function AddNoteForm({ slug, id, words }: { slug: string; id: string; words: rea
 }
 
 /**
- * A verse's translator's notes as the compilation has them (domain-model §2.3), to change: the
- * source's (for an edited verse) and the user's own.
+ * A verse's translator's notes as the compilation has them (domain-model §2.3), to change: its
+ * translation's and the user's own. A change to a note on a verse taken unchanged edits the verse.
  */
 export function NotesEditor({
   slug,
-  id,
+  reference,
   notes,
   words,
   source,
 }: {
   slug: string;
-  id: string;
+  reference: string;
   notes: NoteEdit[];
   words: string[];
   source: string;
@@ -920,12 +928,19 @@ export function NotesEditor({
         <ol className="note-edits">
           {notes.map((note, i) => (
             <li key={key(note)}>
-              <NoteForm slug={slug} id={id} note={note} n={i + 1} words={words} source={source} />
+              <NoteForm
+                slug={slug}
+                reference={reference}
+                note={note}
+                n={i + 1}
+                words={words}
+                source={source}
+              />
             </li>
           ))}
         </ol>
       )}
-      <AddNoteForm key={words.join(" ")} slug={slug} id={id} words={words} />
+      <AddNoteForm key={words.join(" ")} slug={slug} reference={reference} words={words} />
     </>
   );
 }

@@ -169,8 +169,8 @@ export interface VerseEditorView {
   /** The declaration statement's version the editor must show (`AUTHORSHIP_STATEMENT`). */
   readonly statement: number;
   /**
-   * The verse's translator's notes, to change (domain-model §2.3): null unless the verse is
-   * edited or the user's own wording.
+   * The verse's translator's notes, to change (domain-model §2.3): null when its translation's
+   * license doesn't allow changes.
    */
   readonly notes: NoteEditView[] | null;
   /** The verse's words, as written: an own note is marked after one of them. */
@@ -225,6 +225,17 @@ function ownContent(verse: StoredVerse, text: string): Inline[] {
   }
   return [...lead, text];
 }
+
+/** One change to a verse's notes (`changeNote`). */
+export type NoteChange =
+  | { readonly add: { readonly text: string; readonly after: number } }
+  | {
+      readonly position: number;
+      readonly text?: string | undefined;
+      readonly after?: number | undefined;
+      readonly removed?: true | undefined;
+      readonly restore?: true | undefined;
+    };
 
 export type RuleScope = { readonly section: SectionId } | { readonly reference: string };
 
@@ -678,7 +689,13 @@ export class CompilationsService {
       choice: view,
       authorship: resolved.rendering ? await this.authorship.summary(c.id, entered, text) : null,
       statement: AUTHORSHIP_STATEMENT,
-      notes: choice ? await this.noteViews(choice) : null,
+      // Taken unchanged, its translation's notes, if its license lets them be changed.
+      notes:
+        choice && choice.origin !== "source"
+          ? await this.noteViews(choice)
+          : from && canModify(from.licenseKey)
+            ? noteEditViews(resolved.verse.notes, [])
+            : null,
       words: wordsIn(text),
       options,
     };
@@ -864,9 +881,8 @@ export class CompilationsService {
     return byChoice;
   }
 
-  /** A choice's notes for the editor; null when its notes can't be changed (a source verse). */
-  private async noteViews(choice: ChoiceRow): Promise<NoteEditView[] | null> {
-    if (choice.origin === "source") return null;
+  /** An edited or own verse's notes for the editor. */
+  private async noteViews(choice: ChoiceRow): Promise<NoteEditView[]> {
     const rows = (await this.notesOf([choice.id])).get(choice.id) ?? [];
     return noteEditViews(sourceNotes(choice), rows);
   }
@@ -874,126 +890,173 @@ export class CompilationsService {
   /**
    * Changes one of a verse's translator's notes (domain-model §2.3): `text` rewords it (a source
    * note becomes `modified`, or `original` again when reworded as it was), `removed` leaves a
-   * source note out or deletes an own note, and `restore` brings back the source's note. Only an
-   * edited verse, or the user's own wording, has notes to change.
+   * source note out or deletes an own note, and `restore` brings back the source's note. A note
+   * belongs to its verse, so changing one on a verse taken unchanged makes it an edited verse of
+   * its translation (its words unchanged), if the translation's license allows changes.
    */
   async changeNote(
     owner: User,
     slug: string,
-    id: string,
-    change:
-      | { readonly add: { readonly text: string; readonly after: number } }
-      | {
-          readonly position: number;
-          readonly text?: string | undefined;
-          readonly after?: number | undefined;
-          readonly removed?: true | undefined;
-          readonly restore?: true | undefined;
-        },
+    reference: string,
+    change: NoteChange,
   ): Promise<NoteEditView[]> {
-    const { c } = await this.find(owner, slug);
-    return this.db.transaction(async (tx) => {
-      const [choice] = await tx
-        .select()
-        .from(compilationVerse)
-        .where(and(eq(compilationVerse.id, id), eq(compilationVerse.compilationId, c.id)))
-        .for("update");
-      if (!choice) throw new NotFoundException({ code: "unknown-verse-choice" });
-      if (choice.origin === "source") throw new BadRequestException({ code: "notes-need-edit" });
-      const source = sourceNotes(choice);
-      const rows = await tx
-        .select()
-        .from(compilationNote)
-        .where(eq(compilationNote.compilationVerseId, choice.id));
-      const words = wordCount(editableText(choice.content as Inline[]));
-      const anchor = (after: number) => {
-        if (after > words) throw new BadRequestException({ code: "note-anchor" });
-        return after;
-      };
-      const reworded = (text: string) => {
-        const t = editableText([text]);
-        if (!t) throw new BadRequestException({ code: "empty-note" });
-        return t;
-      };
-
-      if ("add" in change) {
-        if (rows.filter((r) => r.origin === "own").length >= MAX_OWN_NOTES)
-          throw new BadRequestException({ code: "too-many-notes", limit: MAX_OWN_NOTES });
-        await tx.insert(compilationNote).values({
-          compilationVerseId: choice.id,
-          position: nextPosition(source, rows),
-          origin: "own",
-          body: [reworded(change.add.text)],
-          after: anchor(change.add.after),
-        });
-      } else {
-        const row = rows.find((r) => r.position === change.position);
-        const original = source.find((n) => n.position === change.position);
-        if (row?.origin === "own") {
-          if (change.removed)
-            await tx.delete(compilationNote).where(eq(compilationNote.id, row.id));
-          else
-            await tx
-              .update(compilationNote)
-              .set({
-                ...(change.text !== undefined ? { body: [reworded(change.text)] } : {}),
-                ...(change.after !== undefined ? { after: anchor(change.after) } : {}),
-                updatedAt: new Date(),
-              })
-              .where(eq(compilationNote.id, row.id));
-        } else if (original) {
-          const body = original.body as Inline[];
-          const kept = row?.origin === "modified" ? (row.body as Inline[]) : body;
-          const next = change.restore
-            ? null
-            : change.removed
-              ? { origin: "original" as const, removed: true, body: null }
-              : change.text !== undefined
-                ? editableText([change.text]) === noteText(body)
-                  ? null
-                  : {
-                      origin: "modified" as const,
-                      removed: false,
-                      body: rewordNote(kept, reworded(change.text)),
-                    }
-                : undefined;
-          if (next === null) {
-            if (row) await tx.delete(compilationNote).where(eq(compilationNote.id, row.id));
-          } else if (next)
-            await tx
-              .insert(compilationNote)
-              .values({
-                compilationVerseId: choice.id,
-                position: original.position,
-                sourceNote: original,
-                ...next,
-              })
-              .onConflictDoUpdate({
-                target: [compilationNote.compilationVerseId, compilationNote.position],
-                set: { ...next, updatedAt: new Date() },
-              });
-        } else throw new NotFoundException({ code: "unknown-note" });
-      }
-
-      const now = await tx
-        .select()
-        .from(compilationNote)
-        .where(eq(compilationNote.compilationVerseId, choice.id))
-        .orderBy(asc(compilationNote.position));
-      await tx.insert(compilationVerseRevision).values({
-        compilationId: c.id,
-        entered: choice.entered,
-        authorId: owner.id,
-        origin: choice.origin,
-        editKind: choice.editKind,
-        sourceTranslationId: choice.sourceTranslationId,
-        content: choice.content,
-        changeNote: choice.changeNote,
-        notes: revisionNotes(now),
+    const { c, base } = await this.find(owner, slug);
+    const { verse, entered, book } = await this.oneVerse(c, base, reference);
+    const [choice] = await this.db
+      .select()
+      .from(compilationVerse)
+      .where(and(eq(compilationVerse.compilationId, c.id), eq(compilationVerse.entered, entered)));
+    if (choice && choice.origin !== "source")
+      return this.db.transaction(async (tx) => {
+        const [locked] = await tx
+          .select()
+          .from(compilationVerse)
+          .where(eq(compilationVerse.id, choice.id))
+          .for("update");
+        if (!locked) throw new NotFoundException({ code: "unknown-verse-choice" });
+        return this.applyNote(tx, owner, c, locked, change);
       });
-      await tx.update(compilation).set({ updatedAt: new Date() }).where(eq(compilation.id, c.id));
-      return noteEditViews(source, now);
+
+    const [resolved] = await this.resolve(
+      [verse],
+      book,
+      base.id,
+      await this.layers(c.id),
+      new Map(choice ? [[entered, choice]] : []),
+      new Map(),
+    );
+    const [source] = await this.db
+      .select()
+      .from(translation)
+      .where(eq(translation.id, resolved?.from ?? base.id));
+    if (!resolved || !source) throw new NotFoundException({ code: "one-verse" });
+    if (!canModify(source.licenseKey))
+      throw new BadRequestException({ code: "modification-not-allowed" });
+    const { row } = await this.editOf(verse, source, {
+      text: editableText(resolved.verse.content as Inline[]),
+      edited: true,
     });
+    let notes: NoteEditView[] = [];
+    await this.store(owner, { c, base, verse, entered }, row, async (tx, saved) => {
+      notes = await this.applyNote(tx, owner, c, saved, change);
+    });
+    return notes;
+  }
+
+  /** The compilation's rules as resolution layers. */
+  private async layers(compilationId: string): Promise<Layer[]> {
+    const rules = await this.db
+      .select()
+      .from(compilationRule)
+      .where(eq(compilationRule.compilationId, compilationId));
+    return rules.map((r) => ({
+      id: r.id,
+      kind: r.kind,
+      scope: r.scope,
+      sourceId: r.sourceTranslationId,
+    }));
+  }
+
+  /** Makes one change to an edited or own verse's notes, in `tx`, with a revision. */
+  private async applyNote(
+    tx: Transaction,
+    owner: User,
+    c: typeof compilation.$inferSelect,
+    choice: ChoiceRow,
+    change: NoteChange,
+  ): Promise<NoteEditView[]> {
+    const source = sourceNotes(choice);
+    const rows = await tx
+      .select()
+      .from(compilationNote)
+      .where(eq(compilationNote.compilationVerseId, choice.id));
+    const words = wordCount(editableText(choice.content as Inline[]));
+    const anchor = (after: number) => {
+      if (after > words) throw new BadRequestException({ code: "note-anchor" });
+      return after;
+    };
+    const reworded = (text: string) => {
+      const t = editableText([text]);
+      if (!t) throw new BadRequestException({ code: "empty-note" });
+      return t;
+    };
+
+    if ("add" in change) {
+      if (rows.filter((r) => r.origin === "own").length >= MAX_OWN_NOTES)
+        throw new BadRequestException({ code: "too-many-notes", limit: MAX_OWN_NOTES });
+      await tx.insert(compilationNote).values({
+        compilationVerseId: choice.id,
+        position: nextPosition(source, rows),
+        origin: "own",
+        body: [reworded(change.add.text)],
+        after: anchor(change.add.after),
+      });
+    } else {
+      const row = rows.find((r) => r.position === change.position);
+      const original = source.find((n) => n.position === change.position);
+      if (row?.origin === "own") {
+        if (change.removed) await tx.delete(compilationNote).where(eq(compilationNote.id, row.id));
+        else
+          await tx
+            .update(compilationNote)
+            .set({
+              ...(change.text !== undefined ? { body: [reworded(change.text)] } : {}),
+              ...(change.after !== undefined ? { after: anchor(change.after) } : {}),
+              updatedAt: new Date(),
+            })
+            .where(eq(compilationNote.id, row.id));
+      } else if (original) {
+        const body = original.body as Inline[];
+        const kept = row?.origin === "modified" ? (row.body as Inline[]) : body;
+        const next = change.restore
+          ? null
+          : change.removed
+            ? { origin: "original" as const, removed: true, body: null }
+            : change.text !== undefined
+              ? editableText([change.text]) === noteText(body)
+                ? null
+                : {
+                    origin: "modified" as const,
+                    removed: false,
+                    body: rewordNote(kept, reworded(change.text)),
+                  }
+              : undefined;
+        if (next === null) {
+          if (row) await tx.delete(compilationNote).where(eq(compilationNote.id, row.id));
+        } else if (next)
+          await tx
+            .insert(compilationNote)
+            .values({
+              compilationVerseId: choice.id,
+              position: original.position,
+              sourceNote: original,
+              ...next,
+            })
+            .onConflictDoUpdate({
+              target: [compilationNote.compilationVerseId, compilationNote.position],
+              set: { ...next, updatedAt: new Date() },
+            });
+      } else throw new NotFoundException({ code: "unknown-note" });
+    }
+
+    const now = await tx
+      .select()
+      .from(compilationNote)
+      .where(eq(compilationNote.compilationVerseId, choice.id))
+      .orderBy(asc(compilationNote.position));
+    await tx.insert(compilationVerseRevision).values({
+      compilationId: c.id,
+      entered: choice.entered,
+      authorId: owner.id,
+      origin: choice.origin,
+      editKind: choice.editKind,
+      sourceTranslationId: choice.sourceTranslationId,
+      content: choice.content,
+      changeNote: choice.changeNote,
+      notes: revisionNotes(now),
+    });
+    await tx.update(compilation).set({ updatedAt: new Date() }).where(eq(compilation.id, c.id));
+    return noteEditViews(source, now);
   }
 
   /**
@@ -1103,6 +1166,8 @@ export class CompilationsService {
       text?: string | undefined;
       kind?: EditKind | undefined;
       changeNote?: string | undefined;
+      /** An edit even with the words unchanged: its notes are being changed. */
+      edited?: true | undefined;
     },
   ): Promise<{ row: VerseRow; changed: number }> {
     const found = matchingVerse(
@@ -1112,7 +1177,7 @@ export class CompilationsService {
     if (!found) throw new BadRequestException({ code: "not-in-source" });
     const snapshot = snapshotOf(found);
     const before = editableText(snapshot.content);
-    if (input.text === undefined || editableText([input.text]) === before)
+    if (input.text === undefined || (!input.edited && editableText([input.text]) === before))
       return {
         changed: 0,
         row: {
@@ -1164,7 +1229,7 @@ export class CompilationsService {
     owner: User,
     { c, base, verse, entered }: VerseAt,
     row: VerseRow,
-    also: (tx: Transaction) => Promise<void>,
+    also: (tx: Transaction, saved: ChoiceRow) => Promise<void>,
   ): Promise<VerseChoiceView> {
     const saved = await this.db.transaction(async (tx) => {
       const [before] = await tx
@@ -1211,7 +1276,7 @@ export class CompilationsService {
         changeNote: row.changeNote ?? null,
         notes: revisionNotes(rows.filter((n) => !gone.includes(n))),
       });
-      await also(tx);
+      await also(tx, r);
       await tx.update(compilation).set({ updatedAt: new Date() }).where(eq(compilation.id, c.id));
       return r;
     });

@@ -597,9 +597,9 @@ describe("domain-model §2.3: compilations", () => {
         source,
         ...(text ? { text } : {}),
       });
-    const { choice } = (await save("kjv", "KJV 2:29 amended.")).json();
+    await save("kjv", "KJV 2:29 amended.");
     const note = (change: object) =>
-      post(owner, `/api/compilations/mine/verses/${choice.id}/notes`, change);
+      post(owner, "/api/compilations/mine/notes", { reference: "Joel 2:29", change });
     const editor = () =>
       get(owner, "/api/compilations/mine/verses?ref=Joel%202:29").then((r) => r.json());
     const verse = () =>
@@ -689,9 +689,32 @@ describe("domain-model §2.3: compilations", () => {
     // A translation's wording taken unchanged has its notes, unchanged.
     await save("other");
     expect((await verse()).notes).toEqual([expect.not.objectContaining({ origin: "own" })]);
-    expect((await editor()).notes).toBeNull();
-    expect((await note({ add: { text: "Mine.", after: 0 } })).json()).toMatchObject({
-      code: "notes-need-edit",
+    expect((await editor()).notes).toMatchObject([{ origin: "original", text: "other note" }]);
+    // A note belongs to its verse: changing one edits the verse, its words unchanged.
+    expect((await note({ position: 0, text: "Other note, reworded." })).statusCode).toBe(200);
+    expect((await editor()).choice).toMatchObject({
+      origin: "edited",
+      editKind: "correction",
+      source: { id: "other" },
+    });
+    expect(await verse()).toMatchObject({
+      content: ["OTHER 2:29.", { type: "note", position: 0 }],
+      edit: "correction",
+      notes: [{ body: ["Other note, reworded."], origin: "modified" }],
+    });
+  });
+
+  it("domain-model §2.3: edit an inherited verse by changing its notes", async () => {
+    const note = (reference: string, change: object) =>
+      post(owner, "/api/compilations/mine/notes", { reference, change });
+    // Joel 2:28 is inherited from a rule taking the OTHER translation.
+    expect((await note("Joel 2:28", { add: { text: "Added.", after: 1 } })).statusCode).toBe(200);
+    expect(await read("Joel 2:28")).toEqual(["2:28 OTHER (other; other note)"]);
+    const editor = (await get(owner, "/api/compilations/mine/verses?ref=Joel%202:28")).json();
+    expect(editor.choice).toMatchObject({ origin: "edited", source: { id: "other" } });
+    expect(editor.notes.map((n: { origin: string }) => n.origin)).toEqual(["original", "own"]);
+    expect((await note("Joel 2:28-29", { position: 0, removed: true })).json()).toMatchObject({
+      code: "one-verse",
     });
   });
 
@@ -705,8 +728,9 @@ describe("domain-model §2.3: compilations", () => {
         declaration: 1,
       })
     ).json();
-    await post(owner, `/api/compilations/mine/verses/${choice.id}/notes`, {
-      add: { text: "Why I chose fresh.", after: 1 },
+    await post(owner, "/api/compilations/mine/notes", {
+      reference: "Joel 3:2",
+      change: { add: { text: "Why I chose fresh.", after: 1 } },
     });
     const verse = (await get(owner, "/api/compilations/mine/passages?ref=Joel%203:2")).json()
       .passages[0].verses[0];

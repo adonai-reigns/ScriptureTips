@@ -105,7 +105,7 @@ const After = z.number().int().min(0).max(MAX_TEXT);
  * `after`; or, for the note at `position`, new `text` (and `after`, for an own note), `removed`,
  * or `restore` the source's note. One change at a time.
  */
-const NoteChange = z.union([
+const NoteChangeSchema = z.union([
   z.object({ add: z.object({ text: NoteWording, after: After }).strict() }).strict(),
   z
     .object({
@@ -122,6 +122,10 @@ const NoteChange = z.union([
           .length === 1,
     ),
 ]);
+
+const NoteRequest = z
+  .object({ reference: z.string().trim().min(1).max(200), change: NoteChangeSchema })
+  .strict();
 
 /** The signed-in user's compilations (domain-model §2.3). Errors come back as codes. */
 @Controller("compilations")
@@ -241,17 +245,24 @@ export class CompilationsController {
     };
   }
 
-  /** Changes one of a verse's translator's notes; returns the verse's notes as they are now. */
-  @Post(":slug/verses/:verse/notes")
+  /**
+   * Changes one of a verse's translator's notes (editing the verse if it was taken unchanged);
+   * returns the verse's notes as they are now.
+   */
+  @Post(":slug/notes")
   @HttpCode(200)
   async changeNote(
     @Headers() headers: Record<string, string>,
     @Param("slug", new ZodPipe(Slug)) slug: string,
-    @Param("verse", new ZodPipe(z.uuid())) verse: string,
-    @Body(new ZodPipe(NoteChange)) body: z.infer<typeof NoteChange>,
+    @Body(new ZodPipe(NoteRequest)) body: z.infer<typeof NoteRequest>,
   ): Promise<{ notes: NoteEditView[] }> {
     return {
-      notes: await this.compilations.changeNote(await this.user(headers), slug, verse, body),
+      notes: await this.compilations.changeNote(
+        await this.user(headers),
+        slug,
+        body.reference,
+        body.change,
+      ),
     };
   }
 

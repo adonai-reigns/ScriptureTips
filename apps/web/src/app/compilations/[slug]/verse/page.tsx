@@ -28,7 +28,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
  * One verse of a compilation (vision §3.1): how the compilation has it, every translation's
  * wording to take instead, a form to correct or adapt a translation's wording, and one to write
  * the user's own rendering, with its authorship evidence (domain-model §2.3.1), and the verse's
- * translator's notes, to change once it's edited or the user's own.
+ * translator's notes, to change.
  */
 export default async function VerseEditorPage({ params, searchParams }: Props) {
   const account = await currentAccount();
@@ -111,16 +111,21 @@ export default async function VerseEditorPage({ params, searchParams }: Props) {
       ) : null}
 
       <h2>{t("notesTitle")}</h2>
-      {v.notes && v.choice ? (
-        <NotesEditor
-          slug={c.slug}
-          id={v.choice.id}
-          notes={v.notes}
-          words={v.words}
-          source={now.source?.abbreviation ?? ""}
-        />
+      {v.notes ? (
+        <>
+          {now.origin === "source" ? (
+            <p>{t("notesEditVerse", { source: now.source?.abbreviation ?? "" })}</p>
+          ) : null}
+          <NotesEditor
+            slug={c.slug}
+            reference={v.label}
+            notes={v.notes}
+            words={v.words}
+            source={now.source?.abbreviation ?? ""}
+          />
+        </>
       ) : (
-        <p>{t("notesNeedEdit")}</p>
+        <p>{t("notesNotModifiable", { source: now.source?.abbreviation ?? "" })}</p>
       )}
 
       <h2>{t("inEach")}</h2>
