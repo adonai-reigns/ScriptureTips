@@ -154,6 +154,7 @@ export default async function Read(props: Props) {
             index={i}
             direction={result.translation.direction}
             canon={canon}
+            sources={result.sources}
           />
         ))
       ) : (

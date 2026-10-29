@@ -590,6 +590,136 @@ describe("domain-model §2.3: compilations", () => {
       expect(await rows(table, "Joel.3.2")).toBe(0);
   });
 
+  it("domain-model §2.3: reword, remove and restore a source's notes on an edited verse, and add the user's own", async () => {
+    const save = (source: string, text?: string) =>
+      post(owner, "/api/compilations/mine/verses", {
+        reference: "Joel 2:29",
+        source,
+        ...(text ? { text } : {}),
+      });
+    const { choice } = (await save("kjv", "KJV 2:29 amended.")).json();
+    const note = (change: object) =>
+      post(owner, `/api/compilations/mine/verses/${choice.id}/notes`, change);
+    const editor = () =>
+      get(owner, "/api/compilations/mine/verses?ref=Joel%202:29").then((r) => r.json());
+    const verse = () =>
+      get(owner, "/api/compilations/mine/passages?ref=Joel%202:29").then(
+        (r) => r.json().passages[0].verses[0],
+      );
+
+    expect(await editor()).toMatchObject({
+      words: ["KJV", "2", "29", "amended"],
+      notes: [
+        {
+          position: 0,
+          origin: "original",
+          removed: false,
+          text: "kjv note",
+          sourceText: "kjv note",
+        },
+      ],
+    });
+    expect((await note({ position: 0, text: "kjv note, reworded" })).json()).toEqual({
+      notes: [
+        {
+          position: 0,
+          origin: "modified",
+          removed: false,
+          text: "kjv note, reworded",
+          sourceText: "kjv note",
+          after: null,
+        },
+      ],
+    });
+    expect((await note({ add: { text: "  My  note. ", after: 1 } })).statusCode).toBe(200);
+    expect((await note({ add: { text: "Too far.", after: 5 } })).json()).toMatchObject({
+      code: "note-anchor",
+    });
+    expect((await note({ position: 7, removed: true })).json()).toMatchObject({
+      code: "unknown-note",
+    });
+    expect((await note({ position: 0, removed: true, text: "x" })).statusCode).toBe(400);
+    expect(await verse()).toMatchObject({
+      content: [
+        "KJV",
+        { type: "note", position: 1 },
+        " 2:29 amended.",
+        { type: "note", position: 0 },
+      ],
+      notes: [
+        { position: 0, body: ["kjv note, reworded"], origin: "modified" },
+        { position: 1, body: ["My note."], origin: "own", caller: "+" },
+      ],
+    });
+
+    // Removed, it's left out but recorded; restored, it's the translation's note again.
+    await note({ position: 0, removed: true });
+    expect((await editor()).notes[0]).toMatchObject({ removed: true, text: "kjv note" });
+    expect((await verse()).notes.map((n: { position: number }) => n.position)).toEqual([1]);
+    await note({ position: 0, restore: true });
+    expect((await verse()).notes[0]).toEqual(expect.not.objectContaining({ origin: "modified" }));
+    // Reworded as it was, it's unchanged.
+    await note({ position: 0, text: "Other words." });
+    await note({ position: 0, text: "kjv note" });
+    expect((await editor()).notes[0]).toMatchObject({ origin: "original" });
+    await note({ position: 0, text: "Changed again." });
+    await note({ position: 1, text: "My note, moved.", after: 4 });
+    const [last] = await db
+      .select()
+      .from(compilationVerseRevision)
+      .where(eq(compilationVerseRevision.entered, "Joel.2.29"))
+      .orderBy(sql`${compilationVerseRevision.createdAt} desc`)
+      .limit(1);
+    expect(last?.notes).toEqual([
+      expect.objectContaining({ position: 0, origin: "modified", body: ["Changed again."] }),
+      expect.objectContaining({ position: 1, origin: "own", after: 4, body: ["My note, moved."] }),
+    ]);
+
+    // A new edit of the same source keeps the changes; another source keeps only the user's own.
+    await save("kjv", "KJV 2:29 amended again.");
+    expect((await editor()).notes.map((n: { origin: string }) => n.origin)).toEqual([
+      "modified",
+      "own",
+    ]);
+    await save("other", "OTHER 2:29 amended.");
+    expect((await editor()).notes).toMatchObject([
+      { origin: "original", text: "other note" },
+      { origin: "own", text: "My note, moved.", after: 4 },
+    ]);
+    // A translation's wording taken unchanged has its notes, unchanged.
+    await save("other");
+    expect((await verse()).notes).toEqual([expect.not.objectContaining({ origin: "own" })]);
+    expect((await editor()).notes).toBeNull();
+    expect((await note({ add: { text: "Mine.", after: 0 } })).json()).toMatchObject({
+      code: "notes-need-edit",
+    });
+  });
+
+  it("domain-model §2.3.1: add a translator's note to the user's own rendering, kept with its evidence", async () => {
+    const j = (await startJournal("Joel 3:2")).json();
+    await record(j.id, [typed(0, "Fresh words.")]);
+    const { choice } = (
+      await post(owner, "/api/compilations/mine/verses", {
+        reference: "Joel 3:2",
+        journal: j.id,
+        declaration: 1,
+      })
+    ).json();
+    await post(owner, `/api/compilations/mine/verses/${choice.id}/notes`, {
+      add: { text: "Why I chose fresh.", after: 1 },
+    });
+    const verse = (await get(owner, "/api/compilations/mine/passages?ref=Joel%203:2")).json()
+      .passages[0].verses[0];
+    expect(verse).toMatchObject({
+      content: ["Fresh", { type: "note", position: 0 }, " words."],
+      notes: [{ position: 0, body: ["Why I chose fresh."], origin: "own" }],
+    });
+    const evidence = (
+      await get(owner, `/api/compilations/mine/verses/${choice.id}/evidence`)
+    ).json();
+    expect(evidence.notes).toEqual([{ text: "Why I chose fresh.", after: 1 }]);
+  });
+
   it("list the base's books, and are deleted with their rules", async () => {
     expect((await get(owner, "/api/compilations/mine/books")).json()).toEqual({
       books: [{ osis: "Joel", chapters: [2, 3] }],

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { type FormEvent, useRef, useState } from "react";
 import { useHydrated } from "../hydrated.ts";
+import type { NoteEdit } from "./api.ts";
 import { errorCode, useErrorText } from "./errors.ts";
 
 /** A translation offered as a base or a source: `label` is "KJV: King James Version". */
@@ -714,5 +715,217 @@ export function DeclareForm({
         {t("declare")}
       </button>
     </form>
+  );
+}
+
+/** Where an own note's mark goes: before the verse's first word, or after one of its words. */
+function MarkAfter({
+  words,
+  label,
+  value,
+  onChange,
+}: {
+  words: readonly string[];
+  label: string;
+  value: number;
+  onChange: (after: number) => void;
+}) {
+  const t = useTranslations("compilations");
+  return (
+    <label>
+      <span>{label}</span>
+      <select value={value} onChange={(e) => onChange(Number(e.target.value))}>
+        <option value={0}>{t("beforeFirst")}</option>
+        {words.map((word, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: a word's place in the verse is its identity here.
+          <option key={i} value={i + 1}>
+            {t("afterWord", { word, n: i + 1 })}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+/** Sends one change to a verse's notes (`POST …/verses/{id}/notes`). */
+const changeNote = (slug: string, id: string, change: object) =>
+  send("POST", `/api/compilations/${slug}/verses/${id}/notes`, change);
+
+/**
+ * One of a verse's translator's notes (domain-model §2.3): a source's note reworded, removed or
+ * restored, or the user's own reworded, moved or removed.
+ */
+function NoteForm({
+  slug,
+  id,
+  note,
+  n,
+  words,
+  source,
+}: {
+  slug: string;
+  id: string;
+  note: NoteEdit;
+  /** Its number in the editor's list, for labels. */
+  n: number;
+  words: readonly string[];
+  /** The source translation's abbreviation. */
+  source: string;
+}) {
+  const t = useTranslations("compilations");
+  const router = useRouter();
+  const [text, setText] = useState(note.text);
+  const [after, setAfter] = useState(note.after ?? words.length);
+  const { error, busy, hydrated, run } = useSubmit();
+  const act = (change: object) =>
+    run(
+      () => changeNote(slug, id, { position: note.position, ...change }),
+      () => router.refresh(),
+    );
+  const submit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    act(note.origin === "own" ? { text, after } : { text });
+  };
+  const original = note.sourceText ?? "";
+  return (
+    <form className="account-form note-edit" onSubmit={submit}>
+      <p>
+        {note.removed
+          ? t("noteRemoved", { source, original })
+          : note.origin === "modified"
+            ? t("noteModified", { source, original })
+            : note.origin === "own"
+              ? t("noteOwn")
+              : t("noteOriginal", { source })}
+      </p>
+      {note.removed ? null : (
+        <>
+          <label>
+            <span>{t("noteLabel", { n })}</span>
+            <textarea
+              required
+              maxLength={2000}
+              rows={2}
+              readOnly={!hydrated}
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+            />
+          </label>
+          {note.origin === "own" ? (
+            <MarkAfter
+              words={words}
+              label={t("markAfterLabel", { n })}
+              value={after}
+              onChange={setAfter}
+            />
+          ) : null}
+        </>
+      )}
+      <ErrorText code={error} />
+      <p className="actions">
+        {note.removed ? null : (
+          <button type="submit" disabled={busy || !hydrated}>
+            {t("saveNote", { n })}
+          </button>
+        )}
+        {note.removed ? null : (
+          <button
+            type="button"
+            className="secondary"
+            disabled={busy || !hydrated}
+            onClick={() => act({ removed: true })}
+          >
+            {t("removeNote", { n })}
+          </button>
+        )}
+        {note.removed || note.origin === "modified" ? (
+          <button
+            type="button"
+            className="secondary"
+            disabled={busy || !hydrated}
+            onClick={() => act({ restore: true })}
+          >
+            {t("restoreNote", { source, n })}
+          </button>
+        ) : null}
+      </p>
+    </form>
+  );
+}
+
+/** Adds a translator's note of the user's own, marked after one of the verse's words. */
+function AddNoteForm({ slug, id, words }: { slug: string; id: string; words: readonly string[] }) {
+  const t = useTranslations("compilations");
+  const router = useRouter();
+  const [text, setText] = useState("");
+  const [after, setAfter] = useState(words.length);
+  const { error, busy, hydrated, run } = useSubmit();
+  const submit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    run(
+      () => changeNote(slug, id, { add: { text, after } }),
+      () => {
+        setText("");
+        router.refresh();
+      },
+    );
+  };
+  return (
+    <form className="account-form" onSubmit={submit}>
+      <label>
+        <span>{t("newNote")}</span>
+        <textarea
+          required
+          maxLength={2000}
+          rows={2}
+          readOnly={!hydrated}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+        />
+      </label>
+      <MarkAfter words={words} label={t("markAfter")} value={after} onChange={setAfter} />
+      <ErrorText code={error} />
+      <button type="submit" disabled={busy || !hydrated}>
+        {t("addNote")}
+      </button>
+    </form>
+  );
+}
+
+/**
+ * A verse's translator's notes as the compilation has them (domain-model §2.3), to change: the
+ * source's (for an edited verse) and the user's own.
+ */
+export function NotesEditor({
+  slug,
+  id,
+  notes,
+  words,
+  source,
+}: {
+  slug: string;
+  id: string;
+  notes: NoteEdit[];
+  words: string[];
+  source: string;
+}) {
+  const t = useTranslations("compilations");
+  // Keyed by the note's state, so a saved change shows as saved.
+  const key = (n: NoteEdit) => `${n.position}-${n.origin}-${n.removed}-${n.text}-${n.after}`;
+  return (
+    <>
+      {notes.length === 0 ? (
+        <p>{t("noNotes")}</p>
+      ) : (
+        <ol className="note-edits">
+          {notes.map((note, i) => (
+            <li key={key(note)}>
+              <NoteForm slug={slug} id={id} note={note} n={i + 1} words={words} source={source} />
+            </li>
+          ))}
+        </ol>
+      )}
+      <AddNoteForm key={words.join(" ")} slug={slug} id={id} words={words} />
+    </>
   );
 }

@@ -212,6 +212,66 @@ test.describe("in the reader's own time zone", () => {
   });
 });
 
+test("domain-model §2.3: reword a translation's note on an edited verse and add one's own, credited in the reader", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  const handle = await signUp(page);
+  await page.goto("/compilations");
+  await page.getByRole("textbox", { name: "Title" }).fill("Noted");
+  await page.getByRole("textbox", { name: "Abbreviation" }).fill("Noted");
+  await page.getByRole("combobox", { name: "Base translation" }).selectOption("eng-web");
+  await page.getByRole("button", { name: "Create" }).click();
+  await expect(page).toHaveURL(/\/compilations\/noted$/);
+
+  // Taken unchanged, the WEB's notes can't be changed; edited, they can.
+  await page.goto("/compilations/noted/verse?ref=Genesis%201:1");
+  await expect(
+    page.getByText(
+      "To change this verse's notes, correct or adapt its wording, or write your own.",
+    ),
+  ).toBeVisible();
+  const wording = page.getByRole("textbox", { name: "Wording", exact: true });
+  await expect(wording).toHaveValue("In the beginning, God created the heavens and the earth.");
+  await wording.fill("In the beginning, God created the skies and the earth.");
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByRole("status")).toHaveText("Saved as a correction.");
+  await expect(page.getByText("The WEB's note, unchanged.")).toBeVisible({ timeout: 15_000 });
+
+  const first = page.getByRole("textbox", { name: "Note 1" });
+  await expect(first).toHaveValue("The Hebrew word rendered “God” is “אֱלֹהִ֑ים” (Elohim).");
+  await first.fill("The Hebrew word rendered “God” is “אֱלֹהִ֑ים” (Elohim), a plural form.");
+  await page.getByRole("button", { name: "Save note 1" }).click();
+  await expect(page.getByText("Adapted from the WEB's note:")).toBeVisible({ timeout: 15_000 });
+
+  await page.getByRole("textbox", { name: "New note" }).fill("Or the heavens.");
+  await page
+    .getByRole("combobox", { name: "Mark it after" })
+    .selectOption({ label: "skies (word 7)" });
+  await page.getByRole("button", { name: "Add the note" }).click();
+  await expect(page.getByText("Your note.")).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByRole("textbox", { name: "Note 2" })).toHaveValue("Or the heavens.");
+  await page.screenshot(shot("compilation-notes"));
+
+  // The reader shows both, credited.
+  await page.goto(`/read/@${handle}/noted/genesis/1`);
+  const notes = page.locator(".notes");
+  await expect(notes).toContainText("(Elohim), a plural form. Note adapted from the WEB.");
+  await expect(notes).toContainText("Or the heavens. Note added in this compilation.");
+  await expect(page.locator(".scripture")).toContainText(
+    // Each note's letter is marked where it belongs: after "God" and after "skies".
+    /In the beginning, God\s*a created the skies\s*b and the earth\./,
+  );
+  await page.screenshot(shot("compilation-reader-notes"));
+
+  // Left out, then restored as the WEB has it.
+  await page.goto("/compilations/noted/verse?ref=Genesis%201:1");
+  await page.getByRole("button", { name: "Remove note 1" }).click();
+  await expect(page.getByText("The WEB's note, left out:")).toBeVisible({ timeout: 15_000 });
+  await page.getByRole("button", { name: "Restore the WEB's note 1" }).click();
+  await expect(page.getByText("The WEB's note, unchanged.")).toBeVisible({ timeout: 15_000 });
+});
+
 test("a compilation is private to its owner", async ({ page }) => {
   await page.goto("/read/@someone/mine/genesis/1");
   await expect(page.getByText(/not found|could not be found/i).first()).toBeVisible();

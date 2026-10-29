@@ -55,6 +55,19 @@ export interface Compilation extends CompilationSummary {
   verses: VerseChoice[];
 }
 
+/** A translator's note as the compilation has it (domain-model §2.3, `CompilationNote`). */
+export interface NoteEdit {
+  position: number;
+  origin: "original" | "modified" | "own";
+  removed: boolean;
+  /** Its text now; for a removed note, the source's. */
+  text: string;
+  /** The source's note, for an original or modified one. */
+  sourceText: string | null;
+  /** For an own note: how many of the verse's words come before its mark. */
+  after: number | null;
+}
+
 /** One verse as the compilation has it, and as each translation that may be taken has it. */
 export interface VerseEditor {
   label: string;
@@ -77,6 +90,10 @@ export interface VerseEditor {
   } | null;
   /** The version of the declaration statement to show (messages `statement{n}`). */
   statement: number;
+  /** Its translator's notes, to change: null unless it's edited or the user's own wording. */
+  notes: NoteEdit[] | null;
+  /** Its words, as written: an own note is marked after one of them. */
+  words: string[];
   options: {
     translation: SourceView;
     text: string;

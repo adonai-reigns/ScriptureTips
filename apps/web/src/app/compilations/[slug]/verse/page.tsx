@@ -5,6 +5,7 @@ import { currentAccount } from "../../../../account/api.ts";
 import { myCompilation, verseEditor } from "../../../../compilations/api.ts";
 import {
   DeclareForm,
+  NotesEditor,
   OwnRenderingForm,
   RemoveVerseButton,
   UseVerseButton,
@@ -26,7 +27,8 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 /**
  * One verse of a compilation (vision §3.1): how the compilation has it, every translation's
  * wording to take instead, a form to correct or adapt a translation's wording, and one to write
- * the user's own rendering, with its authorship evidence (domain-model §2.3.1).
+ * the user's own rendering, with its authorship evidence (domain-model §2.3.1), and the verse's
+ * translator's notes, to change once it's edited or the user's own.
  */
 export default async function VerseEditorPage({ params, searchParams }: Props) {
   const account = await currentAccount();
@@ -107,6 +109,19 @@ export default async function VerseEditorPage({ params, searchParams }: Props) {
           {t("sourceChanged", { source: v.choice.source?.abbreviation ?? "" })}
         </p>
       ) : null}
+
+      <h2>{t("notesTitle")}</h2>
+      {v.notes && v.choice ? (
+        <NotesEditor
+          slug={c.slug}
+          id={v.choice.id}
+          notes={v.notes}
+          words={v.words}
+          source={now.source?.abbreviation ?? ""}
+        />
+      ) : (
+        <p>{t("notesNeedEdit")}</p>
+      )}
 
       <h2>{t("inEach")}</h2>
       <ul className="verse-options">

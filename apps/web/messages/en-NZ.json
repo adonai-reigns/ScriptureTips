@@ -42,7 +42,9 @@
     "ownRendering": "(own rendering)",
     "pasted": "(pasted)",
     "ownBy": "{mark} Translated by @{handle}.",
-    "pastedBy": "{mark} Pasted by @{handle} from outside ScriptureTips, not yet declared their own wording."
+    "pastedBy": "{mark} Pasted by @{handle} from outside ScriptureTips, not yet declared their own wording.",
+    "noteAdapted": "Note adapted from the {source}.",
+    "noteOwn": "Note added in this compilation."
   },
   "errors": {
     "unknown-translation": "We don't have that translation.",
@@ -219,7 +221,24 @@
     "similarityHelp": "Matching wording is common, since every rendering follows the same original. It's recorded so it's known and explained.",
     "similarTo": "{score}% similar to the {source}",
     "sharedPhrases": "Shared: {phrases}",
-    "downloadEvidence": "Download the evidence (JSON)"
+    "downloadEvidence": "Download the evidence (JSON)",
+    "notesTitle": "Translator's notes",
+    "notesNeedEdit": "To change this verse's notes, correct or adapt its wording, or write your own.",
+    "noNotes": "This verse has no notes yet.",
+    "noteLabel": "Note {n}",
+    "noteOriginal": "The {source}'s note, unchanged.",
+    "noteModified": "Adapted from the {source}'s note: “{original}”",
+    "noteRemoved": "The {source}'s note, left out: “{original}”",
+    "noteOwn": "Your note.",
+    "markAfter": "Mark it after",
+    "markAfterLabel": "Mark note {n} after",
+    "beforeFirst": "Before the first word",
+    "afterWord": "{word} (word {n})",
+    "saveNote": "Save note {n}",
+    "removeNote": "Remove note {n}",
+    "restoreNote": "Restore the {source}'s note {n}",
+    "newNote": "New note",
+    "addNote": "Add the note"
   },
   "compilationErrors": {
     "handle-required": "Choose a handle on your account page first.",
@@ -250,6 +269,11 @@
     "journal-full": "This writing session is full. Save it, then carry on.",
     "empty-rendering": "Write something first.",
     "too-long": "That's too long for one verse.",
-    "not-pasted": "That verse has already been declared."
+    "not-pasted": "That verse has already been declared.",
+    "notes-need-edit": "Correct or adapt this verse's wording, or write your own, before changing its notes.",
+    "note-anchor": "Choose a word in the verse to mark the note after.",
+    "empty-note": "Write the note first.",
+    "too-many-notes": "That's as many notes as one verse can have.",
+    "unknown-note": "That note has already been removed."
   }
 }

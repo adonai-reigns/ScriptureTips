@@ -26,6 +26,8 @@ export interface Note {
   category: string | null;
   span: string | null;
   body: Inline[];
+  /** In a compilation: the source's note reworded, or a note the compilation added. */
+  origin?: "modified" | "own";
 }
 
 export interface Verse {

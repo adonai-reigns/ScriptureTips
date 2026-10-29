@@ -351,9 +351,49 @@ export const compilationVerseRevision = pgTable(
     sourceTranslationId: uuid("source_translation_id").references(() => translation.id),
     content: jsonb("content"),
     changeNote: text("change_note"),
+    /** The verse's `compilation_note` rows after this save, as `{ position, origin, … }`. */
+    notes: jsonb("notes"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("compilation_verse_revision_idx").on(t.compilationId, t.entered)],
+);
+
+/**
+ * A translator's note as the compilation has it (domain-model §2.3, `CompilationNote`), where it
+ * differs from the source verse's: `modified` (the source note at `position`, reworded, with a
+ * snapshot of it in `source_note`), `original` with `removed` (the source note left out), or
+ * `own` (the user's, marked after the verse's word `after`). Unchanged source notes have no row.
+ * `position` is the note's key within its verse, as in `translator_note`.
+ */
+export const compilationNote = pgTable(
+  "compilation_note",
+  {
+    id: id(),
+    compilationVerseId: uuid("compilation_verse_id")
+      .notNull()
+      .references(() => compilationVerse.id, { onDelete: "cascade" }),
+    position: integer("position").notNull(),
+    origin: text("origin", { enum: ["original", "modified", "own"] }).notNull(),
+    removed: boolean("removed").notNull().default(false),
+    /** The source note as it was when first changed (`original` and `modified`). */
+    sourceNote: jsonb("source_note"),
+    /** Inline markup, like `translator_note.body`; null for a removed note. */
+    body: jsonb("body"),
+    /** For an `own` note: the number of the verse's words before its mark. */
+    after: integer("after"),
+    ...timestamps,
+  },
+  (t) => [
+    unique().on(t.compilationVerseId, t.position),
+    check(
+      "compilation_note_origin",
+      sql`CASE ${t.origin}
+        WHEN 'original' THEN ${t.removed} AND ${t.sourceNote} IS NOT NULL AND ${t.body} IS NULL
+        WHEN 'modified' THEN NOT ${t.removed} AND ${t.sourceNote} IS NOT NULL AND ${t.body} IS NOT NULL
+        ELSE NOT ${t.removed} AND ${t.sourceNote} IS NULL AND ${t.body} IS NOT NULL AND ${t.after} IS NOT NULL AND ${t.after} >= 0
+      END`,
+    ),
+  ],
 );
 
 /**

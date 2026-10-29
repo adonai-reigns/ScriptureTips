@@ -4,7 +4,10 @@ import {
   changes,
   editableText,
   type Inline,
+  markAfterWord,
+  noteText,
   plainText,
+  rewordNote,
   snapshotHash,
   wordCount,
 } from "./wording.ts";
@@ -81,5 +84,44 @@ describe("domain-model §2.3: editing a verse's wording", () => {
     expect(snapshotHash({ a: 1, b: [{ c: 2, d: 3 }] })).toBe(
       snapshotHash({ b: [{ d: 3, c: 2 }], a: 1 }),
     );
+  });
+});
+
+describe("domain-model §2.3: a compilation's translator's notes", () => {
+  it("marks an own note after a word and the punctuation closing it", () => {
+    const mark = (position: number): Inline => ({ type: "note", position });
+    expect(markAfterWord(verse, 3, 9)).toEqual([
+      verse[0],
+      "In the beginning",
+      mark(9),
+      mark(0),
+      " God created ",
+      verse[4],
+      " and the earth.",
+    ]);
+    // Inside a style, and after the last word with its full stop.
+    expect(markAfterWord(verse, 6, 9)[4]).toEqual({
+      type: "char",
+      marker: "wj",
+      content: ["the", mark(9), " heaven"],
+    });
+    expect(markAfterWord(verse, 10, 9).at(-1)).toEqual(mark(9));
+    expect(markAfterWord(verse, 99, 9).slice(-2)).toEqual([" and the earth.", mark(9)]);
+    expect(markAfterWord(["And God said, Let"], 3, 1)).toEqual(["And God said,", mark(1), " Let"]);
+    expect(markAfterWord([" In"], 0, 1)).toEqual([" ", mark(1), "In"]);
+  });
+
+  it("rewords a note, keeping its own reference and its styles", () => {
+    const body: Inline[] = [
+      { type: "char", marker: "fr", content: ["1.1 "] },
+      { type: "char", marker: "ft", content: ["Or "] },
+      { type: "char", marker: "fqa", content: ["the skies"] },
+    ];
+    expect(noteText(body)).toBe("Or the skies");
+    expect(rewordNote(body, "Or the sky")).toEqual([
+      body[0],
+      { type: "char", marker: "ft", content: ["Or "] },
+      { type: "char", marker: "fqa", content: ["the sky"] },
+    ]);
   });
 });

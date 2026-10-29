@@ -131,8 +131,11 @@ export async function Passage({
   index,
   direction,
   canon,
+  sources,
 }: {
   passage: PassageResult;
+  /** In a compilation: the translations its verses came from, to credit adapted notes. */
+  sources?: readonly { id: string; abbreviation: string }[] | undefined;
   index: number;
   direction: "ltr" | "rtl";
   /** The reader's canon profile; null when signed out or not chosen yet. */
@@ -177,6 +180,16 @@ export async function Passage({
                 </a>{" "}
                 <span className="note-verse">{n.verse}</span>{" "}
                 <ShownText nodes={noteBody(n.note.body)} />
+                {n.note.origin ? (
+                  <small className="note-origin">
+                    {" "}
+                    {n.note.origin === "own"
+                      ? t("noteOwn")
+                      : t("noteAdapted", {
+                          source: sources?.find((s) => s.id === n.source)?.abbreviation ?? "",
+                        })}
+                  </small>
+                ) : null}
               </li>
             ))}
           </ol>

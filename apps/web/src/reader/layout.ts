@@ -32,6 +32,8 @@ export interface PlacedNote {
   id: string;
   verse: string;
   note: Note;
+  /** In a compilation: the translation the note's verse came from (catalog ID). */
+  source?: string;
 }
 
 export interface Laid {
@@ -70,7 +72,13 @@ export function layOut(verses: readonly Verse[], prefix: string): Laid {
       placed.add(note);
       const l = note.caller !== "+" && note.caller !== "-" ? note.caller : letter(notes.length);
       const id = `${prefix}-n${notes.length}`;
-      notes.push({ letter: l, id, verse: `${v.chapter}:${verseLabel(v)}`, note });
+      notes.push({
+        letter: l,
+        id,
+        verse: `${v.chapter}:${verseLabel(v)}`,
+        note,
+        ...(v.source ? { source: v.source } : {}),
+      });
       return { type: "mark", letter: l, noteId: id };
     };
     const show = (nodes: readonly Inline[]): Shown[] =>

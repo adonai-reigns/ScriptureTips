@@ -140,6 +140,25 @@ describe("layOut", () => {
     const { notes } = layOut([verse(1, ["Text."], { notes: [note(0, "Unmarked")] })], "p0");
     expect(notes.map((n) => n.note.body[0])).toEqual(["Unmarked"]);
   });
+
+  it("domain-model §2.3: carries a compilation verse's source with its notes, to credit them", () => {
+    const { notes } = layOut(
+      [
+        verse(1, ["Text", { type: "note", position: 0 }, { type: "note", position: 1 }], {
+          source: "leb",
+          notes: [
+            { ...note(0, "Reworded"), origin: "modified" },
+            { ...note(1, "Mine"), origin: "own" },
+          ],
+        }),
+      ],
+      "p0",
+    );
+    expect(notes.map((n) => [n.letter, n.note.origin, n.source])).toEqual([
+      ["a", "modified", "leb"],
+      ["b", "own", "leb"],
+    ]);
+  });
 });
 
 describe("letter", () => {

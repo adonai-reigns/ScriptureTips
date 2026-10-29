@@ -249,3 +249,78 @@ function stableJson(value: unknown): string {
 /** SHA-256 of a snapshot: an edited verse's source no longer matches when it's re-imported. */
 export const snapshotHash = (snapshot: unknown): string =>
   createHash("sha256").update(stableJson(snapshot)).digest("hex");
+
+/**
+ * Where a mark after the text's word `words` goes, as an offset into the text: straight after
+ * that word and any punctuation that closes it ("earth.|"). Word 0 is before the first word; a
+ * count past the last word puts it after the last.
+ */
+function afterWord(text: string, words: number): number {
+  let offset = 0;
+  let count = 0;
+  let at = /^\s*/.exec(text)?.[0].length ?? 0;
+  for (const t of tokens(text)) {
+    const end = offset + t.text.length;
+    if (t.kind === "word") {
+      if (count === words) break;
+      count++;
+      at = end;
+    } else if (t.kind === "mark" && count > 0 && at === offset) at = end;
+    offset = end;
+  }
+  return at;
+}
+
+/** `content` with a note mark for `position` after its word `words` (see `afterWord`). */
+export function markAfterWord(
+  content: readonly Inline[],
+  words: number,
+  position: number,
+): Inline[] {
+  const mark: Inline = { type: "note", position };
+  const left = { chars: afterWord(plainText(content), words), done: false };
+  const insert = (nodes: readonly Inline[]): Inline[] => {
+    const out: Inline[] = [];
+    for (const n of nodes) {
+      if (left.done) out.push(n);
+      else if (typeof n === "string") {
+        if (left.chars <= n.length) {
+          const before = n.slice(0, left.chars);
+          const after = n.slice(left.chars);
+          out.push(...(before ? [before] : []), mark, ...(after ? [after] : []));
+          left.done = true;
+        } else {
+          left.chars -= n.length;
+          out.push(n);
+        }
+      } else if (n.type === "char" || n.type === "span") {
+        const length = plainText(n.content).length;
+        if (left.chars < length) out.push({ ...n, content: insert(n.content) });
+        else {
+          left.chars -= length;
+          out.push(n);
+        }
+      } else out.push(n);
+    }
+    return out;
+  };
+  const out = insert(content);
+  return left.done ? out : [...out, mark];
+}
+
+/** A note's own reference (`fr`, "23.2 "): kept as it is, and not part of what the user edits. */
+const isNoteReference = (n: Inline) =>
+  typeof n !== "string" && n.type === "char" && n.marker === "fr";
+
+/** A note's text as the user edits it: its body without its own reference. */
+export const noteText = (body: readonly Inline[]): string =>
+  editableText(body.filter((n) => !isNoteReference(n)));
+
+/** A note's body with its text changed to `text`, its reference and styles kept (`applyWording`). */
+export const rewordNote = (body: readonly Inline[], text: string): Inline[] => [
+  ...body.filter(isNoteReference),
+  ...applyWording(
+    body.filter((n) => !isNoteReference(n)),
+    text,
+  ),
+];

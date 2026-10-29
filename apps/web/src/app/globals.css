@@ -760,3 +760,17 @@ button.secondary {
 .similarity small {
   color: var(--muted);
 }
+
+.note-origin {
+  color: var(--muted);
+}
+
+.note-edits {
+  padding-left: 1.25rem;
+}
+
+.note-edit .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}

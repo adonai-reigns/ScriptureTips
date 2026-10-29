@@ -26,6 +26,7 @@ import {
   type VerseChoiceView,
   type VerseEditorView,
 } from "./compilations.service.ts";
+import { MAX_NOTE, type NoteEditView } from "./notes.ts";
 
 const Slug = z.string().regex(/^[a-z0-9]{2,12}$/i);
 const TranslationId = z.string().regex(/^[A-Za-z0-9_-]{1,40}$/);
@@ -95,6 +96,32 @@ const JournalEvents = z
   .strict();
 
 const Declaration = z.object({ statement: z.number().int().positive() }).strict();
+
+const NoteWording = z.string().trim().min(1).max(MAX_NOTE);
+const After = z.number().int().min(0).max(MAX_TEXT);
+
+/**
+ * A change to one of a verse's translator's notes: `add` an own note after the verse's word
+ * `after`; or, for the note at `position`, new `text` (and `after`, for an own note), `removed`,
+ * or `restore` the source's note. One change at a time.
+ */
+const NoteChange = z.union([
+  z.object({ add: z.object({ text: NoteWording, after: After }).strict() }).strict(),
+  z
+    .object({
+      position: z.number().int().min(0),
+      text: NoteWording.optional(),
+      after: After.optional(),
+      removed: z.literal(true).optional(),
+      restore: z.literal(true).optional(),
+    })
+    .strict()
+    .refine(
+      (c) =>
+        [c.text !== undefined || c.after !== undefined, c.removed, c.restore].filter(Boolean)
+          .length === 1,
+    ),
+]);
 
 /** The signed-in user's compilations (domain-model §2.3). Errors come back as codes. */
 @Controller("compilations")
@@ -211,6 +238,20 @@ export class CompilationsController {
         verse,
         body.statement,
       ),
+    };
+  }
+
+  /** Changes one of a verse's translator's notes; returns the verse's notes as they are now. */
+  @Post(":slug/verses/:verse/notes")
+  @HttpCode(200)
+  async changeNote(
+    @Headers() headers: Record<string, string>,
+    @Param("slug", new ZodPipe(Slug)) slug: string,
+    @Param("verse", new ZodPipe(z.uuid())) verse: string,
+    @Body(new ZodPipe(NoteChange)) body: z.infer<typeof NoteChange>,
+  ): Promise<{ notes: NoteEditView[] }> {
+    return {
+      notes: await this.compilations.changeNote(await this.user(headers), slug, verse, body),
     };
   }
 

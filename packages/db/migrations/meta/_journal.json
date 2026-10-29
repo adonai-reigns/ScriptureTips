@@ -43,6 +43,13 @@
       "when": 1793230779329,
       "tag": "0005_authorship",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793249589304,
+      "tag": "0006_compilation_notes",
+      "breakpoints": true
     }
   ]
 }
