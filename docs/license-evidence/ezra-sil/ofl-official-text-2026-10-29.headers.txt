@@ -1,0 +1,15 @@
+200 https://openfontlicense.org/open-font-license-official-text/
+alt-svc: h3=":443"; ma=86400
+cf-cache-status: DYNAMIC
+cf-ray: a5207e87ce8ec11a-AKL
+connection: keep-alive
+content-encoding: br
+content-type: text/html
+date: Thu, 29 Oct 2026 07:33:49 GMT
+last-modified: Mon, 12 Jan 2026 21:19:45 GMT
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=SjgfIGwfLTGOcn6YUVSa5Xu8gC6nAWF0dLeOBhkJJ1l8cHk8SGuYqxh%2FTkiswC74CXlhZQIq3YzYynyK9kiYoZ42GHthSj9KmXb7AHsekLXhMjsmwpCn8tsspnPzaU%2FkBnO4wZoE"}]}
+server: cloudflare
+transfer-encoding: chunked
+x-amz-id-2: lGpeghWDJ9RfOyIEKe+o8ataHWUAt9B2GFiiSOgCkvMyoJ7oWghQ+s+b6M7mB9VGl6bLizxjiIw=
+x-amz-request-id: PFCJCK9QNM9XA2D1

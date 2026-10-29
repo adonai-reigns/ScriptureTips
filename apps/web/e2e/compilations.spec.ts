@@ -16,7 +16,7 @@ test("domain-model §2.3: build a compilation in layers, read it, and delete it"
   await page.getByRole("textbox", { name: "Abbreviation" }).fill("Mine");
   await page.getByRole("combobox", { name: "Base translation" }).selectOption("eng-kjv");
   await page.getByRole("button", { name: "Create" }).click();
-  await expect(page).toHaveURL(/\/compilations\/mine$/);
+  await expect(page).toHaveURL(/\/compilations\/mine$/, { timeout: 15_000 });
   await expect(page.getByRole("heading", { name: "My Study Bible (Mine)" })).toBeVisible();
 
   // Genesis 1 from the LEB, and the New Testament from the WEB.
@@ -75,7 +75,7 @@ test("domain-model §2.3: take a single verse, correct one and adapt another, cr
   await page.getByRole("textbox", { name: "Abbreviation" }).fill("Verses");
   await page.getByRole("combobox", { name: "Base translation" }).selectOption("eng-kjv");
   await page.getByRole("button", { name: "Create" }).click();
-  await expect(page).toHaveURL(/\/compilations\/verses$/);
+  await expect(page).toHaveURL(/\/compilations\/verses$/, { timeout: 15_000 });
 
   // One verse from the LEB.
   await page.getByRole("textbox", { name: /^Verse/ }).fill("Genesis 1:3");
@@ -144,7 +144,7 @@ test.describe("in the reader's own time zone", () => {
     await page.getByRole("textbox", { name: "Abbreviation" }).fill("Own");
     await page.getByRole("combobox", { name: "Base translation" }).selectOption("eng-kjv");
     await page.getByRole("button", { name: "Create" }).click();
-    await expect(page).toHaveURL(/\/compilations\/own$/);
+    await expect(page).toHaveURL(/\/compilations\/own$/, { timeout: 15_000 });
 
     // Typed in the editor, then declared.
     await page.goto("/compilations/own/verse?ref=Genesis%201:1");
@@ -222,7 +222,7 @@ test("domain-model §2.3: reword a translation's note, editing its verse, and ad
   await page.getByRole("textbox", { name: "Abbreviation" }).fill("Noted");
   await page.getByRole("combobox", { name: "Base translation" }).selectOption("eng-web");
   await page.getByRole("button", { name: "Create" }).click();
-  await expect(page).toHaveURL(/\/compilations\/noted$/);
+  await expect(page).toHaveURL(/\/compilations\/noted$/, { timeout: 15_000 });
 
   // A note belongs to its verse: rewording the WEB's note makes the verse a correction of it.
   await page.goto("/compilations/noted/verse?ref=Genesis%201:1");

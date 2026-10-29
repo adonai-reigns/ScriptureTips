@@ -1,0 +1,18 @@
+{
+  "commit": "21c9add13bc727d3a951361778e97e3ff7afd1ce",
+  "retrieved": "2026-10-29T20:37+13:00",
+  "files": [
+    {
+      "file": "HebrewStrong.xml",
+      "url": "https://raw.githubusercontent.com/openscriptures/HebrewLexicon/21c9add13bc727d3a951361778e97e3ff7afd1ce/HebrewStrong.xml",
+      "bytes": 2749042,
+      "sha256": "a628f4f89f8bdaf2483fd3faf1abc8653cc6717758dfc9f24beb7571d9bdd0c4"
+    },
+    {
+      "file": "readme.md",
+      "url": "https://raw.githubusercontent.com/openscriptures/HebrewLexicon/21c9add13bc727d3a951361778e97e3ff7afd1ce/readme.md",
+      "bytes": 2503,
+      "sha256": "9a129c25674387c494571c3828aa3a8eb78459c165e275c313ae26994ce8ff22"
+    }
+  ]
+}

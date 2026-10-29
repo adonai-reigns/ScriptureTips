@@ -12,6 +12,7 @@ import {
   type ReaderPublication,
 } from "../../../../../publications/api.ts";
 import { splitVersion } from "../../../../../publications/paths.ts";
+import { designations, Statement } from "../../../../../reader/attributions.tsx";
 import { BookList } from "../../../../../reader/BookList.tsx";
 import {
   arrangeBooks,
@@ -165,6 +166,7 @@ export default async function ReadPublication(props: Props) {
     </a>
   );
   const { credit, notices } = await creditLines(result, p.handle);
+  const designationOf = designations(result.attributions);
   return (
     <div className="reader">
       <VersionNotice p={p} rest={rest} pinned={version !== undefined} />
@@ -176,6 +178,7 @@ export default async function ReadPublication(props: Props) {
           direction={result.translation.direction}
           canon={canon}
           sources={result.sources}
+          designationOf={designationOf}
         />
       ))}
       <nav className="chapter-nav" aria-label={tr("chapterNav")}>
@@ -184,6 +187,9 @@ export default async function ReadPublication(props: Props) {
         <span>{around.next ? chapterLink(around.next, "next") : null}</span>
       </nav>
       <p className="translation-credit">{credit}</p>
+      {result.attributions.map((a) => (
+        <Statement key={a.source} a={a} />
+      ))}
       {notices.map((n) => (
         <p key={n.kind} className="translation-credit edit-notice">
           {n.text}

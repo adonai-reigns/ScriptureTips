@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
+  attributionFor,
   CORRECTION_LIMIT,
   canBeBase,
   canCompile,
   canModify,
   correctionLimit,
   licenseFor,
+  notesExcluded,
+  restrictedNames,
 } from "./licenses.ts";
 
 describe("domain-model §7: license rules", () => {
@@ -30,5 +33,20 @@ describe("domain-model §7: license rules", () => {
     expect(CORRECTION_LIMIT).toBe(3);
     expect(correctionLimit("leb")).toBe(3);
     expect(correctionLimit("unknown")).toBe(3);
+  });
+
+  it("licenses.md §3.1–3.2: carry the LEB's and the NET's attribution, and their other conditions", () => {
+    expect(attributionFor("leb")).toMatchObject({
+      designation: "LEB",
+      statement: expect.stringMatching(/^Scripture quotations marked \(LEB\) are from the Lexham/),
+    });
+    expect(attributionFor("net-bible")?.links).toContainEqual({
+      text: "NET",
+      url: "http://netbible.org",
+    });
+    expect(attributionFor("public-domain")).toBeNull();
+    expect(restrictedNames("leb")).toEqual(["Lexham"]);
+    expect(notesExcluded("net-bible")).toBe(true);
+    expect(notesExcluded("leb")).toBe(false);
   });
 });

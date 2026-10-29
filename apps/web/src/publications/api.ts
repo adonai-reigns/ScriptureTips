@@ -6,6 +6,7 @@
 
 import { cookies } from "next/headers";
 import type { PassageResult, Source, Translation } from "../reader/api.ts";
+import type { Attribution } from "../reader/attributions.tsx";
 
 export interface VersionView {
   /** The version ID: in a pinned link, `/p/{handle}/{slug}/…/{id}`. */
@@ -49,6 +50,8 @@ export type PublicationPassage =
       translation: Translation;
       passages: PassageResult[];
       sources: Source[];
+      /** What each source's text must carry, as the version was published. */
+      attributions: Attribution[];
       publication: ReaderPublication;
     }
   | { ok: false; code: string; status: number };
@@ -119,6 +122,40 @@ export async function myPublication(slug: string): Promise<PublicationView | nul
   } catch {
     return null;
   }
+}
+
+export type Problem =
+  | { code: "pasted-verses"; verses: string[] }
+  | {
+      code: "unknown-license" | "modification-not-allowed" | "notes-excluded";
+      source: string;
+      verses?: number;
+    }
+  | { code: "name-restricted"; source: string; term: string }
+  | { code: "slug-published" };
+
+/** The pre-publish checks (domain-model §1.4, step 2). */
+export interface PublishCheck {
+  problems: Problem[];
+  warnings: {
+    code: "similar-wording";
+    verses: { verse: string; source: string; score: number }[];
+  }[];
+  attributions: Attribution[];
+  sources: {
+    id: string;
+    abbreviation: string;
+    name: string;
+    license: string;
+    verses: number;
+    share: number;
+  }[];
+  verses: number;
+  own: number;
+  corrected: number;
+  adapted: number;
+  /** The consent statement to show and send back: message `consent{n}`. */
+  consent: number;
 }
 
 /** A publication's path: its latest version, or pinned to `version` (domain-model §1.6). */

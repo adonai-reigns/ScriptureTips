@@ -2,7 +2,14 @@ import { type CanonId, standing } from "@scripturetips/canon";
 import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 import type { PassageResult } from "./api.ts";
-import { type Block, layOut, noteBody, type Shown, type VerseMark } from "./layout.ts";
+import {
+  type Block,
+  type DesignationOf,
+  layOut,
+  noteBody,
+  type Shown,
+  type VerseMark,
+} from "./layout.ts";
 
 /** Lower corner brackets (U+2E24, U+2E25): the LEB's marks around an idiomatic phrase. */
 const IDIOM_OPEN = String.fromCharCode(0x2e24);
@@ -30,6 +37,14 @@ export function ShownText({ nodes }: { nodes: readonly Shown[] }): ReactNode {
   return nodes.map((n, i) => {
     const key = `${i}`;
     if (typeof n === "string") return n;
+    if (n.type === "designation")
+      return (
+        <span key={key} className="designation">
+          {" ("}
+          {n.url ? <a href={n.url}>{n.text}</a> : n.text}
+          {")"}
+        </span>
+      );
     if (n.type === "mark")
       return (
         <sup key={key} className="note-mark">
@@ -132,7 +147,10 @@ export async function Passage({
   direction,
   canon,
   sources,
+  designationOf,
 }: {
+  /** The attribution each verse's text must be followed by (`attributions.ts`). */
+  designationOf?: DesignationOf | undefined;
   passage: PassageResult;
   /** In a compilation: the translations its verses came from, to credit adapted notes. */
   sources?: readonly { id: string; abbreviation: string }[] | undefined;
@@ -145,7 +163,7 @@ export async function Passage({
   const tc = await getTranslations("canons");
   // A passage's verses all come from its first book (translations.service `versesIn`).
   const place = standing(passage.entered.split(".")[0] ?? "", canon);
-  const { blocks, notes } = layOut(passage.verses, `p${index}`);
+  const { blocks, notes } = layOut(passage.verses, `p${index}`, designationOf);
   return (
     <article className="passage" dir={direction}>
       <h1 className="passage-label">{passage.label}</h1>

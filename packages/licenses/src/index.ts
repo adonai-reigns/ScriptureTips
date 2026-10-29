@@ -1,4 +1,5 @@
 export {
+  attributionFor,
   CORRECTION_LIMIT,
   canBeBase,
   canCompile,
@@ -8,4 +9,6 @@ export {
   type License,
   type LicenseRule,
   licenseFor,
+  notesExcluded,
+  restrictedNames,
 } from "./licenses.ts";

@@ -16,9 +16,13 @@ import {
   publication,
   publicationChapter,
   publicationVersion,
+  publishRequest,
+  similarityReport,
+  sql,
+  translation,
   user,
 } from "@scripturetips/db";
-import { formatOsisPassage } from "@scripturetips/passage";
+import { formatOsisPassage, parseOsisPassage } from "@scripturetips/passage";
 import { formatPassage, parseReference } from "@scripturetips/reference";
 import type { SchemeId } from "@scripturetips/versification";
 import type { User } from "../auth/session.ts";
@@ -36,6 +40,13 @@ import {
   TranslationsService,
   wholeChapters,
 } from "../translations/translations.service.ts";
+import {
+  type Attribution,
+  checkSnapshot,
+  type Problem,
+  SIMILAR_WARNING,
+  type Warning,
+} from "./checks.ts";
 
 export type Visibility = "unlisted" | "public";
 
@@ -60,6 +71,38 @@ export interface VersionMeta {
   readonly own: number;
   readonly corrected: number;
   readonly adapted: number;
+  /** What each source's text must carry wherever it's shown. */
+  readonly attributions: Attribution[];
+}
+
+/**
+ * The version of the consent statement the publish form must show (domain-model §1.4, step 3):
+ * messages `consent{n}`. A change to its wording needs a new number.
+ */
+export const CONSENT_STATEMENT = 1;
+
+/** The pre-publish checks (domain-model §1.4, step 2), shown before the user consents. */
+export interface PublishCheck {
+  readonly problems: Problem[];
+  readonly warnings: Warning[];
+  readonly attributions: Attribution[];
+  /** The license composition: each source's verses and share of the whole. */
+  readonly sources: (SourceView & { license: string; verses: number; share: number })[];
+  readonly verses: number;
+  readonly own: number;
+  readonly corrected: number;
+  readonly adapted: number;
+  readonly consent: number;
+}
+
+/** One publish request, as its owner sees it. */
+export interface RequestView {
+  readonly status: "checking" | "in_review" | "published" | "returned";
+  readonly visibility: Visibility;
+  readonly createdAt: string;
+  readonly problems: Problem[];
+  /** What reviewed it: `automated-license-check` until content review exists. */
+  readonly review: string | null;
 }
 
 export interface VersionView {
@@ -84,6 +127,12 @@ export interface PublicationView {
   readonly visibility: Visibility;
   readonly status: "active" | "withdrawn";
   readonly versions: VersionView[];
+}
+
+/** The owner's view of publishing a compilation: its publication, if any, and recent requests. */
+export interface PublishingView {
+  readonly publication: PublicationView | null;
+  readonly requests: RequestView[];
 }
 
 /** What a reader opened: the publication, the version they read, and the latest they may see. */
@@ -114,8 +163,9 @@ export function publicId(): string {
  * Publications (domain-model §2.3): a compilation published as numbered versions that never
  * change, each a full snapshot hash-chained to the one before. Readers reach a public
  * publication's latest version by its path, and any version by its pinned link; an unlisted one
- * only by a pinned link (the version ID is the key). The publishing procedure's checks and
- * review come next (§1.4); for now publishing refuses only verses still pasted.
+ * only by a pinned link (the version ID is the key). Each publish is a request (§1.4): the
+ * automated license check, then publishing. Content review comes with moderation; until then a
+ * request that passes the check is published at once, recorded as checked only automatically.
  */
 @Injectable()
 export class PublicationsService {
@@ -125,14 +175,94 @@ export class PublicationsService {
     @Inject(TranslationsService) private readonly translations: TranslationsService,
   ) {}
 
-  /** The publication of the owner's compilation, or null if it hasn't been published. */
-  async ofCompilation(owner: User, slug: string): Promise<PublicationView | null> {
-    const [found] = await this.db
-      .select({ p: publication })
-      .from(publication)
-      .innerJoin(compilation, eq(compilation.id, publication.compilationId))
+  /** The owner's compilation's publication (null if it hasn't been published), and its requests. */
+  async ofCompilation(owner: User, slug: string): Promise<PublishingView> {
+    const [c] = await this.db
+      .select()
+      .from(compilation)
       .where(and(eq(compilation.ownerId, owner.id), eq(compilation.slug, slug.toLowerCase())));
-    return found ? this.view(owner, found.p) : null;
+    if (!c) throw new NotFoundException({ code: "unknown-compilation" });
+    const [found] = await this.db
+      .select()
+      .from(publication)
+      .where(eq(publication.compilationId, c.id));
+    const requests = await this.db
+      .select()
+      .from(publishRequest)
+      .where(eq(publishRequest.compilationId, c.id))
+      .orderBy(desc(publishRequest.createdAt))
+      .limit(5);
+    return {
+      publication: found ? await this.view(owner, found) : null,
+      requests: requests.map((r) => ({
+        status: r.status,
+        visibility: r.visibility,
+        createdAt: r.createdAt.toISOString(),
+        problems: r.problems as Problem[],
+        review: (r.review as { by: string } | null)?.by ?? null,
+      })),
+    };
+  }
+
+  /** The pre-publish checks for the owner's compilation as it is now. */
+  async check(owner: User, slug: string): Promise<PublishCheck> {
+    const snapshot = await this.compilations.snapshot(owner, slug);
+    return this.checksOf(owner, snapshot);
+  }
+
+  private async checksOf(owner: User, snapshot: CompilationSnapshot): Promise<PublishCheck> {
+    const c = snapshot.compilation;
+    const similar = await this.db
+      .select({
+        entered: similarityReport.entered,
+        source: translation.abbreviation,
+        score: similarityReport.score,
+      })
+      .from(similarityReport)
+      .innerJoin(translation, eq(translation.id, similarityReport.translationId))
+      .where(
+        and(
+          eq(similarityReport.compilationId, c.id),
+          sql`${similarityReport.score} >= ${SIMILAR_WARNING}`,
+        ),
+      )
+      .orderBy(asc(similarityReport.entered), desc(similarityReport.score));
+    const counts = await this.translations.verseCounts(snapshot.base.id);
+    const { problems, warnings, attributions } = checkSnapshot(
+      snapshot,
+      similar.map((r) => ({
+        verse: formatPassage(parseOsisPassage(r.entered), { verses: counts }),
+        source: r.source,
+        score: r.score,
+      })),
+    );
+    // A slug once published stays with its publication (domain-model §1.6).
+    const [mine] = await this.db
+      .select({ id: publication.id })
+      .from(publication)
+      .where(eq(publication.compilationId, c.id));
+    if (!mine) {
+      const [taken] = await this.db
+        .select({ id: publication.id })
+        .from(publication)
+        .where(and(eq(publication.ownerId, owner.id), eq(publication.slug, c.slug)));
+      if (taken) problems.push({ code: "slug-published" });
+    }
+    const meta = metaOf(snapshot, owner.handle as string, attributions);
+    return {
+      problems,
+      warnings,
+      attributions,
+      sources: meta.sources.map((x) => ({
+        ...x,
+        share: meta.verses ? Math.round((1000 * x.verses) / meta.verses) / 10 : 0,
+      })),
+      verses: meta.verses,
+      own: meta.own,
+      corrected: meta.corrected,
+      adapted: meta.adapted,
+      consent: CONSENT_STATEMENT,
+    };
   }
 
   /**
@@ -142,13 +272,32 @@ export class PublicationsService {
   async publish(
     owner: User,
     slug: string,
-    input: { visibility: Visibility; changeNote?: string | undefined },
+    input: { visibility: Visibility; consent: number; changeNote?: string | undefined },
   ): Promise<PublicationView> {
+    if (input.consent !== CONSENT_STATEMENT)
+      throw new BadRequestException({ code: "consent-outdated" });
     const snapshot = await this.compilations.snapshot(owner, slug);
-    if (snapshot.pasted.length > 0)
-      throw new BadRequestException({ code: "pasted-verses", verses: snapshot.pasted });
     const handle = owner.handle as string;
     const c = snapshot.compilation;
+    const [request] = await this.db
+      .insert(publishRequest)
+      .values({
+        compilationId: c.id,
+        requestedBy: owner.id,
+        visibility: input.visibility,
+        consentStatement: input.consent,
+        status: "checking",
+      })
+      .returning();
+    if (!request) throw new Error("no publish request");
+    const checked = await this.checksOf(owner, snapshot);
+    if (checked.problems.length > 0) {
+      await this.db
+        .update(publishRequest)
+        .set({ status: "returned", problems: checked.problems, warnings: checked.warnings })
+        .where(eq(publishRequest.id, request.id));
+      throw new BadRequestException({ code: "publish-returned", problems: checked.problems });
+    }
     const chapters = snapshot.books.flatMap((b, position) =>
       b.chapters.map((ch) => ({
         book: b.osis,
@@ -158,7 +307,7 @@ export class PublicationsService {
         hash: snapshotHash(ch.verses),
       })),
     );
-    const meta = metaOf(snapshot, handle);
+    const meta = metaOf(snapshot, handle, checked.attributions);
 
     const published = await this.db.transaction(async (tx) => {
       const [byCompilation] = await tx
@@ -237,6 +386,16 @@ export class PublicationsService {
         await tx
           .insert(publicationChapter)
           .values(chapters.slice(i, i + 100).map((ch) => ({ ...ch, versionId: version.id })));
+      await tx
+        .update(publishRequest)
+        .set({
+          status: "published",
+          publicationId: pub.id,
+          versionId: version.id,
+          warnings: checked.warnings,
+          review: { by: "automated-license-check", content: "not-reviewed" },
+        })
+        .where(eq(publishRequest.id, request.id));
       return pub;
     });
     return this.view(owner, published);
@@ -430,6 +589,8 @@ export class PublicationsService {
       },
       passages,
       sources: meta.sources.map(({ id, abbreviation, name }) => ({ id, abbreviation, name })),
+      // As published: the version carries the attributions its sources required then.
+      attributions: meta.attributions ?? [],
       publication: readerView(opened),
     };
   }
@@ -459,7 +620,7 @@ const readerView = (o: Opened) => ({
   latest: o.latest,
 });
 
-function metaOf(s: CompilationSnapshot, handle: string): VersionMeta {
+function metaOf(s: CompilationSnapshot, handle: string, attributions: Attribution[]): VersionMeta {
   const source = (t: CompilationSnapshot["base"]): SourceView => ({
     id: t.catalogId,
     abbreviation: t.abbreviation,
@@ -482,5 +643,6 @@ function metaOf(s: CompilationSnapshot, handle: string): VersionMeta {
     own: s.own,
     corrected: s.corrected,
     adapted: s.adapted,
+    attributions,
   };
 }

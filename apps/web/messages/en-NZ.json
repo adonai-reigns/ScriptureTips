@@ -255,6 +255,25 @@
     "publishFirst": "Publish",
     "publishAgain": "Publish a new version",
     "publishedAs": "Published as version {number}.",
+    "checkFirst": "Check before publishing",
+    "checkAgain": "Check again",
+    "checksTitle": "Before you publish",
+    "checksPassed": "The licence check found nothing that stops this being published.",
+    "problems": {
+      "pasted-verses": "Still pasted from outside ScriptureTips: {verses}. Declare them your own, or replace them.",
+      "unknown-license": "The terms of the {source} aren't recorded, so its verses can't be published.",
+      "modification-not-allowed": "The {source}'s licence doesn't allow its wording to be changed, and {count, plural, one {# verse has} other {# verses have}} been changed.",
+      "notes-excluded": "The {source}'s licence doesn't let its translators' notes be passed on, and {count, plural, one {# verse has} other {# verses have}} them. Remove those notes.",
+      "name-restricted": "\"{term}\" is a trademark of the {source}'s publisher and can't be in your title or abbreviation.",
+      "slug-published": "You've already published something else with this abbreviation. Give this compilation another one."
+    },
+    "similarWarning": "These verses of your own read very like a translation's wording. Check they're your own work:",
+    "similarLine": "{verse}: {score}% like the {source}",
+    "composition": "What this version would hold ({verses, plural, one {# verse} other {# verses}}):",
+    "compositionLine": "{name}: {verses, plural, one {# verse} other {# verses}} ({share}%)",
+    "compositionOwn": "Your own renderings: {verses, plural, one {# verse} other {# verses}}",
+    "attributionsIntro": "Readers will be shown these notices, as the translations' licences require:",
+    "consent1": "I understand that what I publish may be checked by automated tools and, where they flag something, reviewed by moderators.",
     "notPublished": "Not published yet.",
     "publishedUnlisted": "Published for anyone with the link.",
     "publishedPublic": "Published for everyone: <link>latest version</link>.",
@@ -297,6 +316,8 @@
     "too-many-notes": "That's as many notes as one verse can have.",
     "unknown-note": "That note has already been removed.",
     "pasted-verses": "Some verses are still pasted from outside ScriptureTips. Declare them your own, or replace them, before publishing.",
-    "slug-published": "You've already published something else with this abbreviation. Give this compilation another one."
+    "slug-published": "You've already published something else with this abbreviation. Give this compilation another one.",
+    "publish-returned": "The licence check found problems. They're listed under \"Before you publish\".",
+    "consent-outdated": "The consent statement has changed. Reload the page and read it again."
   }
 }

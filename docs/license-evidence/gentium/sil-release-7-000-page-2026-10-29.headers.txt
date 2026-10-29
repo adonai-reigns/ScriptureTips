@@ -1,0 +1,11 @@
+200 https://software.sil.org/gentium/release-7-000/
+cache-control: max-age=3, must-revalidate, public, no-transform, must-revalidate
+connection: Keep-Alive
+content-encoding: gzip
+content-length: 15720
+content-type: text/html; charset=UTF-8
+date: Thu, 29 Oct 2026 07:32:18 GMT
+expires: Sun, 01 Nov 2026 07:32:18 GMT
+keep-alive: timeout=5, max=99
+server: Apache/2.4.58 (Ubuntu)
+vary: Accept-Encoding,Cookie

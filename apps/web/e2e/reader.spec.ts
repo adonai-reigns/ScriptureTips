@@ -26,6 +26,19 @@ test("LEB Genesis 2: idiom brackets, verse numbers and the translator's notes", 
   await expect(
     page.getByRole("region", { name: "Translator's notes" }).locator("li").first(),
   ).toBeVisible();
+  // licenses.md §3.1: "(LEB)" after the quotation and the credit statement, linked.
+  await expect(page.locator(".scripture .designation")).toHaveText(" (LEB)");
+  await expect(page.locator(".designation a")).toHaveAttribute(
+    "href",
+    "http://www.lexhamenglishbible.com",
+  );
+  await expect(page.locator(".attribution")).toContainText(
+    "Scripture quotations marked (LEB) are from the Lexham English Bible.",
+  );
+  await expect(page.getByRole("link", { name: "Logos Bible Software" }).first()).toHaveAttribute(
+    "href",
+    "http://www.logos.com",
+  );
   await page.screenshot(shot("leb-genesis-2"));
 });
 

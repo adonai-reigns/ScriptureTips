@@ -47,7 +47,8 @@ export async function codeFor(page: Page, to: string): Promise<string> {
  * returns its handle.
  */
 export async function signUp(page: Page, canon = "Protestant"): Promise<string> {
-  const stamp = `${Date.now()}${test.info().project.name}`;
+  // The worker index keeps two tests that start in the same millisecond apart.
+  const stamp = `${Date.now()}w${test.info().workerIndex}${test.info().project.name}`;
   const email = `new-${stamp}@example.com`;
   await page.goto("/sign-in");
   await page.getByRole("textbox", { name: "Email address" }).fill(email);

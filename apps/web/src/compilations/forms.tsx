@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { type FormEvent, useRef, useState } from "react";
 import { useHydrated } from "../hydrated.ts";
+import type { PublishCheck } from "../publications/api.ts";
+import { PublishChecks } from "../publications/PublishChecks.tsx";
 import type { NoteEdit } from "./api.ts";
 import { errorCode, useErrorText } from "./errors.ts";
 
@@ -962,7 +964,25 @@ export function PublishForm({
   const t = useTranslations("compilations");
   const router = useRouter();
   const [saved, setSaved] = useState<string | null>(null);
+  // The pre-publish checks (domain-model §1.4, step 2): run on request, as they read every verse.
+  const [check, setCheck] = useState<PublishCheck | null>(null);
   const { error, busy, hydrated, run } = useSubmit();
+  const runCheck = () => {
+    setSaved(null);
+    run(
+      async () => {
+        try {
+          const res = await fetch(`/api/compilations/${slug}/publication/check`);
+          if (!res.ok) return errorCode(res);
+          setCheck((await res.json()) as PublishCheck);
+          return null;
+        } catch {
+          return "unavailable";
+        }
+      },
+      () => undefined,
+    );
+  };
   const submit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
@@ -975,10 +995,16 @@ export function PublishForm({
             headers: { "content-type": "application/json" },
             body: JSON.stringify({
               visibility: String(form.get("visibility") ?? "unlisted"),
+              consent: check?.consent,
               changeNote: String(form.get("changeNote") ?? ""),
             }),
           });
-          if (!res.ok) return errorCode(res);
+          if (!res.ok) {
+            const code = await errorCode(res);
+            if (code === "publish-returned") setCheck(null);
+            return code;
+          }
+          setCheck(null);
           const body = (await res.json()) as { publication: { versions: { number: number }[] } };
           setSaved(t("publishedAs", { number: body.publication.versions[0]?.number ?? 1 }));
           return null;
@@ -1022,15 +1048,32 @@ export function PublishForm({
           <input name="changeNote" maxLength={1000} />
         </label>
       ) : null}
+      {check ? (
+        <>
+          <PublishChecks check={check} />
+          {check.problems.length === 0 ? (
+            <label className="choice">
+              <input type="checkbox" name="consent" required />
+              <span>{t(`consent${check.consent}`)}</span>
+            </label>
+          ) : null}
+        </>
+      ) : null}
       <ErrorText code={error} />
       {saved ? (
         <p role="status" className="saved">
           {saved}
         </p>
       ) : null}
-      <button type="submit" disabled={busy || !hydrated}>
-        {published ? t("publishAgain") : t("publishFirst")}
-      </button>
+      {check && check.problems.length === 0 ? (
+        <button type="submit" disabled={busy || !hydrated}>
+          {published ? t("publishAgain") : t("publishFirst")}
+        </button>
+      ) : (
+        <button type="button" onClick={runCheck} disabled={busy || !hydrated}>
+          {check ? t("checkAgain") : t("checkFirst")}
+        </button>
+      )}
     </form>
   );
 }

@@ -14,10 +14,21 @@ test("domain-model §2.3: publish unlisted, then publicly as version 2, each ver
   await page.getByRole("textbox", { name: "Abbreviation" }).fill("Plain");
   await page.getByRole("combobox", { name: "Base translation" }).selectOption("eng-kjv");
   await page.getByRole("button", { name: "Create" }).click();
-  await expect(page).toHaveURL(/\/compilations\/plain$/);
+  await expect(page).toHaveURL(/\/compilations\/plain$/, { timeout: 15_000 });
 
   // Version 1, for anyone with the link.
   await expect(page.getByText("Not published yet.")).toBeVisible();
+  // §1.4: the checks first, then consent.
+  await page.getByRole("button", { name: "Check before publishing" }).click();
+  const checks = page.getByRole("region", { name: "Before you publish" });
+  await expect(checks).toContainText("check found nothing that stops this", {
+    timeout: 30_000,
+  });
+  await expect(checks).toContainText(
+    /King James Version \(1769\), with the Apocrypha: [\d,]+ verses \(100%\)/,
+  );
+  await page.getByRole("checkbox", { name: /^I understand that what I publish/ }).check();
+  await page.screenshot(shot("publish-checks"));
   await page.getByRole("button", { name: "Publish", exact: true }).click();
   await expect(page.getByRole("status")).toHaveText("Published as version 1.", {
     timeout: 120_000,
@@ -48,6 +59,8 @@ test("domain-model §2.3: publish unlisted, then publicly as version 2, each ver
   await page.goto("/compilations/plain");
   await page.getByRole("radio", { name: /^Everyone/ }).check();
   await page.getByRole("textbox", { name: "What changed (optional)" }).fill("Heavens, plural.");
+  await page.getByRole("button", { name: "Check before publishing" }).click();
+  await page.getByRole("checkbox", { name: /^I understand that what I publish/ }).check();
   await page.getByRole("button", { name: "Publish a new version" }).click();
   await expect(page.getByRole("status")).toHaveText("Published as version 2.", {
     timeout: 120_000,

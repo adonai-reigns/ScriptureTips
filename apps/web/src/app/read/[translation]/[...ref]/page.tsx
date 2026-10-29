@@ -6,6 +6,11 @@ import { getTranslations } from "next-intl/server";
 import { currentAccount } from "../../../../account/api.ts";
 import { myCompilation } from "../../../../compilations/api.ts";
 import { books, passage } from "../../../../reader/api.ts";
+import {
+  designations,
+  Statement,
+  translationAttribution,
+} from "../../../../reader/attributions.tsx";
 import { BookList } from "../../../../reader/BookList.tsx";
 import {
   arrangeBooks,
@@ -105,6 +110,13 @@ export default async function Read(props: Props) {
   const { credit, notices } = result.ok
     ? await creditLines(result, handle)
     : { credit: null, notices: [] };
+  // A translation's own attribution (the owner's private compilation reader shows none yet).
+  const attribution = result.ok
+    ? translationAttribution(result.translation.id, result.translation.license)
+    : null;
+  const designationOf = attribution
+    ? designations([attribution], result.ok ? result.translation.id : undefined)
+    : undefined;
   return (
     <div className="reader">
       <SearchForm translation={id} reference={reference} />
@@ -117,6 +129,7 @@ export default async function Read(props: Props) {
             direction={result.translation.direction}
             canon={canon}
             sources={result.sources}
+            designationOf={designationOf}
           />
         ))
       ) : (
@@ -132,6 +145,7 @@ export default async function Read(props: Props) {
         </nav>
       ) : null}
       {credit ? <p className="translation-credit">{credit}</p> : null}
+      {attribution ? <Statement a={attribution} /> : null}
       {notices.map((n) => (
         <p key={n.kind} className="translation-credit edit-notice">
           {n.text}

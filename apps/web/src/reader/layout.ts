@@ -11,7 +11,9 @@ export type Shown =
   | string
   | { type: "char"; marker: string; content: Shown[]; attributes?: Record<string, string> }
   | { type: "span"; span: string; content: Shown[] }
-  | { type: "mark"; letter: string; noteId: string };
+  | { type: "mark"; letter: string; noteId: string }
+  /** A source's designation after its verses ("(LEB)"), linked where its license asks. */
+  | { type: "designation"; text: string; url?: string };
 
 /** `key`: unique in its block, for React. */
 export type Piece =
@@ -50,7 +52,18 @@ export function letter(n: number): string {
 
 const verseLabel = (v: Verse) => v.published ?? (v.to ? `${v.verse}–${v.to}` : String(v.verse));
 
-export function layOut(verses: readonly Verse[], prefix: string): Laid {
+/** The designation a verse's text must be followed by, and the site it links to. */
+export type DesignationOf = (v: Verse) => { text: string; url?: string } | undefined;
+
+/**
+ * `designationOf`: the attribution a license asks for after quoted text (licenses.md §8,
+ * `attribution`), placed once after each run of verses from the same source.
+ */
+export function layOut(
+  verses: readonly Verse[],
+  prefix: string,
+  designationOf: DesignationOf = () => undefined,
+): Laid {
   const blocks: Block[] = [];
   const notes: PlacedNote[] = [];
   let open: Extract<Block, { kind: "block" }> | undefined;
@@ -136,6 +149,14 @@ export function layOut(verses: readonly Verse[], prefix: string): Laid {
     }
     // A note the markup doesn't mark is still listed, so none is ever hidden.
     for (const n of v.notes) if (!placed.has(n)) mark(n.position);
+    const d = designationOf(v);
+    const next = verses[verses.indexOf(v) + 1];
+    if (d && open && (!next || designationOf(next)?.text !== d.text))
+      open.pieces.push({
+        kind: "text",
+        shown: { type: "designation", ...d },
+        key: `t${open.pieces.length}`,
+      });
   }
   return { blocks, notes };
 }

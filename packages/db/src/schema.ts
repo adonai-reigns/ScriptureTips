@@ -605,3 +605,37 @@ export const publicationChapter = pgTable(
   },
   (t) => [primaryKey({ columns: [t.versionId, t.book, t.chapter] })],
 );
+
+/**
+ * A request to publish a compilation (domain-model §1.4, `PublishRequest`): the scope, the
+ * consent statement the user accepted, and how it went. `checking` while the automated checks
+ * run; `returned` with `problems` when they find any; `published` with the version made, and
+ * `review` saying what reviewed it (only the automated license check, until moderation exists).
+ * `in_review` is for content review, which comes later. Kept as the record of each publish.
+ */
+export const publishRequest = pgTable(
+  "publish_request",
+  {
+    id: id(),
+    compilationId: uuid("compilation_id").references(() => compilation.id, {
+      onDelete: "set null",
+    }),
+    publicationId: uuid("publication_id").references(() => publication.id),
+    versionId: uuid("version_id").references(() => publicationVersion.id),
+    requestedBy: uuid("requested_by")
+      .notNull()
+      .references(() => user.id),
+    visibility: text("visibility", { enum: ["unlisted", "public"] }).notNull(),
+    /** The version of the consent statement the user accepted, and when. */
+    consentStatement: integer("consent_statement").notNull(),
+    consentedAt: timestamp("consented_at", { withTimezone: true }).notNull().defaultNow(),
+    status: text("status", {
+      enum: ["checking", "in_review", "published", "returned"],
+    }).notNull(),
+    problems: jsonb("problems").notNull().default([]),
+    warnings: jsonb("warnings").notNull().default([]),
+    review: jsonb("review"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("publish_request_compilation_idx").on(t.compilationId, t.createdAt)],
+);
