@@ -180,8 +180,23 @@ export class TranslationsService {
     );
   }
 
+  /** Every verse of a book, in order: for a publication snapshot, not a reader's request. */
+  async bookVerses(translationId: string, book: string): Promise<StoredVerse[]> {
+    return this.withNotes(
+      await this.db
+        .select()
+        .from(verseText)
+        .where(and(eq(verseText.translationId, translationId), eq(verseText.book, book)))
+        .orderBy(asc(verseText.chapter), asc(verseText.verse)),
+    );
+  }
+
   /** A translation's verses whose canonical verses overlap `range` (compilation sources). */
-  async versesOverlapping(translationId: string, range: OrdinalRange): Promise<StoredVerse[]> {
+  async versesOverlapping(
+    translationId: string,
+    range: OrdinalRange,
+    limit = MAX_VERSES * 2,
+  ): Promise<StoredVerse[]> {
     return this.withNotes(
       await this.db
         .select()
@@ -193,7 +208,7 @@ export class TranslationsService {
           ),
         )
         .orderBy(asc(verseText.chapter), asc(verseText.verse))
-        .limit(MAX_VERSES * 2),
+        .limit(limit),
     );
   }
 

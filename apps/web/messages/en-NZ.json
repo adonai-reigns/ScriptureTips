@@ -44,9 +44,13 @@
     "ownBy": "{mark} Translated by @{handle}.",
     "pastedBy": "{mark} Pasted by @{handle} from outside ScriptureTips, not yet declared their own wording.",
     "noteAdapted": "Note adapted from the {source}.",
-    "noteOwn": "Note added in this compilation."
+    "noteOwn": "Note added in this compilation.",
+    "versionPublished": "Version {number}, published <date></date>.",
+    "newerVersion": "A newer version is available: version {number}.",
+    "permalink": "Permanent link to this version"
   },
   "errors": {
+    "unknown-publication": "We couldn't find that publication.",
     "unknown-translation": "We don't have that translation.",
     "unknown-book": "We couldn't find a book by that name.",
     "no-book": "Start with the name of a book, e.g. John 3:16.",
@@ -239,7 +243,24 @@
     "removeNote": "Remove note {n}",
     "restoreNote": "Restore the {source}'s note {n}",
     "newNote": "New note",
-    "addNote": "Add the note"
+    "addNote": "Add the note",
+    "publishTitle": "Publish",
+    "publishIntro": "Publishing makes a copy of this compilation that others can read. A published version never changes: your later edits stay private until you publish again, as a new version.",
+    "visibility": "Who can read it",
+    "unlisted": "Anyone with the link",
+    "unlistedHelp": "Not listed or found by search. Each version's link is the key to it.",
+    "public": "Everyone",
+    "publicHelp": "Its link always shows the latest version, and each version also has a permanent link.",
+    "publishChangeNote": "What changed (optional)",
+    "publishFirst": "Publish",
+    "publishAgain": "Publish a new version",
+    "publishedAs": "Published as version {number}.",
+    "notPublished": "Not published yet.",
+    "publishedUnlisted": "Published for anyone with the link.",
+    "publishedPublic": "Published for everyone: <link>latest version</link>.",
+    "versionsTitle": "Published versions",
+    "versionLine": "Version {number}, <date></date>",
+    "versionChanges": "{count, plural, =0 {no verses changed} one {# verse changed} other {# verses changed}}"
   },
   "compilationErrors": {
     "handle-required": "Choose a handle on your account page first.",
@@ -274,6 +295,8 @@
     "note-anchor": "Choose a word in the verse to mark the note after.",
     "empty-note": "Write the note first.",
     "too-many-notes": "That's as many notes as one verse can have.",
-    "unknown-note": "That note has already been removed."
+    "unknown-note": "That note has already been removed.",
+    "pasted-verses": "Some verses are still pasted from outside ScriptureTips. Declare them your own, or replace them, before publishing.",
+    "slug-published": "You've already published something else with this abbreviation. Give this compilation another one."
   }
 }

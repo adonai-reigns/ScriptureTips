@@ -153,6 +153,30 @@ export type CompilationVerse = PassageVerse & {
   readonly rendering?: Rendering;
 };
 
+/** One book of a compilation as a publication snapshot takes it: its chapters' resolved verses. */
+export interface SnapshotBook {
+  readonly osis: string;
+  readonly chapters: { readonly chapter: number; readonly verses: CompilationVerse[] }[];
+}
+
+/** The whole compilation, resolved, for publishing (`CompilationsService.snapshot`). */
+export interface CompilationSnapshot {
+  readonly compilation: typeof compilation.$inferSelect;
+  readonly base: typeof translation.$inferSelect;
+  readonly books: SnapshotBook[];
+  /** Each translation its verses came from, with how many. */
+  readonly sources: {
+    readonly translation: typeof translation.$inferSelect;
+    readonly verses: number;
+  }[];
+  /** Verses of the user's own wording, and those corrected or adapted. */
+  readonly own: number;
+  readonly corrected: number;
+  readonly adapted: number;
+  /** Verses still `pasted` (not declared the user's own): labels, e.g. "Genesis 1:3". */
+  readonly pasted: string[];
+}
+
 /** What the verse editor shows: the verse as the compilation has it, and every translation's. */
 export interface VerseEditorView {
   readonly label: string;
@@ -555,8 +579,10 @@ export class CompilationsService {
         : [];
     });
     const fromSource = new Map<string, StoredVerse[]>();
+    // A whole book (a publication snapshot) can need more than a reader's request allows.
+    const limit = Math.max(MAX_VERSES, baseVerses.length) * 2;
     for (const id of new Set([...relevant.map((l) => l.sourceId), ...chosen])) {
-      if (span) fromSource.set(id, await this.translations.versesOverlapping(id, span));
+      if (span) fromSource.set(id, await this.translations.versesOverlapping(id, span, limit));
     }
     return baseVerses.map((b) => {
       const { range: _, ...baseVerse } = b;
@@ -602,6 +628,85 @@ export class CompilationsService {
       }
       return { verse: baseVerse, from: baseId };
     });
+  }
+
+  /**
+   * The whole compilation as a publication takes it (domain-model §2.3, `PublicationVersion`):
+   * every book of its base, each verse resolved through the layers as the reader has it, with
+   * the translations it draws on and the verses still pasted.
+   */
+  async snapshot(owner: User, slug: string): Promise<CompilationSnapshot> {
+    const { c, base } = await this.find(owner, slug);
+    const layers = await this.layers(c.id);
+    const choices = await this.db
+      .select()
+      .from(compilationVerse)
+      .where(eq(compilationVerse.compilationId, c.id));
+    const notes = await this.notesOf(choices.map((v) => v.id));
+    const byEntered = new Map(choices.map((v) => [v.entered, v]));
+    const sourceIds = new Set([
+      ...layers.map((l) => l.sourceId),
+      ...choices.flatMap((v) => (v.sourceTranslationId ? [v.sourceTranslationId] : [])),
+    ]);
+    const rows = sourceIds.size
+      ? await this.db
+          .select()
+          .from(translation)
+          .where(inArray(translation.id, [...sourceIds]))
+      : [];
+    const translations = new Map([base, ...rows].map((t) => [t.id, t]));
+    const used = new Map<string, number>();
+    let own = 0;
+    let corrected = 0;
+    let adapted = 0;
+
+    const books: SnapshotBook[] = [];
+    for (const b of (await this.translations.books(base.catalogId)) ?? []) {
+      const resolved = await this.resolve(
+        await this.translations.bookVerses(base.id, b.osis),
+        b.osis,
+        base.id,
+        layers,
+        byEntered,
+        notes,
+      );
+      const chapters = new Map<number, CompilationVerse[]>();
+      for (const { verse, from, edit, rendering } of resolved) {
+        if (rendering) own++;
+        else used.set(from ?? base.id, (used.get(from ?? base.id) ?? 0) + 1);
+        if (edit === "correction") corrected++;
+        if (edit === "adaptation") adapted++;
+        const list = chapters.get(verse.chapter) ?? [];
+        list.push({
+          ...verse,
+          ...(rendering
+            ? { rendering }
+            : { source: translations.get(from ?? "")?.catalogId ?? base.catalogId }),
+          ...(edit ? { edit } : {}),
+        });
+        chapters.set(verse.chapter, list);
+      }
+      books.push({
+        osis: b.osis,
+        chapters: [...chapters].map(([chapter, verses]) => ({ chapter, verses })),
+      });
+    }
+    const counts = await this.translations.verseCounts(base.id);
+    return {
+      compilation: c,
+      base,
+      books,
+      sources: [...used].flatMap(([id, verses]) => {
+        const t = translations.get(id);
+        return t ? [{ translation: t, verses }] : [];
+      }),
+      own,
+      corrected,
+      adapted,
+      pasted: choices
+        .filter((v) => v.origin === "pasted")
+        .map((v) => formatPassage(parseOsisPassage(v.entered), { verses: counts })),
+    };
   }
 
   /** The base verse a reference names: exactly one verse, in the compilation's numbering. */

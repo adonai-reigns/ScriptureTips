@@ -526,3 +526,82 @@ export const authorshipDeclaration = pgTable(
   },
   (t) => [index("authorship_declaration_verse_idx").on(t.compilationId, t.entered)],
 );
+
+/**
+ * A published compilation (domain-model §2.3, `Publication`): its stable identity. Created on
+ * the first publish and kept if the compilation is deleted. `public_id` is for URLs and the
+ * canonical URI (§1.1); `slug` is unique per owner and never reused for other content (§1.6).
+ * `unlisted` is read only at a pinned version's link; `public` also at its latest path.
+ */
+export const publication = pgTable(
+  "publication",
+  {
+    id: id(),
+    publicId: text("public_id").notNull().unique(),
+    compilationId: uuid("compilation_id").references(() => compilation.id, {
+      onDelete: "set null",
+    }),
+    ownerId: uuid("owner_id")
+      .notNull()
+      .references(() => user.id),
+    slug: text("slug").notNull(),
+    title: text("title").notNull(),
+    abbreviation: text("abbreviation").notNull(),
+    visibility: text("visibility", { enum: ["unlisted", "public"] }).notNull(),
+    status: text("status", { enum: ["active", "withdrawn"] })
+      .notNull()
+      .default("active"),
+    /** The base translation and its scheme: the publication's numbering. */
+    baseTranslationId: uuid("base_translation_id")
+      .notNull()
+      .references(() => translation.id),
+    scheme: text("scheme").notNull(),
+    ...timestamps,
+  },
+  (t) => [unique().on(t.ownerId, t.slug)],
+);
+
+/**
+ * One published version of a publication (domain-model §2.3, `PublicationVersion`), never
+ * changed after publishing. Its verses are in `publication_chapter`; `meta` holds the rest of
+ * the snapshot (title, credits, sources, license composition). `content_hash` covers the meta
+ * and every chapter's hash, and the previous version's hash, so the versions form a chain.
+ */
+export const publicationVersion = pgTable(
+  "publication_version",
+  {
+    id: id(),
+    publicId: text("public_id").notNull().unique(),
+    publicationId: uuid("publication_id")
+      .notNull()
+      .references(() => publication.id),
+    number: integer("number").notNull(),
+    status: text("status", { enum: ["in_review", "published", "removed"] }).notNull(),
+    meta: jsonb("meta").notNull(),
+    changeNote: text("change_note"),
+    /** What changed since the previous version: `{ verses, changed: [OSIS …] }`. */
+    changeSummary: jsonb("change_summary"),
+    verseCount: integer("verse_count").notNull(),
+    contentHash: text("content_hash").notNull(),
+    previousHash: text("previous_hash"),
+    publishedAt: timestamp("published_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique().on(t.publicationId, t.number)],
+);
+
+/** One chapter of a publication version: its verses as readers get them, and their hash. */
+export const publicationChapter = pgTable(
+  "publication_chapter",
+  {
+    versionId: uuid("version_id")
+      .notNull()
+      .references(() => publicationVersion.id),
+    book: text("book").notNull(),
+    chapter: integer("chapter").notNull(),
+    /** The book's place in the publication, for listing books in order. */
+    position: integer("position").notNull(),
+    verses: jsonb("verses").notNull(),
+    hash: text("hash").notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.versionId, t.book, t.chapter] })],
+);

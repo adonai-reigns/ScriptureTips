@@ -944,3 +944,93 @@ export function NotesEditor({
     </>
   );
 }
+
+/**
+ * Publishes the compilation as its next version (domain-model §2.3), unlisted or public. The
+ * publishing procedure's checks come later; for now only verses still pasted stop it.
+ */
+export function PublishForm({
+  slug,
+  visibility,
+  published,
+}: {
+  slug: string;
+  /** The current visibility, once published. */
+  visibility: "unlisted" | "public" | null;
+  published: boolean;
+}) {
+  const t = useTranslations("compilations");
+  const router = useRouter();
+  const [saved, setSaved] = useState<string | null>(null);
+  const { error, busy, hydrated, run } = useSubmit();
+  const submit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = new FormData(e.currentTarget);
+    setSaved(null);
+    run(
+      async () => {
+        try {
+          const res = await fetch(`/api/compilations/${slug}/publication`, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              visibility: String(form.get("visibility") ?? "unlisted"),
+              changeNote: String(form.get("changeNote") ?? ""),
+            }),
+          });
+          if (!res.ok) return errorCode(res);
+          const body = (await res.json()) as { publication: { versions: { number: number }[] } };
+          setSaved(t("publishedAs", { number: body.publication.versions[0]?.number ?? 1 }));
+          return null;
+        } catch {
+          return "unavailable";
+        }
+      },
+      () => router.refresh(),
+    );
+  };
+  return (
+    <form className="account-form" onSubmit={submit}>
+      <fieldset className="choices">
+        <legend>{t("visibility")}</legend>
+        <label className="choice">
+          <input
+            type="radio"
+            name="visibility"
+            value="unlisted"
+            defaultChecked={visibility !== "public"}
+          />
+          <span>
+            <strong>{t("unlisted")}</strong> <small>{t("unlistedHelp")}</small>
+          </span>
+        </label>
+        <label className="choice">
+          <input
+            type="radio"
+            name="visibility"
+            value="public"
+            defaultChecked={visibility === "public"}
+          />
+          <span>
+            <strong>{t("public")}</strong> <small>{t("publicHelp")}</small>
+          </span>
+        </label>
+      </fieldset>
+      {published ? (
+        <label>
+          <span>{t("publishChangeNote")}</span>
+          <input name="changeNote" maxLength={1000} />
+        </label>
+      ) : null}
+      <ErrorText code={error} />
+      {saved ? (
+        <p role="status" className="saved">
+          {saved}
+        </p>
+      ) : null}
+      <button type="submit" disabled={busy || !hydrated}>
+        {published ? t("publishAgain") : t("publishFirst")}
+      </button>
+    </form>
+  );
+}

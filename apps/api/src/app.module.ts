@@ -5,12 +5,14 @@ import { AuthorshipService } from "./compilations/authorship.service.ts";
 import { CompilationsController } from "./compilations/compilations.controller.ts";
 import { CompilationsService } from "./compilations/compilations.service.ts";
 import { DatabaseModule } from "./database.ts";
+import { PublicationsController } from "./publications/publications.controller.ts";
+import { PublicationsService } from "./publications/publications.service.ts";
 import { TranslationsController } from "./translations/translations.controller.ts";
 import { TranslationsService } from "./translations/translations.service.ts";
 
 @Module({
-  controllers: [TranslationsController, CompilationsController],
-  providers: [TranslationsService, CompilationsService, AuthorshipService],
+  controllers: [TranslationsController, CompilationsController, PublicationsController],
+  providers: [TranslationsService, CompilationsService, AuthorshipService, PublicationsService],
 })
 export class AppModule {
   /** The app on a database (`DATABASE_URL`, or the URL given), with its account settings. */

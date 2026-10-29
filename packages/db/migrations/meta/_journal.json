@@ -50,6 +50,13 @@
       "when": 1793249589304,
       "tag": "0006_compilation_notes",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793253402828,
+      "tag": "0007_publications",
+      "breakpoints": true
     }
   ]
 }

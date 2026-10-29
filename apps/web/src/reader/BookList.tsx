@@ -13,9 +13,14 @@ export async function BookList({
   books,
   canon,
   signedIn,
+  href,
+  suffix = "",
 }: {
   /** The reader ID: a translation's, or a compilation's `@handle/slug`. */
   id: string;
+  /** Where its chapters' paths start (`/read/{id}` unless given), and what ends them (a version). */
+  href?: string;
+  suffix?: string;
   abbreviation: string;
   name: string;
   direction: "ltr" | "rtl";
@@ -30,7 +35,7 @@ export async function BookList({
       {list.map((c) => (
         <li key={c}>
           <a
-            href={`/read/${id}/${bookSlug(osis)}/${c}`}
+            href={`${href ?? `/read/${id}`}/${bookSlug(osis)}/${c}${suffix}`}
             aria-label={t("chapterLink", { book: english.name(osis, "full", "one"), chapter: c })}
           >
             {c}

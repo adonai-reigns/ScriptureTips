@@ -8,10 +8,13 @@ import { myCompilation } from "../../../compilations/api.ts";
 import {
   AddRuleForm,
   DeleteCompilationButton,
+  PublishForm,
   RemoveRuleButton,
   RemoveVerseButton,
 } from "../../../compilations/forms.tsx";
 import { bookSource } from "../../../compilations/sources.ts";
+import { LocalDate } from "../../../dates.tsx";
+import { myPublication, publicationPath } from "../../../publications/api.ts";
 import { books, translations } from "../../../reader/api.ts";
 import { arrangeBooks } from "../../../reader/books.ts";
 
@@ -26,7 +29,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 /**
  * The compilation editor (vision §3.1): the composition overview (each book's source), the
- * layered choices with "reset to inherited" (remove), and a form to add one.
+ * layered choices with "reset to inherited" (remove), and a form to add one; and publishing it,
+ * with its published versions.
  */
 export default async function CompilationEditor({ params }: Props) {
   const account = await currentAccount();
@@ -35,7 +39,11 @@ export default async function CompilationEditor({ params }: Props) {
   if (!c) notFound();
   const t = await getTranslations("compilations");
   const tr = await getTranslations("reader");
-  const [available, all] = await Promise.all([books(c.id), translations().catch(() => [])]);
+  const [available, all, published] = await Promise.all([
+    books(c.id),
+    translations().catch(() => []),
+    myPublication(c.slug),
+  ]);
   const scopeLabel = (r: (typeof c.rules)[number]) =>
     r.kind === "section" ? t(`sections.${r.entered as "ot" | "nt" | "additional"}`) : r.label;
   return (
@@ -144,6 +152,46 @@ export default async function CompilationEditor({ params }: Props) {
           </ul>
         </section>
       ))}
+
+      <h2>{t("publishTitle")}</h2>
+      <p>{t("publishIntro")}</p>
+      <p>
+        {!published
+          ? t("notPublished")
+          : published.visibility === "public"
+            ? t.rich("publishedPublic", {
+                link: (chunks) => (
+                  <a href={publicationPath(published.handle, published.slug)}>{chunks}</a>
+                ),
+              })
+            : t("publishedUnlisted")}
+      </p>
+      <PublishForm
+        slug={c.slug}
+        visibility={published?.visibility ?? null}
+        published={published !== null}
+      />
+      {published ? (
+        <>
+          <h3>{t("versionsTitle")}</h3>
+          <ol className="versions" reversed>
+            {published.versions.map((v) => (
+              <li key={v.id}>
+                <a href={publicationPath(published.handle, published.slug, "", v.id)}>
+                  {t.rich("versionLine", {
+                    number: v.number,
+                    date: () => <LocalDate at={v.publishedAt} />,
+                  })}
+                </a>
+                {v.changedVerses !== null ? (
+                  <small> {t("versionChanges", { count: v.changedVerses })}</small>
+                ) : null}
+                {v.changeNote ? <small> {v.changeNote}</small> : null}
+              </li>
+            ))}
+          </ol>
+        </>
+      ) : null}
 
       <p>
         <DeleteCompilationButton slug={c.slug} title={c.title} />

@@ -774,3 +774,12 @@ button.secondary {
   flex-wrap: wrap;
   gap: 0.5rem;
 }
+
+.version-notice {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.versions small {
+  color: var(--muted);
+}
