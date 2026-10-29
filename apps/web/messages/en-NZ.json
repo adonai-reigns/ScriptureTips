@@ -212,7 +212,7 @@
     "evidenceRecord": "{sessions, plural, one {# writing session} other {# writing sessions}}, {events, plural, one {# recorded change} other {# recorded changes}}, {pastes, plural, =0 {nothing pasted from outside} one {# paste from outside} other {# pastes from outside}}.",
     "recordIntact": "The record is intact.",
     "recordBroken": "The record has been changed since it was made.",
-    "declaredOn": "You declared it your own on {date}.",
+    "declaredOn": "You declared it your own on <date></date>.",
     "notDeclared": "You haven't declared it your own yet.",
     "declare": "Declare it my own",
     "similarityTitle": "Similarity to each translation",

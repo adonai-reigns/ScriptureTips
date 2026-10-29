@@ -10,6 +10,7 @@ import {
   UseVerseButton,
   VerseEditForm,
 } from "../../../../compilations/forms.tsx";
+import { LocalDate } from "../../../../dates.tsx";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -171,11 +172,7 @@ export default async function VerseEditorPage({ params, searchParams }: Props) {
           </p>
           <p>
             {a.declaredAt
-              ? t("declaredOn", {
-                  date: new Intl.DateTimeFormat(locale, { dateStyle: "long" }).format(
-                    new Date(a.declaredAt),
-                  ),
-                })
+              ? t.rich("declaredOn", { date: () => <LocalDate at={a.declaredAt as string} /> })
               : t("notDeclared")}
           </p>
           {now.origin === "pasted" ? (
