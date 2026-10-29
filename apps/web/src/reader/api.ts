@@ -41,6 +41,8 @@ export interface Verse {
   source?: string;
   /** In a compilation: the source's wording was corrected or adapted. */
   edit?: "correction" | "adaptation";
+  /** In a compilation: the user's own wording (no source), `pasted` until declared. */
+  rendering?: "own" | "pasted";
 }
 
 /** A translation a compilation's verses were taken from. */

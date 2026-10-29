@@ -1,9 +1,14 @@
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import {
   and,
+  authorshipDeclaration,
+  authorshipJournal,
   compilationVerseRevision,
+  compositionEvent,
   type Database,
   eq,
+  similarityReport,
+  sql,
   translation,
   translationBook,
   translatorNote,
@@ -131,6 +136,29 @@ const call = (
 const put = (cookie: string, url: string, payload: object) => call("PUT", cookie, url, payload);
 const post = (cookie: string, url: string, payload: object) => call("POST", cookie, url, payload);
 const get = (cookie: string, url: string) => call("GET", cookie, url);
+
+const startJournal = (reference: string) =>
+  post(owner, "/api/compilations/mine/journals", { reference });
+const record = (journal: string, events: object[]) =>
+  post(owner, `/api/compilations/mine/journals/${journal}/events`, { events });
+const typed = (position: number, inserted: string) => ({
+  kind: "insert",
+  position,
+  removed: "",
+  inserted,
+});
+
+/** How many rows of an authorship table are for this verse of the compilation. */
+async function rows(
+  table: typeof authorshipJournal | typeof similarityReport | typeof authorshipDeclaration,
+  entered: string,
+) {
+  const [r] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(table)
+    .where(eq(table.entered, entered));
+  return r?.n ?? 0;
+}
 
 /** The text and source of each verse the compilation gives for `ref`. */
 async function read(ref: string) {
@@ -393,6 +421,173 @@ describe("domain-model §2.3: compilations", () => {
     expect(
       (await call("DELETE", owner, `/api/compilations/mine/verses/${choice.id}`)).statusCode,
     ).toBe(404);
+  });
+
+  it("domain-model §2.3.1: save the user's own rendering, typed in the editor and declared", async () => {
+    const j = (await startJournal("Joel 3:2")).json();
+    expect(j.text).toBe("");
+    expect((await record(j.id, [typed(0, "My own"), typed(6, " words.")])).json()).toEqual({
+      events: 2,
+      length: 13,
+    });
+    const save = (declaration?: number) =>
+      post(owner, "/api/compilations/mine/verses", {
+        reference: "Joel 3:2",
+        journal: j.id,
+        ...(declaration ? { declaration } : {}),
+      });
+    expect((await save()).json()).toMatchObject({ code: "declaration-required" });
+    expect((await save(2)).json()).toMatchObject({ code: "statement-outdated" });
+    expect((await save(1)).json()).toMatchObject({
+      choice: { entered: "Joel.3.2", origin: "own", editKind: null, source: null },
+    });
+
+    const verse = (await get(owner, "/api/compilations/mine/passages?ref=Joel%203:2")).json()
+      .passages[0].verses[0];
+    expect(verse).toMatchObject({ content: ["My own words."], rendering: "own", notes: [] });
+    expect(verse.source).toBeUndefined();
+    const editor = (await get(owner, "/api/compilations/mine/verses?ref=Joel%203:2")).json();
+    expect(editor).toMatchObject({
+      current: { origin: "own", source: null, text: "My own words." },
+      statement: 1,
+      authorship: {
+        sessions: 1,
+        events: 2,
+        externalPastes: 0,
+        verified: true,
+        similarity: [
+          { translation: { id: "kjv" }, score: 0, matched: [] },
+          { translation: { id: "other" }, score: 0, matched: [] },
+        ],
+      },
+    });
+    expect(editor.authorship.declaredAt).toEqual(expect.any(String));
+    // A saved session can't take more events.
+    expect((await record(j.id, [typed(0, "More ")])).statusCode).toBe(404);
+  });
+
+  it("domain-model §2.3.1: treat words pasted from a translation shown as an edit of it", async () => {
+    const j = (await startJournal("Joel 3:2")).json();
+    // A new session starts from the rendering it revises.
+    expect(j.text).toBe("My own words.");
+    await record(j.id, [
+      { kind: "paste", position: 0, removed: "My own words.", inserted: "OTHER 3:2." },
+      typed(9, " Amen"),
+    ]);
+    const saved = await post(owner, "/api/compilations/mine/verses", {
+      reference: "Joel 3:2",
+      journal: j.id,
+      declaration: 1,
+    });
+    expect(saved.json()).toMatchObject({
+      choice: { origin: "edited", editKind: "correction", source: { id: "other" } },
+      changes: 1,
+      pastedFrom: { id: "other" },
+    });
+    expect(await read("Joel 3:2")).toEqual(["3:2 OTHER 3:2 Amen. (other; other note)"]);
+    // It's no longer the user's own: no similarity or declaration stands, but the sessions do.
+    expect(await rows(similarityReport, "Joel.3.2")).toBe(0);
+    expect(await rows(authorshipDeclaration, "Joel.3.2")).toBe(0);
+    expect(await rows(authorshipJournal, "Joel.3.2")).toBe(2);
+  });
+
+  it("domain-model §2.3: keep text pasted from outside as pasted until it's declared", async () => {
+    const j = (await startJournal("Joel 3:2")).json();
+    expect(j.text).toBe("");
+    await record(j.id, [
+      { kind: "paste", position: 0, removed: "", inserted: "Words from a book elsewhere." },
+    ]);
+    const saved = (
+      await post(owner, "/api/compilations/mine/verses", { reference: "Joel 3:2", journal: j.id })
+    ).json();
+    expect(saved).toMatchObject({ choice: { origin: "pasted", source: null } });
+    const verse = (await get(owner, "/api/compilations/mine/passages?ref=Joel%203:2")).json()
+      .passages[0].verses[0];
+    expect(verse).toMatchObject({ rendering: "pasted" });
+    expect(
+      (await get(owner, "/api/compilations/mine/verses?ref=Joel%203:2")).json().authorship,
+    ).toMatchObject({ externalPastes: 1, declaredAt: null });
+
+    const declare = (statement: number) =>
+      post(owner, `/api/compilations/mine/verses/${saved.choice.id}/declaration`, { statement });
+    expect((await declare(2)).json()).toMatchObject({ code: "statement-outdated" });
+    expect((await declare(1)).json()).toMatchObject({ choice: { origin: "own" } });
+    expect((await declare(1)).json()).toMatchObject({ code: "not-pasted" });
+  });
+
+  it("domain-model §2.3.1: refuse events that don't fit the text, and a journal for another verse", async () => {
+    const j = (await startJournal("Joel 3:2")).json();
+    const wrong = await record(j.id, [
+      { kind: "delete", position: 0, removed: "xyz", inserted: "" },
+    ]);
+    expect(wrong.statusCode).toBe(400);
+    expect(wrong.json()).toMatchObject({ code: "journal-out-of-step" });
+    await record(j.id, [typed(0, "Other ")]);
+    expect(
+      (
+        await post(owner, "/api/compilations/mine/verses", {
+          reference: "Joel 3:1",
+          journal: j.id,
+          declaration: 1,
+        })
+      ).json(),
+    ).toMatchObject({ code: "journal-other-verse" });
+    expect(
+      (await post(owner, "/api/compilations/mine/verses", { reference: "Joel 3:2" })).statusCode,
+    ).toBe(400);
+  });
+
+  it("domain-model §2.3.1: export the evidence, showing a record changed afterwards", async () => {
+    const editor = (await get(owner, "/api/compilations/mine/verses?ref=Joel%203:2")).json();
+    const url = `/api/compilations/mine/verses/${editor.choice.id}/evidence`;
+    const res = await get(owner, url);
+    expect(res.statusCode).toBe(200);
+    expect(res.headers["content-disposition"]).toBe(
+      'attachment; filename="evidence-mine-Joel.3.2.json"',
+    );
+    const bundle = res.json();
+    expect(bundle).toMatchObject({
+      format: "scripturetips-authorship-evidence",
+      signed: false,
+      author: "@compiler",
+      verse: { entered: "Joel.3.2", origin: "own", text: "Words from a book elsewhere." },
+      declarations: [{ statementVersion: 1 }],
+    });
+    // The unsaved session isn't evidence; the three saved ones are, each intact.
+    expect(bundle.journals.map((j: { verified: boolean }) => j.verified)).toEqual([
+      true,
+      true,
+      true,
+    ]);
+    expect(
+      bundle.journals[0].trail.map((t: { translation: { id: string } }) => t.translation.id),
+    ).toEqual(["kjv", "other"]);
+    expect(bundle.journals[1].events[0]).toMatchObject({
+      kind: "paste",
+      pasteOrigin: "internal",
+    });
+    expect(bundle.journals[2].events[0]).toMatchObject({ pasteOrigin: "external" });
+
+    await db
+      .update(compositionEvent)
+      .set({ inserted: "My forged" })
+      .where(
+        and(eq(compositionEvent.journalId, bundle.journals[0].id), eq(compositionEvent.seq, 1)),
+      );
+    expect((await get(owner, url)).json().journals[0].verified).toBe(false);
+    expect(
+      (await get(owner, "/api/compilations/mine/verses?ref=Joel%203:2")).json().authorship.verified,
+    ).toBe(false);
+    expect((await get(other, url)).statusCode).toBe(404);
+  });
+
+  it("domain-model §2.3.1: delete a rendering's evidence when the verse is reset", async () => {
+    const editor = (await get(owner, "/api/compilations/mine/verses?ref=Joel%203:2")).json();
+    expect(
+      (await call("DELETE", owner, `/api/compilations/mine/verses/${editor.choice.id}`)).statusCode,
+    ).toBe(200);
+    for (const table of [authorshipJournal, similarityReport, authorshipDeclaration])
+      expect(await rows(table, "Joel.3.2")).toBe(0);
   });
 
   it("list the base's books, and are deleted with their rules", async () => {

@@ -16,7 +16,10 @@ export type Shown =
 /** `key`: unique in its block, for React. */
 export type Piece =
   | { kind: "text"; shown: Shown; key: string }
-  | { kind: "verse"; label: string; id: string; edit?: "correction" | "adaptation" };
+  | { kind: "verse"; label: string; id: string; mark?: VerseMark };
+
+/** How a compilation's verse differs from a translation's: shown by its number. */
+export type VerseMark = "correction" | "adaptation" | "own" | "pasted";
 
 /** `key`: unique in the passage, for React. */
 export type Block =
@@ -91,7 +94,7 @@ export function layOut(verses: readonly Verse[], prefix: string): Laid {
             kind: "verse",
             label: verseLabel(v),
             id: `${prefix}-v${v.chapter}-${v.verse}`,
-            ...(v.edit ? { edit: v.edit } : {}),
+            ...(v.edit || v.rendering ? { mark: v.edit ?? v.rendering } : {}),
           });
       }
       open?.pieces.push({ kind: "text", shown, key: `t${open.pieces.length}` });

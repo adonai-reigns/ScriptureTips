@@ -117,9 +117,13 @@ describe("layOut", () => {
     });
   });
 
-  it("carries a compilation's correction or adaptation to the verse number (domain-model §2.3)", () => {
+  it("carries a compilation's correction, adaptation or own wording to the verse number (domain-model §2.3)", () => {
     const { blocks } = layOut(
-      [verse(1, ["One."]), verse(2, ["Two."], { edit: "correction" })],
+      [
+        verse(1, ["One."]),
+        verse(2, ["Two."], { edit: "correction" }),
+        verse(3, ["Three."], { rendering: "own" }),
+      ],
       "p0",
     );
     const numbers = blocks.flatMap((b) =>
@@ -127,7 +131,8 @@ describe("layOut", () => {
     );
     expect(numbers).toEqual([
       { kind: "verse", label: "1", id: "p0-v1-1" },
-      { kind: "verse", label: "2", id: "p0-v1-2", edit: "correction" },
+      { kind: "verse", label: "2", id: "p0-v1-2", mark: "correction" },
+      { kind: "verse", label: "3", id: "p0-v1-3", mark: "own" },
     ]);
   });
 

@@ -738,3 +738,25 @@ button.secondary {
 .credits li {
   margin-bottom: 0.5rem;
 }
+
+/* An own rendering's authorship evidence (domain-model §2.3.1), on the verse editor. */
+.evidence {
+  margin: 0 0 1.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e3e7eb;
+  background: #fff;
+}
+
+.evidence h3,
+.evidence h4 {
+  margin: 0.25rem 0 0.5rem;
+}
+
+.similarity {
+  margin: 0 0 0.75rem;
+  padding-left: 1.25rem;
+}
+
+.similarity small {
+  color: var(--muted);
+}

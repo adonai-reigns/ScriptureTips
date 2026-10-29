@@ -284,7 +284,8 @@ export const compilationRule = pgTable(
  * compilation's numbering, its first verse if bridged) taken from `source`, or edited from it.
  * `scope` is the verse's canonical range. An `edited` verse keeps a snapshot of the source verse
  * as it was (headings, content and notes, with its hash and import), and its own `content`.
- * `own`, `pasted` and `ai_assisted` come with own renderings.
+ * An `own` or `pasted` verse is the user's rendering: `content` only, with no source; its
+ * evidence is in `authorship_journal` and the tables after it. `ai_assisted` comes later.
  */
 export const compilationVerse = pgTable(
   "compilation_verse",
@@ -323,6 +324,10 @@ export const compilationVerse = pgTable(
       "compilation_verse_source",
       sql`${t.origin} <> 'source' OR ${t.sourceTranslationId} IS NOT NULL`,
     ),
+    check(
+      "compilation_verse_own",
+      sql`${t.origin} NOT IN ('own', 'pasted') OR (${t.content} IS NOT NULL AND ${t.sourceTranslationId} IS NULL)`,
+    ),
   ],
 );
 
@@ -349,4 +354,135 @@ export const compilationVerseRevision = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("compilation_verse_revision_idx").on(t.compilationId, t.entered)],
+);
+
+/**
+ * One session of writing an own rendering (domain-model §2.3.1, `AuthorshipJournal`), private to
+ * its author. `start_text` is what the session began from (empty, or the rendering it revises);
+ * `text` is the wording its events have made so far, and `head_hash` the hash of its last event
+ * (or of the journal itself, before any). Deleted with the rendering.
+ */
+export const authorshipJournal = pgTable(
+  "authorship_journal",
+  {
+    id: id(),
+    compilationId: uuid("compilation_id")
+      .notNull()
+      .references(() => compilation.id, { onDelete: "cascade" }),
+    entered: text("entered").notNull(),
+    authorId: uuid("author_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    startText: text("start_text").notNull(),
+    text: text("text").notNull(),
+    headHash: text("head_hash").notNull(),
+    events: integer("events").notNull().default(0),
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull(),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+  },
+  (t) => [index("authorship_journal_verse_idx").on(t.compilationId, t.entered)],
+);
+
+/**
+ * A burst of writing in the editor (domain-model §2.3.1, `CompositionEvent`): at `position`,
+ * `removed` was replaced by `inserted`. A paste records where its text came from: `internal`
+ * (a translation shown in ScriptureTips, `paste_translation_id`) or `external`. Each `hash`
+ * covers the event and `prev_hash`, so the chain shows any later change.
+ */
+export const compositionEvent = pgTable(
+  "composition_event",
+  {
+    id: id(),
+    journalId: uuid("journal_id")
+      .notNull()
+      .references(() => authorshipJournal.id, { onDelete: "cascade" }),
+    seq: integer("seq").notNull(),
+    at: timestamp("at", { withTimezone: true }).notNull(),
+    /** Milliseconds since the session started, by the editor's clock. */
+    elapsed: integer("elapsed"),
+    kind: text("kind", {
+      enum: ["insert", "delete", "replace", "paste", "undo", "redo"],
+    }).notNull(),
+    position: integer("position").notNull(),
+    removed: text("removed").notNull(),
+    inserted: text("inserted").notNull(),
+    pasteOrigin: text("paste_origin", { enum: ["internal", "external"] }),
+    pasteTranslationId: uuid("paste_translation_id").references(() => translation.id, {
+      onDelete: "set null",
+    }),
+    prevHash: text("prev_hash").notNull(),
+    hash: text("hash").notNull(),
+  },
+  (t) => [unique().on(t.journalId, t.seq)],
+);
+
+/**
+ * What the author had in view while writing (domain-model §2.3.1, `StudyTrail`). So far the
+ * translations the editor showed; original-language tools come with §2.4.
+ */
+export const studyTrail = pgTable(
+  "study_trail",
+  {
+    id: id(),
+    journalId: uuid("journal_id")
+      .notNull()
+      .references(() => authorshipJournal.id, { onDelete: "cascade" }),
+    at: timestamp("at", { withTimezone: true }).notNull(),
+    resource: text("resource", { enum: ["translation_viewed"] }).notNull(),
+    translationId: uuid("translation_id").references(() => translation.id, {
+      onDelete: "set null",
+    }),
+  },
+  (t) => [index("study_trail_journal_idx").on(t.journalId)],
+);
+
+/**
+ * How closely a rendering's words follow one translation's (domain-model §2.3.1,
+ * `SimilarityReport`), computed when it's saved: `score` in percent, `matched` the runs of words
+ * they share. `text_hash` is the rendering's.
+ */
+export const similarityReport = pgTable(
+  "similarity_report",
+  {
+    id: id(),
+    compilationId: uuid("compilation_id")
+      .notNull()
+      .references(() => compilation.id, { onDelete: "cascade" }),
+    entered: text("entered").notNull(),
+    translationId: uuid("translation_id")
+      .notNull()
+      .references(() => translation.id, { onDelete: "cascade" }),
+    textHash: text("text_hash").notNull(),
+    score: integer("score").notNull(),
+    matched: jsonb("matched").$type<string[]>().notNull(),
+    computedAt: timestamp("computed_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique().on(t.compilationId, t.entered, t.translationId)],
+);
+
+/**
+ * The author's good-faith declaration that a rendering is their own composition
+ * (domain-model §2.3.1, `AuthorshipDeclaration`), of the statement version they were shown, over
+ * the text with hash `text_hash` and the journal chain as it stood (`chain_head`).
+ */
+export const authorshipDeclaration = pgTable(
+  "authorship_declaration",
+  {
+    id: id(),
+    compilationId: uuid("compilation_id")
+      .notNull()
+      .references(() => compilation.id, { onDelete: "cascade" }),
+    entered: text("entered").notNull(),
+    authorId: uuid("author_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    statementVersion: integer("statement_version").notNull(),
+    textHash: text("text_hash").notNull(),
+    journalId: uuid("journal_id").references(() => authorshipJournal.id, {
+      onDelete: "set null",
+    }),
+    chainHead: text("chain_head"),
+    declaredAt: timestamp("declared_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("authorship_declaration_verse_idx").on(t.compilationId, t.entered)],
 );

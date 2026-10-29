@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useRef, useState } from "react";
 import { useHydrated } from "../hydrated.ts";
 import { errorCode, useErrorText } from "./errors.ts";
 
@@ -447,5 +447,272 @@ export function RemoveVerseButton({
       </button>
       <ErrorText code={error} />
     </>
+  );
+}
+
+type EventKind = "insert" | "delete" | "replace" | "paste" | "undo" | "redo";
+
+/** The change from `before` to `after`, as one edit at one place; null if they're the same. */
+function delta(before: string, after: string) {
+  if (before === after) return null;
+  let start = 0;
+  while (start < before.length && start < after.length && before[start] === after[start]) start++;
+  let end = 0;
+  while (
+    end < before.length - start &&
+    end < after.length - start &&
+    before[before.length - 1 - end] === after[after.length - 1 - end]
+  )
+    end++;
+  return {
+    position: start,
+    removed: before.slice(start, before.length - end),
+    inserted: after.slice(start, after.length - end),
+  };
+}
+
+/** Typing is sent in bursts: after a pause, or once a burst has gone on this long. */
+const PAUSE = 1500;
+const LONGEST_BURST = 10_000;
+
+/** Input types recorded as their own events, apart from typing. */
+const SEPARATE: Record<string, EventKind> = {
+  insertFromPaste: "paste",
+  insertFromDrop: "paste",
+  historyUndo: "undo",
+  historyRedo: "redo",
+};
+
+/**
+ * Writes the user's own rendering of a verse (domain-model §2.3.1, vision §6.1). What they type
+ * is recorded in an authorship journal, in short bursts rather than keystrokes; pastes, undo
+ * and redo are recorded as their own events. Saving needs the declaration, unless the text was
+ * pasted from outside (then it's saved as pasted, to declare later). Words pasted from a
+ * translation on this page make it an edit of that translation, which the API decides.
+ */
+export function OwnRenderingForm({
+  slug,
+  reference,
+  initial,
+  statement,
+}: {
+  slug: string;
+  reference: string;
+  /** The compilation's own wording of the verse, if it has one: the journal starts from it. */
+  initial: string;
+  statement: { version: number; text: string };
+}) {
+  const t = useTranslations("compilations");
+  const router = useRouter();
+  const [text, setText] = useState(initial);
+  const [saved, setSaved] = useState<string | null>(null);
+  const { error, busy, hydrated, run } = useSubmit();
+  const journal = useRef<Promise<string | null> | null>(null);
+  /** The text as the journal has it. */
+  const recorded = useRef(initial);
+  const latest = useRef(initial);
+  const queue = useRef<Promise<string | null>>(Promise.resolve(null));
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const burstStart = useRef(0);
+  const started = useRef(0);
+
+  const open = () => {
+    journal.current ??= (async () => {
+      started.current = Date.now();
+      try {
+        const res = await fetch(`/api/compilations/${slug}/journals`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ reference }),
+        });
+        if (!res.ok) return null;
+        const body = (await res.json()) as { id: string; text: string };
+        // The journal starts from what the compilation has saved.
+        recorded.current = body.text;
+        return body.id;
+      } catch {
+        return null;
+      }
+    })();
+    return journal.current;
+  };
+
+  /** Records the change up to `value`; resolves to an error code once it's sent, if it failed. */
+  const record = (value: string, kind?: EventKind) => {
+    queue.current = queue.current.then(async (failed) => {
+      if (failed) return failed;
+      const id = await open();
+      if (!id) return "journal-failed";
+      const d = delta(recorded.current, value);
+      if (!d) return null;
+      recorded.current = value;
+      const event = {
+        kind: kind ?? (d.removed && d.inserted ? "replace" : d.removed ? "delete" : "insert"),
+        ...d,
+        elapsed: Date.now() - started.current,
+      };
+      return send("POST", `/api/compilations/${slug}/journals/${id}/events`, {
+        events: [event],
+      });
+    });
+    return queue.current;
+  };
+
+  const flush = () => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = null;
+    burstStart.current = 0;
+    return record(latest.current);
+  };
+
+  const change = (value: string, inputType: string | undefined) => {
+    const separate = inputType ? SEPARATE[inputType] : undefined;
+    if (separate) {
+      // What was typed before it is its own burst.
+      flush();
+      latest.current = value;
+      record(value, separate);
+    } else {
+      latest.current = value;
+      if (timer.current) clearTimeout(timer.current);
+      if (!burstStart.current) burstStart.current = Date.now();
+      if (Date.now() - burstStart.current > LONGEST_BURST) flush();
+      else timer.current = setTimeout(flush, PAUSE);
+    }
+    setText(value);
+    setSaved(null);
+  };
+
+  const submit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const declared = new FormData(e.currentTarget).get("declaration") === "yes";
+    const changeNote = String(new FormData(e.currentTarget).get("changeNote") ?? "");
+    setSaved(null);
+    run(
+      async () => {
+        const failed = await flush();
+        if (failed) return failed;
+        const id = await open();
+        if (!id) return "journal-failed";
+        try {
+          const res = await fetch(`/api/compilations/${slug}/verses`, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              reference,
+              journal: id,
+              changeNote,
+              ...(declared ? { declaration: statement.version } : {}),
+            }),
+          });
+          if (!res.ok) return errorCode(res);
+          const body = (await res.json()) as {
+            choice: { origin: string; editKind: string | null };
+            pastedFrom?: { abbreviation: string };
+          };
+          const { choice, pastedFrom } = body;
+          setSaved(
+            pastedFrom
+              ? t(
+                  choice.editKind === "adaptation"
+                    ? "savedPastedAdaptation"
+                    : "savedPastedCorrection",
+                  {
+                    source: pastedFrom.abbreviation,
+                  },
+                )
+              : choice.origin === "pasted"
+                ? t("savedPasted")
+                : t("savedOwn"),
+          );
+          return null;
+        } catch {
+          return "unavailable";
+        }
+      },
+      () => {
+        // The next save is a new writing session.
+        journal.current = null;
+        router.refresh();
+      },
+    );
+  };
+
+  return (
+    <form className="account-form" onSubmit={submit}>
+      <label>
+        <span>{t("ownWording")}</span>
+        {/* Not editable until hydrated, so nothing typed goes unrecorded. */}
+        <textarea
+          name="own"
+          required
+          maxLength={5000}
+          rows={5}
+          readOnly={!hydrated}
+          value={text}
+          onFocus={() => {
+            open();
+          }}
+          onChange={(e) =>
+            change(e.target.value, (e.nativeEvent as InputEvent | undefined)?.inputType)
+          }
+        />
+        <small>{t("ownHelp")}</small>
+      </label>
+      <label>
+        <span>{t("ownNote")}</span>
+        <input name="changeNote" maxLength={1000} />
+      </label>
+      <label className="choice">
+        <input type="checkbox" name="declaration" value="yes" />
+        <span>{statement.text}</span>
+      </label>
+      <ErrorText code={error} />
+      {saved ? (
+        <p role="status" className="saved">
+          {saved}
+        </p>
+      ) : null}
+      <button type="submit" disabled={busy || !hydrated}>
+        {t("saveOwn")}
+      </button>
+    </form>
+  );
+}
+
+/** Declares a pasted rendering the user's own (domain-model §2.3, `pasted` → `own`). */
+export function DeclareForm({
+  slug,
+  id,
+  statement,
+}: {
+  slug: string;
+  id: string;
+  statement: { version: number; text: string };
+}) {
+  const t = useTranslations("compilations");
+  const router = useRouter();
+  const { error, busy, hydrated, run } = useSubmit();
+  const submit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    run(
+      () =>
+        send("POST", `/api/compilations/${slug}/verses/${id}/declaration`, {
+          statement: statement.version,
+        }),
+      () => router.refresh(),
+    );
+  };
+  return (
+    <form className="account-form" onSubmit={submit}>
+      <label className="choice">
+        <input type="checkbox" name="declaration" required />
+        <span>{statement.text}</span>
+      </label>
+      <ErrorText code={error} />
+      <button type="submit" disabled={busy || !hydrated}>
+        {t("declare")}
+      </button>
+    </form>
   );
 }

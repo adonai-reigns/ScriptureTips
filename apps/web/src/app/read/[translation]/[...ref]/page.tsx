@@ -13,7 +13,7 @@ import {
   neighbors,
   readingOrder,
 } from "../../../../reader/books.ts";
-import { EDIT_MARKS, Passage } from "../../../../reader/Passage.tsx";
+import { Passage, VERSE_MARKS } from "../../../../reader/Passage.tsx";
 import { bookSlug, ownsCompilation, readerTarget, referenceFor } from "../../../../reader/paths.ts";
 import { SearchForm } from "../../../../reader/SearchForm.tsx";
 
@@ -110,10 +110,11 @@ export default async function Read(props: Props) {
       : result.ok
         ? result.translation.name
         : null;
-  // And names who changed which translations' wording, by the mark on those verses.
+  // And names who changed which translations' wording, and who wrote their own, by the mark
+  // on those verses (vision §3.1: "translated by [user]").
   const handle = id.startsWith("@") ? (id.split("/")[0] ?? "").slice(1) : "";
   const list = new Intl.ListFormat(await getLocale());
-  const notices = result.ok
+  const notices: { kind: string; text: string }[] = result.ok
     ? (["correction", "adaptation"] as const).flatMap((kind) => {
         const ids = new Set(
           result.passages.flatMap((p) =>
@@ -126,7 +127,7 @@ export default async function Read(props: Props) {
               {
                 kind,
                 text: tr(kind === "correction" ? "correctedFrom" : "adaptedFrom", {
-                  mark: EDIT_MARKS[kind],
+                  mark: VERSE_MARKS[kind],
                   handle,
                   sources: list.format(names),
                 }),
@@ -135,6 +136,13 @@ export default async function Read(props: Props) {
           : [];
       })
     : [];
+  if (result.ok)
+    for (const kind of ["own", "pasted"] as const)
+      if (result.passages.some((p) => p.verses.some((v) => v.rendering === kind)))
+        notices.push({
+          kind,
+          text: tr(kind === "own" ? "ownBy" : "pastedBy", { mark: VERSE_MARKS[kind], handle }),
+        });
   return (
     <div className="reader">
       <SearchForm translation={id} reference={reference} />

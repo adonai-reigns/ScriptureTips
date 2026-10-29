@@ -31,6 +31,8 @@ export interface CompilationSummary {
 }
 
 export type EditKind = "correction" | "adaptation";
+/** The user's own wording: `pasted` until they declare it their own. */
+export type Rendering = "own" | "pasted";
 
 /** A single-verse choice (domain-model §2.3, CompilationVerse). */
 export interface VerseChoice {
@@ -38,9 +40,10 @@ export interface VerseChoice {
   /** OSIS in the compilation's numbering: "Gen.1.3". */
   entered: string;
   label: string;
-  origin: "source" | "edited";
+  origin: "source" | "edited" | Rendering;
   editKind: EditKind | null;
-  source: SourceView;
+  /** Null for the user's own wording. */
+  source: SourceView | null;
   changeNote: string | null;
   /** An edited verse's source has changed since the edit. */
   sourceChanged: boolean;
@@ -56,8 +59,24 @@ export interface Compilation extends CompilationSummary {
 export interface VerseEditor {
   label: string;
   entered: string;
-  current: { source: SourceView; edit: EditKind | null; text: string };
+  current: {
+    origin: VerseChoice["origin"];
+    source: SourceView | null;
+    edit: EditKind | null;
+    text: string;
+  };
   choice: VerseChoice | null;
+  /** For the user's own wording: its authorship evidence (domain-model §2.3.1). */
+  authorship: {
+    sessions: number;
+    events: number;
+    externalPastes: number;
+    verified: boolean;
+    declaredAt: string | null;
+    similarity: { translation: SourceView; score: number; matched: string[] }[];
+  } | null;
+  /** The version of the declaration statement to show (messages `statement{n}`). */
+  statement: number;
   options: {
     translation: SourceView;
     text: string;

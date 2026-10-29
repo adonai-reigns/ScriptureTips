@@ -2,7 +2,7 @@ import { type CanonId, standing } from "@scripturetips/canon";
 import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 import type { PassageResult } from "./api.ts";
-import { type Block, layOut, noteBody, type Shown } from "./layout.ts";
+import { type Block, layOut, noteBody, type Shown, type VerseMark } from "./layout.ts";
 
 /** Lower corner brackets (U+2E24, U+2E25): the LEB's marks around an idiomatic phrase. */
 const IDIOM_OPEN = String.fromCharCode(0x2e24);
@@ -76,8 +76,16 @@ const HEADINGS: Readonly<Record<string, "h2" | "h3" | "h4" | "p">> = {
   qa: "h4",
 };
 
-/** A compilation's changed verses: † corrected, ‡ adapted (vision §3.1, modification notices). */
-export const EDIT_MARKS = { correction: "†", adaptation: "‡" } as const;
+/**
+ * A compilation's verses that differ from a translation's: † corrected, ‡ adapted (vision §3.1,
+ * modification notices), § the user's own rendering, * pasted and not yet declared their own.
+ */
+export const VERSE_MARKS: Readonly<Record<VerseMark, string>> = {
+  correction: "†",
+  adaptation: "‡",
+  own: "§",
+  pasted: "*",
+};
 
 function BlockView({
   block,
@@ -85,7 +93,7 @@ function BlockView({
 }: {
   block: Block;
   /** Words read out after a changed verse's number, for screen readers. */
-  edited: Record<"correction" | "adaptation", string>;
+  edited: Record<VerseMark, string>;
 }): ReactNode {
   if (block.kind === "heading") {
     const Element = HEADINGS[block.marker] ?? "p";
@@ -100,12 +108,12 @@ function BlockView({
     <p className={`b-${block.marker}`}>
       {block.pieces.map((p) =>
         p.kind === "verse" ? (
-          <sup key={p.id} id={p.id} className={p.edit ? "verse edited" : "verse"}>
+          <sup key={p.id} id={p.id} className={p.mark ? "verse edited" : "verse"}>
             {p.label}
-            {p.edit ? (
+            {p.mark ? (
               <>
-                <span aria-hidden="true">{EDIT_MARKS[p.edit]}</span>
-                <span className="visually-hidden"> {edited[p.edit]}</span>
+                <span aria-hidden="true">{VERSE_MARKS[p.mark]}</span>
+                <span className="visually-hidden"> {edited[p.mark]}</span>
               </>
             ) : null}
           </sup>
@@ -149,7 +157,12 @@ export async function Passage({
           <BlockView
             key={b.key}
             block={b}
-            edited={{ correction: t("corrected"), adaptation: t("adapted") }}
+            edited={{
+              correction: t("corrected"),
+              adaptation: t("adapted"),
+              own: t("ownRendering"),
+              pasted: t("pasted"),
+            }}
           />
         ))}
       </div>

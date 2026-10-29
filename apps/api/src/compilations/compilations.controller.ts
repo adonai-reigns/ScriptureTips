@@ -9,13 +9,15 @@ import {
   Param,
   Post,
   Query,
+  Res,
 } from "@nestjs/common";
 import { z } from "zod";
 import type { Auth } from "../auth/auth.ts";
 import { signedInUser, type User } from "../auth/session.ts";
-import { AUTH } from "../auth/tokens.ts";
+import { AUTH, type FastifyReplyLike } from "../auth/tokens.ts";
 import { DATABASE, type Database } from "../database.ts";
 import { ZodPipe } from "../zod-pipe.ts";
+import { MAX_TEXT } from "./authorship.service.ts";
 import {
   type CompilationSummary,
   CompilationsService,
@@ -52,16 +54,47 @@ const NewRule = z
 
 const PassageQuery = z.object({ ref: z.string().trim().min(1).max(200) });
 
-/** A single verse taken from `source`; with `text`, that source's wording edited. */
+/**
+ * A single verse taken from `source`; with `text`, that source's wording edited. Or, with
+ * `journal`, the wording that journal recorded, declared the user's own with `declaration`
+ * (the statement version they were shown).
+ */
 const VerseChoice = z
   .object({
     reference: z.string().trim().min(1).max(200),
-    source: TranslationId,
-    text: z.string().trim().min(1).max(5000).optional(),
+    source: TranslationId.optional(),
+    text: z.string().trim().min(1).max(MAX_TEXT).optional(),
     kind: z.enum(["correction", "adaptation"]).optional(),
     changeNote: z.string().trim().max(1000).optional(),
+    journal: z.uuid().optional(),
+    declaration: z.number().int().positive().optional(),
+  })
+  .strict()
+  .refine((v) => (v.source === undefined) !== (v.journal === undefined));
+
+const NewJournal = z.object({ reference: z.string().trim().min(1).max(200) }).strict();
+
+/** A burst of writing in the editor: at `position`, `removed` became `inserted`. */
+const JournalEvents = z
+  .object({
+    events: z
+      .array(
+        z
+          .object({
+            kind: z.enum(["insert", "delete", "replace", "paste", "undo", "redo"]),
+            position: z.number().int().min(0).max(MAX_TEXT),
+            removed: z.string().max(MAX_TEXT),
+            inserted: z.string().max(MAX_TEXT),
+            elapsed: z.number().int().min(0).optional(),
+          })
+          .strict(),
+      )
+      .min(1)
+      .max(200),
   })
   .strict();
+
+const Declaration = z.object({ statement: z.number().int().positive() }).strict();
 
 /** The signed-in user's compilations (domain-model §2.3). Errors come back as codes. */
 @Controller("compilations")
@@ -139,6 +172,60 @@ export class CompilationsController {
     @Body(new ZodPipe(VerseChoice)) body: z.infer<typeof VerseChoice>,
   ): Promise<{ choice: VerseChoiceView; changes: number }> {
     return this.compilations.saveVerse(await this.user(headers), slug, body);
+  }
+
+  /** Starts a session of writing the user's own rendering (domain-model §2.3.1). */
+  @Post(":slug/journals")
+  async startJournal(
+    @Headers() headers: Record<string, string>,
+    @Param("slug", new ZodPipe(Slug)) slug: string,
+    @Body(new ZodPipe(NewJournal)) body: z.infer<typeof NewJournal>,
+  ): Promise<{ id: string; text: string }> {
+    return this.compilations.startJournal(await this.user(headers), slug, body.reference);
+  }
+
+  @Post(":slug/journals/:journal/events")
+  @HttpCode(200)
+  async recordEvents(
+    @Headers() headers: Record<string, string>,
+    @Param("slug", new ZodPipe(Slug)) slug: string,
+    @Param("journal", new ZodPipe(z.uuid())) journal: string,
+    @Body(new ZodPipe(JournalEvents)) body: z.infer<typeof JournalEvents>,
+  ): Promise<{ events: number; length: number }> {
+    return this.compilations.recordEvents(await this.user(headers), slug, journal, body.events);
+  }
+
+  /** Declares a pasted rendering the user's own. */
+  @Post(":slug/verses/:verse/declaration")
+  @HttpCode(200)
+  async declareVerse(
+    @Headers() headers: Record<string, string>,
+    @Param("slug", new ZodPipe(Slug)) slug: string,
+    @Param("verse", new ZodPipe(z.uuid())) verse: string,
+    @Body(new ZodPipe(Declaration)) body: z.infer<typeof Declaration>,
+  ): Promise<{ choice: VerseChoiceView }> {
+    return {
+      choice: await this.compilations.declareVerse(
+        await this.user(headers),
+        slug,
+        verse,
+        body.statement,
+      ),
+    };
+  }
+
+  /** An own rendering's evidence bundle, as a file to keep. */
+  @Get(":slug/verses/:verse/evidence")
+  async evidence(
+    @Headers() headers: Record<string, string>,
+    @Param("slug", new ZodPipe(Slug)) slug: string,
+    @Param("verse", new ZodPipe(z.uuid())) verse: string,
+    @Res({ passthrough: true }) reply: FastifyReplyLike,
+  ): Promise<unknown> {
+    const bundle = await this.compilations.evidence(await this.user(headers), slug, verse);
+    const name = `evidence-${slug.toLowerCase()}-${bundle.verse.entered}.json`;
+    reply.header("content-disposition", `attachment; filename="${name}"`);
+    return bundle;
   }
 
   @Delete(":slug/verses/:verse")

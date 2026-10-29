@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 import { arriveFromOwnAddress, shot, signUp } from "./support.ts";
 
@@ -85,13 +86,13 @@ test("domain-model §2.3: take a single verse, correct one and adapt another, cr
 
   // A one-word correction of the KJV.
   await page.goto("/compilations/verses/verse?ref=Genesis%201:1");
-  const wording = page.getByRole("textbox", { name: "Wording" });
+  const wording = page.getByRole("textbox", { name: "Wording", exact: true });
   await expect(wording).toHaveValue("In the beginning God created the heaven and the earth.");
   await wording.fill("In the beginning God created the heavens and the earth.");
   await page
     .getByRole("textbox", { name: "Why you changed it (optional)" })
     .fill("Plural in Hebrew.");
-  await page.getByRole("button", { name: "Save" }).click();
+  await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(page.getByRole("status")).toHaveText("Saved as a correction.");
   await expect(page.getByText("Corrected from the KJV.")).toBeVisible({ timeout: 15_000 });
   await page.screenshot(shot("compilation-verse"));
@@ -99,9 +100,9 @@ test("domain-model §2.3: take a single verse, correct one and adapt another, cr
   // A bigger change can't be a correction.
   await page.goto("/compilations/verses/verse?ref=Genesis%201:2");
   await page
-    .getByRole("textbox", { name: "Wording" })
+    .getByRole("textbox", { name: "Wording", exact: true })
     .fill("The earth had no shape and was empty.");
-  await page.getByRole("button", { name: "Save" }).click();
+  await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(page.getByRole("status")).toHaveText(
     /^Saved as an adaptation: \d+ changes to words or punctuation, more than a correction allows\.$/,
   );
@@ -126,6 +127,82 @@ test("domain-model §2.3: take a single verse, correct one and adapt another, cr
   await expect(page.getByText("Genesis 1:1, corrected from the KJV")).toHaveCount(0, {
     timeout: 15_000,
   });
+});
+
+test("domain-model §2.3.1: write an own rendering with its evidence, and declare text pasted from outside", async ({
+  page,
+  context,
+}) => {
+  test.setTimeout(90_000);
+  const handle = await signUp(page);
+  await page.goto("/compilations");
+  await page.getByRole("textbox", { name: "Title" }).fill("Own Words");
+  await page.getByRole("textbox", { name: "Abbreviation" }).fill("Own");
+  await page.getByRole("combobox", { name: "Base translation" }).selectOption("eng-kjv");
+  await page.getByRole("button", { name: "Create" }).click();
+  await expect(page).toHaveURL(/\/compilations\/own$/);
+
+  // Typed in the editor, then declared.
+  await page.goto("/compilations/own/verse?ref=Genesis%201:1");
+  const own = page.getByRole("textbox", { name: /^Your wording/ });
+  await expect(own).toBeEditable();
+  await own.click();
+  await own.pressSequentially("In the beginning God made the skies", { delay: 5 });
+  await own.press("End");
+  await own.pressSequentially(" and the land.", { delay: 5 });
+  const save = page.getByRole("button", { name: "Save my rendering" });
+  await save.click();
+  await expect(
+    page.getByRole("alert").filter({ hasText: "Tick the declaration to save it as your own." }),
+  ).toBeVisible();
+  await page.getByRole("checkbox", { name: /^I declare/ }).check();
+  await save.click();
+  await expect(page.getByRole("status")).toHaveText("Saved as your own rendering.");
+  await expect(page.getByText("Your own rendering.")).toBeVisible({ timeout: 15_000 });
+  const evidence = page.locator(".evidence");
+  await expect(evidence).toContainText("The record is intact.");
+  await expect(evidence).toContainText("You declared it your own on");
+  await expect(evidence).toContainText(/\d+% similar to the KJV/);
+  await page.screenshot(shot("compilation-own"));
+
+  // The evidence downloads as a file, its journal intact.
+  const download = page.waitForEvent("download");
+  await page.getByRole("link", { name: "Download the evidence (JSON)" }).click();
+  const file = await (await download).path();
+  const bundle = JSON.parse(readFileSync(file, "utf8"));
+  expect(bundle).toMatchObject({
+    verse: { origin: "own", text: "In the beginning God made the skies and the land." },
+  });
+  expect(bundle.journals[0].verified).toBe(true);
+  expect(bundle.journals[0].events.length).toBeGreaterThan(0);
+
+  // Pasted from outside: saved as pasted until it's declared.
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto("/compilations/own/verse?ref=Genesis%201:2");
+  await expect(own).toBeEditable();
+  await own.click();
+  await page.evaluate(() => navigator.clipboard.writeText("Words copied from another book."));
+  await own.press("ControlOrMeta+V");
+  await expect(own).toHaveValue("Words copied from another book.");
+  await save.click();
+  await expect(page.getByRole("status")).toHaveText(
+    "Saved as pasted text. Declare it your own when you're ready.",
+  );
+  await expect(page.getByText(/^Pasted from outside ScriptureTips\./)).toBeVisible({
+    timeout: 15_000,
+  });
+  await expect(evidence).toContainText("1 paste from outside");
+  await evidence.getByRole("checkbox", { name: /^I declare/ }).check();
+  await evidence.getByRole("button", { name: "Declare it my own" }).click();
+  await expect(page.getByText("Your own rendering.")).toBeVisible({ timeout: 15_000 });
+
+  // The reader marks and credits the user's own wording.
+  await page.goto(`/read/@${handle}/own/genesis/1`);
+  await expect(page.locator(".scripture")).toContainText("God made the skies and the land.");
+  await expect(page.locator(".scripture")).toContainText("Words copied from another book.");
+  await expect(page.getByText(`§ Translated by @${handle}.`)).toBeVisible();
+  await expect(page.locator(".verse.edited")).toHaveCount(2);
+  await page.screenshot(shot("compilation-reader-own"));
 });
 
 test("a compilation is private to its owner", async ({ page }) => {

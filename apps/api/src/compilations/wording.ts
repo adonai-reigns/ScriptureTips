@@ -115,6 +115,16 @@ export function changes(before: string, after: string): number {
 export const wordCount = (text: string): number =>
   tokens(text).filter((t) => t.kind === "word").length;
 
+/** A wording's words, as written. */
+export const wordsIn = (text: string): string[] =>
+  tokens(text)
+    .filter((t) => t.kind === "word")
+    .map((t) => t.text);
+
+/** A wording's words, in lowercase with one kind of apostrophe: what similarity compares. */
+export const wordsOf = (text: string): string[] =>
+  wordsIn(text).map((w) => w.toLowerCase().replace(/’/g, "'"));
+
 interface Item {
   readonly path: readonly Wrapper[];
   readonly text?: string;

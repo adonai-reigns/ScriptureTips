@@ -83,20 +83,21 @@ export default async function CompilationEditor({ params }: Props) {
       ) : (
         <ul className="rule-list">
           {c.verses.map((v) => {
-            const values = { verse: v.label, source: v.source.abbreviation };
+            const values = { verse: v.label, source: v.source?.abbreviation ?? "" };
             return (
               <li key={v.id}>
                 <span>
-                  {v.editKind === "correction"
-                    ? t("verseCorrected", values)
-                    : v.editKind === "adaptation"
-                      ? t("verseAdapted", values)
-                      : t("verseFrom", values)}
+                  {v.origin === "own"
+                    ? t("verseOwn", values)
+                    : v.origin === "pasted"
+                      ? t("versePasted", values)
+                      : v.editKind === "correction"
+                        ? t("verseCorrected", values)
+                        : v.editKind === "adaptation"
+                          ? t("verseAdapted", values)
+                          : t("verseFrom", values)}
                   {v.sourceChanged ? (
-                    <small className="warning">
-                      {" "}
-                      {t("sourceChanged", { source: v.source.abbreviation })}
-                    </small>
+                    <small className="warning"> {t("sourceChanged", values)}</small>
                   ) : null}
                 </span>
                 <a
