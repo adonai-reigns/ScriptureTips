@@ -375,6 +375,16 @@
     "removeColumn": "Remove the {source} column",
     "removeTooltip": "Remove this column",
     "loadingColumn": "Loading…",
+    "notIn": "Not in the {source}.",
+    "compareChoice": "Translations to compare with",
+    "compareChoiceHeading": "Compare with (up to {max})",
+    "unsavedRegion": "Changes not saved",
+    "unsaved": "{count, plural, one {# verse changed} other {# verses changed}}",
+    "undoChanges": "Undo",
+    "saveChanges": "Save",
+    "saving": "Saving…",
+    "swipeHint": "Swipe a verse left or right, or use the arrow keys, to read it in the other translations.",
+    "books": "Books",
     "addTooltip": "Add a column after this one"
   }
 }

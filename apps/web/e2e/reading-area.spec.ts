@@ -3,8 +3,8 @@ import { arriveFromOwnAddress, shot, signUp } from "./support.ts";
 
 arriveFromOwnAddress();
 
-// The reading area isn't laid out for phones yet (the owner will design that separately).
-test.skip(({ isMobile }) => isMobile, "The reading area's phone layout isn't designed yet.");
+// The desktop layout; a phone's compare and edit modes are in reading-area-phone.spec.ts.
+test.skip(({ isMobile }) => isMobile, "Phones have their own layout and tests.");
 
 // Chapter changes and saves wait on the API, which is slow while the whole suite runs at once.
 const expect = baseExpect.configure({ timeout: 15_000 });

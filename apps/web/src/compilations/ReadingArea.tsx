@@ -7,6 +7,7 @@ import { passage, type Translation } from "../reader/api.ts";
 import { type ChapterRef, neighbors } from "../reader/books.ts";
 import { Passage } from "../reader/Passage.tsx";
 import { type Compilation, compareView } from "./api.ts";
+import { CompareChoice } from "./CompareChoice.tsx";
 import { CompareGrid } from "./CompareGrid.tsx";
 import { LinkPending } from "./LinkPending.tsx";
 
@@ -32,6 +33,7 @@ export async function ReadingArea({
   mode,
   canon,
   all,
+  books,
 }: {
   c: Compilation;
   osis: string;
@@ -44,7 +46,10 @@ export async function ReadingArea({
   canon: CanonId | null;
   /** Every translation, for the comparison columns. */
   all: Translation[];
+  /** The book tabs, opened from the book's name on a phone while comparing or editing. */
+  books?: React.ReactNode;
 }) {
+  const picker = mode !== "read" && books;
   const t = await getTranslations("reading");
   const bookName = english.name(osis, "full", "one");
   const ref = `${bookName} ${chapter}`;
@@ -59,6 +64,7 @@ export async function ReadingArea({
     if (!columnIds.includes(x.id)) columnIds.push(x.id);
   }
 
+  const options = others.map((x) => ({ id: x.id, label: `${x.abbreviation}: ${x.name}` }));
   let body: React.ReactNode;
   if (mode === "read") {
     const result = await passage(c.id, ref);
@@ -91,7 +97,7 @@ export async function ReadingArea({
         abbreviation={c.abbreviation}
         baseId={c.base.id}
         columnIds={view.columns.map((col) => col.id)}
-        options={others.map((x) => ({ id: x.id, label: `${x.abbreviation}: ${x.name}` }))}
+        options={options}
         sourceNames={Object.fromEntries(all.map((x) => [x.id, x.abbreviation]))}
         chapterOsis={`${osis}.${chapter}`}
         sources={all
@@ -107,19 +113,24 @@ export async function ReadingArea({
     <section className="reading" aria-labelledby="reading-title">
       {/* The modes and the chapter bar stay at the top of the window while it scrolls. */}
       <div className="reading-head">
-        <nav className="reading-modes" aria-label={t("modes")}>
-          {READING_MODES.map((m) => (
-            <Link
-              scroll={false}
-              key={m}
-              href={readingHref(osis, chapter, m)}
-              aria-current={m === mode ? "page" : undefined}
-            >
-              {t(`mode.${m}`)}
-              <LinkPending />
-            </Link>
-          ))}
-        </nav>
+        <div className="reading-tools">
+          <nav className="reading-modes" aria-label={t("modes")}>
+            {READING_MODES.map((m) => (
+              <Link
+                scroll={false}
+                key={m}
+                href={readingHref(osis, chapter, m)}
+                aria-current={m === mode ? "page" : undefined}
+              >
+                {t(`mode.${m}`)}
+                <LinkPending />
+              </Link>
+            ))}
+          </nav>
+          {mode !== "read" ? (
+            <CompareChoice slug={c.slug} chosen={columnIds} options={options} />
+          ) : null}
+        </div>
         <header className="reading-bar">
           {previous ? (
             <Link
@@ -138,11 +149,26 @@ export async function ReadingArea({
           {/* A new chapter's title is a new element, so the list it was picked from closes. */}
           <div className="reading-title" key={`${osis}.${chapter}`}>
             <h2 id="reading-title">
-              {bookName}{" "}
+              {picker ? (
+                <>
+                  {/* On a phone the name opens the books, as a popover (closed by a tap outside). */}
+                  <span className="book-name">{bookName}</span>
+                  <button type="button" className="book-button" popoverTarget="book-picker">
+                    {bookName}
+                  </button>
+                </>
+              ) : (
+                bookName
+              )}{" "}
               <button type="button" className="chapter-button" aria-haspopup="true">
                 {chapter}
               </button>
             </h2>
+            {picker ? (
+              <nav id="book-picker" popover="auto" className="book-picker" aria-label={t("books")}>
+                {books}
+              </nav>
+            ) : null}
             {/* Shown while the chapter number is hovered or focused, or the list itself is. */}
             <nav className="chapter-list" aria-label={t("chapters")}>
               {chapters.map((n) => (

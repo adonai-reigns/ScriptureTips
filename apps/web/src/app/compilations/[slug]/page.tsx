@@ -64,6 +64,23 @@ export default async function CompilationEditor({ params, searchParams }: Props)
     ...c.rules.map((r) => `r${r.id}:${r.source.id}`),
     ...c.verses.map((v) => `v${v.id}:${v.origin}:${v.source?.id ?? ""}`),
   ].join(",");
+  const sources = compilable.map((s) => ({ id: s.id, label: `${s.abbreviation}: ${s.name}` }));
+  const tabs = sections.map((section) => ({
+    id: section.id,
+    label: tr(`section.${section.id}`),
+    books: section.books.map((b) => {
+      const s = bookSource(b.osis, c.rules, c.base);
+      return {
+        osis: b.osis,
+        name: english.name(b.osis, "full", "several"),
+        source: s.source.id,
+        abbreviation: s.source.abbreviation,
+        overridden: s.rule !== undefined,
+        href: readingHref(b.osis, b.chapters[0] ?? 1, mode),
+        current: b.osis === book?.osis,
+      };
+    }),
+  }));
   return (
     <div className="compilation">
       <div className="compilation-top">
@@ -146,23 +163,8 @@ export default async function CompilationEditor({ params, searchParams }: Props)
                 </ModalButton>
               </>
             }
-            sources={compilable.map((s) => ({ id: s.id, label: `${s.abbreviation}: ${s.name}` }))}
-            tabs={sections.map((section) => ({
-              id: section.id,
-              label: tr(`section.${section.id}`),
-              books: section.books.map((b) => {
-                const s = bookSource(b.osis, c.rules, c.base);
-                return {
-                  osis: b.osis,
-                  name: english.name(b.osis, "full", "several"),
-                  source: s.source.id,
-                  abbreviation: s.source.abbreviation,
-                  overridden: s.rule !== undefined,
-                  href: readingHref(b.osis, b.chapters[0] ?? 1, mode),
-                  current: b.osis === book?.osis,
-                };
-              }),
-            }))}
+            sources={sources}
+            tabs={tabs}
           />
         </div>
       </div>
@@ -176,6 +178,17 @@ export default async function CompilationEditor({ params, searchParams }: Props)
           mode={mode}
           canon={account.canon}
           all={all}
+          books={
+            // On a phone, the sticky head's book list, for changing book while comparing.
+            <BookTabs
+              slug={c.slug}
+              label={t("bookMenus")}
+              sources={sources}
+              tabs={tabs}
+              menus={false}
+              idPrefix="picker"
+            />
+          }
         />
       ) : null}
     </div>

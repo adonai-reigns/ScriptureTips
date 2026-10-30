@@ -130,7 +130,8 @@ main {
 
 .compilation-top-main {
   flex: 2.6 1 0;
-  min-width: 24rem;
+  /* Never wider than the screen, on a phone narrower than this. */
+  min-width: min(24rem, 100%);
 }
 
 /* The books by section, as tabs: one section's books at a time, in columns. */
@@ -1502,6 +1503,50 @@ a.reading-step:focus-visible {
   overflow: hidden;
 }
 
+/* The mode buttons, and while comparing, the ⋮ that picks the translations compared with. */
+.reading-tools {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.compare-choice-toggle {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-color: var(--rule);
+  opacity: 1;
+}
+
+.compare-choice label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+}
+
+.compare-choice label:hover {
+  background: color-mix(in srgb, var(--pale) 35%, var(--paper));
+}
+
+.compare-choice label:has(input:disabled) {
+  cursor: default;
+}
+
+.compare-choice input {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin: 0;
+  accent-color: var(--deep);
+}
+
+.compare-choice .spinner {
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-left: 0.5rem;
+}
+
 .reading-modes a {
   display: flex;
   align-items: center;
@@ -1798,16 +1843,158 @@ a.reading-step:focus-visible {
   cursor: progress;
 }
 
+/*
+ * The compare and edit modes on a phone: the chapter in one column (CompareList) instead of the
+ * table, each verse swiped sideways through the translations. The book's name in the sticky head
+ * opens the book tabs. Hidden on wider screens.
+ */
+.compare-phone,
+.book-button {
+  display: none;
+}
+
 @media (max-width: 48rem) {
   .reading-modes {
     margin-left: 0;
   }
 
-  .compare {
-    overflow-x: auto;
+  /* The modes at the left, the ⋮ against the right edge. */
+  .compare-choice-toggle {
+    margin-left: auto;
   }
 
-  .compare-grid {
-    min-width: 40rem;
+  .compare-pane,
+  .compare-scrollbar {
+    display: none;
+  }
+
+  .compare-phone {
+    display: block;
+  }
+
+  .compare-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .compare-list li {
+    overflow: hidden;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  /* Follows a finger sideways, and springs back when let go; up and down scroll the page. */
+  .compare-list-verse {
+    padding: 0.5rem 0.75rem;
+    font-family: var(--serif);
+    font-size: 1.05rem;
+    line-height: 1.6;
+    touch-action: pan-y;
+    user-select: none;
+    transition: transform 0.2s ease-out;
+  }
+
+  .compare-list-verse.dragging {
+    transition: none;
+  }
+
+  .compare-list-verse:focus-visible {
+    outline: 2px solid var(--deep);
+    outline-offset: -2px;
+  }
+
+  /* Which translation the verse is shown in, and where it is among them. */
+  .compare-list-source {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--sans);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--deep);
+  }
+
+  /* The compilation's own verse: where it comes from, quieter than a translation swiped to. */
+  .compare-list-source.own {
+    font-weight: 500;
+    color: var(--muted);
+  }
+
+  .compare-list-dots {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .compare-list-dots span {
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 50%;
+    background: var(--rule);
+  }
+
+  .compare-list-dots span.on {
+    background: var(--deep);
+  }
+
+  /* Held at the bottom of the window while there are changes to save. */
+  .compare-save {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 3.5rem;
+    margin: 0 -1rem;
+    padding: 0.5rem 1rem;
+    background: var(--paper);
+    border-top: 1px solid var(--rule);
+    box-shadow: 0 -2px 8px rgb(0 40 80 / 0.08);
+  }
+
+  .compare-save p {
+    flex: 1;
+    margin: 0;
+    font-size: 0.95rem;
+  }
+
+  .compare-save button {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.5rem;
+  }
+
+  .compare-list-missing {
+    font-family: var(--sans);
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+
+  /* The book's name opens the book tabs, under the sticky head (a popover, so above it all). */
+  .book-name {
+    display: none;
+  }
+
+  .book-button {
+    display: inline;
+    font: inherit;
+    color: inherit;
+    padding: 0 0.3rem;
+    background: rgb(255 255 255 / 35%);
+    border: 1px solid rgb(29 35 42 / 25%);
+    border-radius: 4px;
+  }
+
+  .book-picker {
+    position: fixed;
+    inset: calc(var(--reading-head) + 0.25rem) 1rem auto;
+    margin: 0;
+    max-height: 65vh;
+    overflow-y: auto;
+    padding: 0 0.75rem 0.75rem;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    box-shadow: 0 6px 18px rgb(0 0 0 / 15%);
   }
 }

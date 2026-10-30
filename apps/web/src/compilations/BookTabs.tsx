@@ -38,6 +38,8 @@ export function BookTabs({
   label,
   sources,
   actions,
+  menus = true,
+  idPrefix = "book",
 }: {
   slug: string;
   tabs: BookTab[];
@@ -45,6 +47,10 @@ export function BookTabs({
   sources: BookSourceChoice[];
   /** Buttons at the right end of the tab row. */
   actions?: ReactNode;
+  /** The sections' and books' menus; left out where the tabs only pick a book. */
+  menus?: boolean;
+  /** Starts the tabs' and panel's IDs, unique when the tabs show twice on a page. */
+  idPrefix?: string;
 }) {
   const t = useTranslations("bookTabs");
   // Opens on the section of the book being read.
@@ -93,9 +99,9 @@ export function BookTabs({
               }}
               type="button"
               role="tab"
-              id={`book-tab-${tab.id}`}
+              id={`${idPrefix}-tab-${tab.id}`}
               aria-selected={tab.id === selected.id}
-              aria-controls={`book-panel-${tab.id}`}
+              aria-controls={`${idPrefix}-panel-${tab.id}`}
               tabIndex={tab.id === selected.id ? 0 : -1}
               style={{ order: 2 * i }}
               onPointerEnter={() => setHovered(tab.id)}
@@ -108,7 +114,7 @@ export function BookTabs({
           ))}
         </div>
         {/* Outside the tab list, which may hold only tabs; each is placed after its tab. */}
-        {tabs.map((tab, i) => (
+        {(menus ? tabs : []).map((tab, i) => (
           <div
             key={tab.id}
             className={`book-tab-menu${hovered === tab.id ? " shown" : ""}`}
@@ -131,8 +137,8 @@ export function BookTabs({
       </div>
       <ul
         role="tabpanel"
-        id={`book-panel-${selected.id}`}
-        aria-labelledby={`book-tab-${selected.id}`}
+        id={`${idPrefix}-panel-${selected.id}`}
+        aria-labelledby={`${idPrefix}-tab-${selected.id}`}
       >
         {selected.books.map((b) => (
           <li key={b.osis}>
@@ -144,14 +150,18 @@ export function BookTabs({
             >
               {b.name} <strong>{b.abbreviation}</strong>
             </Link>
-            <SourceMenu
-              label={t("menuFor", { book: b.name })}
-              heading={t("newBaseFor", { book: b.name })}
-              current={b.source}
-              confirmText={(source) => t("confirmReplace", { book: b.name, source: source.label })}
-              endpoint={`/api/compilations/${slug}/books/${b.osis}/source`}
-              sources={sources}
-            />
+            {menus ? (
+              <SourceMenu
+                label={t("menuFor", { book: b.name })}
+                heading={t("newBaseFor", { book: b.name })}
+                current={b.source}
+                confirmText={(source) =>
+                  t("confirmReplace", { book: b.name, source: source.label })
+                }
+                endpoint={`/api/compilations/${slug}/books/${b.osis}/source`}
+                sources={sources}
+              />
+            ) : null}
           </li>
         ))}
       </ul>

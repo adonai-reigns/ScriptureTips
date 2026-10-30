@@ -46,7 +46,7 @@ test("domain-model §2.3: build a compilation in layers, read it, and delete it"
   await page.getByRole("combobox", { name: "Base translation" }).selectOption("eng-kjv");
   await page.getByRole("button", { name: "Create" }).click();
   await expect(page).toHaveURL(/\/compilations\/mine$/, { timeout: 15_000 });
-  await expect(page.getByRole("heading", { name: "My Study Bible Mine", level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "My Study Bible", level: 1 })).toBeVisible();
 
   // Genesis 1 from the LEB, and the New Testament from the WEB.
   await addRule(page, "mine", { reference: "Genesis 1" }, "leb");

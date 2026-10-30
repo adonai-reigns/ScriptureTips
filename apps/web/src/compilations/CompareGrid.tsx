@@ -13,34 +13,18 @@ import {
   useTransition,
 } from "react";
 import type { Verse } from "../reader/api.ts";
-import { noteBody } from "../reader/layout.ts";
-import { ShownText } from "../reader/ShownText.tsx";
 import type { CompareView } from "./api.ts";
+import { CompareList } from "./CompareList.tsx";
+import { VerseText, verseLabel } from "./CompareVerse.tsx";
 import { errorCode, useErrorText } from "./errors.ts";
 import { InPlaceField } from "./forms.tsx";
 import { type BookSourceChoice, SourceMenu } from "./SourceMenu.tsx";
 
 /** The most translations shown beside the compilation (the API's `MAX_COMPARE`). */
-const MAX_COLUMNS = 10;
+export const MAX_COLUMNS = 10;
 
 /** Which comparison verse is chosen for a row: row index to column index. */
 type Selection = Map<number, number>;
-
-const label = (v: Verse) => v.published ?? (v.to ? `${v.verse}–${v.to}` : String(v.verse));
-
-function VerseText({ verse, number }: { verse: Verse; number: string }) {
-  return (
-    <>
-      {verse.headings.map((h, i) => (
-        // biome-ignore lint/suspicious/noArrayIndexKey: a verse's headings never reorder.
-        <span key={i} className="compare-heading">
-          <ShownText nodes={noteBody(h.content)} />
-        </span>
-      ))}
-      <sup className="compare-number">{number}</sup> <ShownText nodes={noteBody(verse.content)} />
-    </>
-  );
-}
 
 /**
  * The compilation beside up to three translations, verse by verse (the editor's compare and
@@ -297,6 +281,14 @@ export function CompareGrid({
   const working = busy || reloading;
 
   // The chapter's one source, if every verse comes from the same translation.
+  /** Where a verse of the compilation comes from: own wording, an edit, or a translation. */
+  const tagOf = (v: Verse) => {
+    const from = v.source ?? baseId;
+    if (v.rendering) return t(v.rendering);
+    if (v.edit) return t(v.edit, { source: sourceNames[from] ?? "" });
+    return sourceNames[from] ?? from;
+  };
+
   const chapterSources = new Set(view.rows.map((r) => r.verse.source ?? baseId));
   const chapterSource = chapterSources.size === 1 ? [...chapterSources][0] : undefined;
 
@@ -429,18 +421,14 @@ export function CompareGrid({
           </thead>
           <tbody>
             {view.rows.map((r, row) => {
-              const from = r.verse.source;
-              const tag = r.verse.rendering
-                ? t(r.verse.rendering)
-                : r.verse.edit
-                  ? t(r.verse.edit, { source: sourceNames[from ?? ""] ?? "" })
-                  : from && from !== baseId
-                    ? (sourceNames[from] ?? from)
-                    : null;
+              // The base's verses, unchanged, aren't marked here (the legend names it).
+              const v = r.verse;
+              const tag =
+                v.rendering || v.edit || (v.source && v.source !== baseId) ? tagOf(v) : null;
               return (
                 <tr key={`${r.verse.chapter}.${r.verse.verse}`}>
                   <td className="compare-own">
-                    <VerseText verse={r.verse} number={label(r.verse)} />
+                    <VerseText verse={r.verse} number={verseLabel(r.verse)} />
                     {tag ? <small className="compare-tag"> {tag}</small> : null}
                   </td>
                   {view.columns.map((column, col) => {
@@ -450,7 +438,9 @@ export function CompareGrid({
                         key={`${v.chapter}.${v.verse}`}
                         verse={v}
                         number={
-                          v.chapter === r.verse.chapter ? label(v) : `${v.chapter}:${label(v)}`
+                          v.chapter === r.verse.chapter
+                            ? verseLabel(v)
+                            : `${v.chapter}:${verseLabel(v)}`
                         }
                       />
                     ));
@@ -490,6 +480,15 @@ export function CompareGrid({
           </tbody>
         </table>
       </div>
+      {/* On a phone, the chapter in one column instead (CSS shows one or the other). */}
+      <CompareList
+        tags={view.rows.map((r) => tagOf(r.verse))}
+        slug={slug}
+        view={view}
+        mode={mode}
+        bookName={bookName}
+        abbreviation={abbreviation}
+      />
     </div>
   );
 }
