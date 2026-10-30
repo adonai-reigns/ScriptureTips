@@ -158,11 +158,12 @@ services:
     profiles: [dev]
 
   # Catches every email the stack sends, such as sign-in codes: read them at
-  # http://127.0.0.1:8025. Nothing leaves the machine.
+  # http://127.0.0.1:8025, or on the local network with `./dev up --lan` (it has no sign-in, so
+  # anyone on the network can read them then). Nothing leaves the machine.
   mailpit:
     image: axllent/mailpit:v1.31.4
     ports:
-      - 127.0.0.1:8025:8025
+      - ${LAN_BIND:-127.0.0.1}:8025:8025
     profiles: [dev]
 
   # The web app (apps/web), with hot reload. https://127.0.0.1:3000, or on the local network

@@ -40,11 +40,14 @@ case "${1:-}" in
       export LAN_BIND=0.0.0.0 DEV_ORIGINS="$(paste -sd, <<<"$addresses")"
       LAN_ORIGINS="$(for a in $addresses; do printf 'https://%s:3000\n' "$a"; done | paste -sd,)"
       export LAN_ORIGINS
-      docker compose --profile dev up -d --wait --force-recreate web api pdf-worker
-      for a in $addresses; do echo "Web app on the network: https://$a:3000"; done
+      docker compose --profile dev up -d --wait --force-recreate web api pdf-worker mailpit
+      for a in $addresses; do
+        echo "Web app on the network: https://$a:3000"
+        echo "Mailpit on the network: http://$a:8025"
+      done
       exit
     fi
-    exec docker compose --profile dev up -d --wait --force-recreate web api pdf-worker
+    exec docker compose --profile dev up -d --wait --force-recreate web api pdf-worker mailpit
     ;;
   down) exec docker compose --profile dev stop ;;
   logs) exec docker compose --profile dev logs -f "${@:2}" ;;
