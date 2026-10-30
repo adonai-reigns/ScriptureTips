@@ -301,6 +301,7 @@ test("a compilation is private to its owner", async ({ page }) => {
 
 test("vision §3.1: rename a compilation in place, its title and its abbreviation, checked as when created", async ({
   page,
+  isMobile,
 }) => {
   test.setTimeout(90_000);
   await signUp(page);
@@ -329,7 +330,9 @@ test("vision §3.1: rename a compilation in place, its title and its abbreviatio
   await expect(heading.getByRole("button", { name: "Final Words" })).toBeVisible();
 
   // The abbreviation heads the compilation's own column when comparing, and changes there. It
-  // keeps the create form's rules: a published translation's is refused.
+  // keeps the create form's rules: a published translation's is refused. Phones don't show that
+  // table, and have no place to change it yet.
+  if (isMobile) return;
   await page
     .getByRole("navigation", { name: "Reading mode" })
     .getByRole("link", { name: "Compare" })

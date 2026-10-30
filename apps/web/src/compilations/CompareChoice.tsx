@@ -2,10 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { type CSSProperties, useEffect, useRef, useState, useTransition } from "react";
+import { type CSSProperties, useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 import { MAX_COLUMNS } from "./CompareGrid.tsx";
 import { errorCode, useErrorText } from "./errors.ts";
+import { usePopupClose } from "./popup.ts";
 
 /**
  * Which translations the compare and edit modes show, ticked in a list behind a ⋮ beside the
@@ -44,26 +45,8 @@ export function CompareChoice({
     setOpen(true);
   };
 
-  // Closes on Escape (back to the ⋮) or a tap outside; focuses the first box when it opens.
-  useEffect(() => {
-    if (!open) return;
-    panel.current?.querySelector<HTMLInputElement>("input")?.focus({ preventScroll: true });
-    const outside = (e: PointerEvent) => {
-      const target = e.target as Node;
-      if (!toggle.current?.contains(target) && !panel.current?.contains(target)) setOpen(false);
-    };
-    const onEscape = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      setOpen(false);
-      toggle.current?.focus();
-    };
-    document.addEventListener("pointerdown", outside);
-    document.addEventListener("keydown", onEscape);
-    return () => {
-      document.removeEventListener("pointerdown", outside);
-      document.removeEventListener("keydown", onEscape);
-    };
-  }, [open]);
+  const close = useCallback(() => setOpen(false), []);
+  usePopupClose(open, close, toggle, panel, "input");
 
   const tick = async (id: string, on: boolean) => {
     const next = on ? [...ids, id] : ids.filter((x) => x !== id);
@@ -102,7 +85,7 @@ export function CompareChoice({
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-label={t("compareChoice")}
-        onClick={() => (open ? setOpen(false) : show())}
+        onClick={() => (open ? close() : show())}
       >
         <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
           <circle cx="8" cy="3" r="1.5" />

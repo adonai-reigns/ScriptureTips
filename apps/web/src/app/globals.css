@@ -424,8 +424,10 @@ main {
   font-size: 0.95rem;
 }
 
-.book-menu-popup [role="menuitem"] {
+.book-menu-popup [role="menuitem"],
+.book-menu-popup [role="menuitemradio"] {
   font: inherit;
+  text-decoration: none;
   color: var(--ink);
   text-align: start;
   background: none;
@@ -436,13 +438,22 @@ main {
 }
 
 .book-menu-popup [role="menuitem"]:hover,
-.book-menu-popup [role="menuitem"]:focus-visible {
+.book-menu-popup [role="menuitem"]:focus-visible,
+.book-menu-popup [role="menuitemradio"]:hover,
+.book-menu-popup [role="menuitemradio"]:focus-visible {
   background: var(--pale);
   outline: none;
 }
 
 .book-menu-popup [role="menuitem"] small {
   color: var(--muted);
+}
+
+/* The one being read, in read mode's menu. */
+.book-menu-popup [role="menuitemradio"][aria-checked="true"] {
+  font-weight: 600;
+  color: var(--deep);
+  border-color: var(--rule);
 }
 
 .book-menu-heading {
@@ -1515,6 +1526,19 @@ a.reading-step:focus-visible {
   height: 2.25rem;
   border-color: var(--rule);
   opacity: 1;
+}
+
+/* Read mode's ⋮ while another translation is read: its abbreviation, then the dots. */
+.compare-choice-toggle.naming {
+  display: flex;
+  gap: 0.2rem;
+  width: auto;
+  padding: 0 0.3rem 0 0.6rem;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--deep);
+  border-color: var(--deep);
 }
 
 .compare-choice label {

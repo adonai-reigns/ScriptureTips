@@ -21,7 +21,7 @@ import { arrangeBooks, readingOrder } from "../../../reader/books.ts";
 interface Props {
   params: Promise<{ slug: string }>;
   /** The reading area's book (OSIS), chapter and mode. */
-  searchParams: Promise<{ book?: string; chapter?: string; mode?: string }>;
+  searchParams: Promise<{ book?: string; chapter?: string; mode?: string; read?: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -53,6 +53,8 @@ export default async function CompilationEditor({ params, searchParams }: Props)
   const order = readingOrder(sections);
   const asked = await searchParams;
   const mode = READING_MODES.find((m) => m === asked.mode) ?? "read";
+  // In read mode, a translation read instead of the compilation: one there is.
+  const read = mode === "read" ? (all.find((x) => x.id === asked.read)?.id ?? null) : null;
   const book =
     (available ?? []).find((b) => b.osis === asked.book) ??
     (available ?? []).find((b) => b.osis === order[0]?.osis);
@@ -76,7 +78,7 @@ export default async function CompilationEditor({ params, searchParams }: Props)
         source: s.source.id,
         abbreviation: s.source.abbreviation,
         overridden: s.rule !== undefined,
-        href: readingHref(b.osis, b.chapters[0] ?? 1, mode),
+        href: readingHref(b.osis, b.chapters[0] ?? 1, mode, read),
         current: b.osis === book?.osis,
       };
     }),
@@ -178,6 +180,7 @@ export default async function CompilationEditor({ params, searchParams }: Props)
           mode={mode}
           canon={account.canon}
           all={all}
+          read={read}
           books={
             // On a phone, the sticky head's book list, for changing book while comparing.
             <BookTabs

@@ -10,13 +10,27 @@ import { type Compilation, compareView } from "./api.ts";
 import { CompareChoice } from "./CompareChoice.tsx";
 import { CompareGrid } from "./CompareGrid.tsx";
 import { LinkPending } from "./LinkPending.tsx";
+import { ReadChoice } from "./ReadChoice.tsx";
 
 export type ReadingMode = "read" | "compare" | "edit";
 export const READING_MODES: readonly ReadingMode[] = ["read", "compare", "edit"];
 
-/** The editor's address for a chapter in a mode. */
-export const readingHref = (osis: string, chapter: number, mode: ReadingMode): string =>
-  `?${new URLSearchParams({ book: osis, chapter: String(chapter), mode })}`;
+/**
+ * The editor's address for a chapter in a mode; in read mode, `read` is the translation read
+ * instead of the compilation (catalog ID).
+ */
+export const readingHref = (
+  osis: string,
+  chapter: number,
+  mode: ReadingMode,
+  read?: string | null,
+): string =>
+  `?${new URLSearchParams({
+    book: osis,
+    chapter: String(chapter),
+    mode,
+    ...(mode === "read" && read ? { read } : {}),
+  })}`;
 
 /**
  * The compilation editor's reading area: one chapter of the compilation, chosen from the book
@@ -34,6 +48,7 @@ export async function ReadingArea({
   canon,
   all,
   books,
+  read,
 }: {
   c: Compilation;
   osis: string;
@@ -48,6 +63,8 @@ export async function ReadingArea({
   all: Translation[];
   /** The book tabs, opened from the book's name on a phone while comparing or editing. */
   books?: React.ReactNode;
+  /** In read mode, the translation read instead of the compilation (catalog ID), if any. */
+  read?: string | null;
 }) {
   const picker = mode !== "read" && books;
   const t = await getTranslations("reading");
@@ -67,7 +84,7 @@ export async function ReadingArea({
   const options = others.map((x) => ({ id: x.id, label: `${x.abbreviation}: ${x.name}` }));
   let body: React.ReactNode;
   if (mode === "read") {
-    const result = await passage(c.id, ref);
+    const result = await passage(read ?? c.id, ref);
     body = result.ok ? (
       <div className="reading-columns">
         {result.passages.map((p, i) => (
@@ -127,16 +144,34 @@ export async function ReadingArea({
               </Link>
             ))}
           </nav>
-          {mode !== "read" ? (
+          {mode === "read" ? (
+            <ReadChoice
+              current={read ?? c.id}
+              options={[
+                {
+                  id: c.id,
+                  abbreviation: c.abbreviation,
+                  label: `${c.abbreviation}: ${c.title}`,
+                  href: readingHref(osis, chapter, "read"),
+                },
+                ...all.map((x) => ({
+                  id: x.id,
+                  abbreviation: x.abbreviation,
+                  label: `${x.abbreviation}: ${x.name}`,
+                  href: readingHref(osis, chapter, "read", x.id),
+                })),
+              ]}
+            />
+          ) : (
             <CompareChoice slug={c.slug} chosen={columnIds} options={options} />
-          ) : null}
+          )}
         </div>
         <header className="reading-bar">
           {previous ? (
             <Link
               scroll={false}
               className="reading-step"
-              href={readingHref(previous.osis, previous.chapter, mode)}
+              href={readingHref(previous.osis, previous.chapter, mode, read)}
               rel="prev"
               aria-label={t("previous", { chapter: chapterLabel(previous) })}
             >
@@ -176,7 +211,7 @@ export async function ReadingArea({
                   scroll={false}
                   prefetch={false}
                   key={n}
-                  href={readingHref(osis, n, mode)}
+                  href={readingHref(osis, n, mode, read)}
                   aria-current={n === chapter ? "page" : undefined}
                 >
                   {n}
@@ -189,7 +224,7 @@ export async function ReadingArea({
             <Link
               scroll={false}
               className="reading-step"
-              href={readingHref(next.osis, next.chapter, mode)}
+              href={readingHref(next.osis, next.chapter, mode, read)}
               rel="next"
               aria-label={t("next", { chapter: chapterLabel(next) })}
             >

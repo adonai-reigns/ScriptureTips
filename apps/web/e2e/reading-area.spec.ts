@@ -346,3 +346,44 @@ test("vision §3.1: give the chapter in edit mode a new translation from its men
       .filter({ hasText: /^Genesis / }),
   ).toHaveText("Genesis KJV");
 });
+
+test("vision §3.1: read mode's ⋮ reads another translation whole, and back", async ({ page }) => {
+  test.setTimeout(90_000);
+  await create(page, "Reading Others", "Others");
+  await page.goto("/compilations/others?book=Gen&chapter=1&mode=read");
+  const area = reading(page);
+  await expect(area).toContainText("In the beginning God created the heaven and the earth.");
+
+  const toggle = page.getByRole("button", { name: /^Translation to read/ });
+  await toggle.click();
+  const menu = page.getByRole("menu", { name: "Read" });
+  await expect(
+    menu.getByRole("menuitemradio", { name: /^Others: Reading Others/ }),
+  ).toHaveAttribute("aria-checked", "true");
+  await page.screenshot(shot("reading-area-read-choice"));
+  await menu.getByRole("menuitemradio", { name: /^BSB:/ }).click();
+  await expect(page).toHaveURL(/book=Gen&chapter=1&mode=read&read=bsb/);
+  await expect(menu).toBeHidden();
+  await expect(area).toContainText("In the beginning God created the heavens and the earth.");
+  // The ⋮ names it.
+  await expect(
+    page.getByRole("button", { name: "Translation to read: reading the BSB" }),
+  ).toHaveText("BSB");
+
+  // The chapter links and the book tabs keep reading it; compare and edit don't.
+  await page.getByRole("link", { name: "Next: Genesis 2" }).click();
+  await expect(page).toHaveURL(/chapter=2&mode=read&read=bsb/);
+  await expect(page.getByRole("link", { name: /^Exodus/ }).first()).toHaveAttribute(
+    "href",
+    /read=bsb/,
+  );
+  await expect(
+    page.getByRole("navigation", { name: "Reading mode" }).getByRole("link", { name: "Compare" }),
+  ).not.toHaveAttribute("href", /read=/);
+
+  // Back to the compilation.
+  await page.getByRole("button", { name: /^Translation to read/ }).click();
+  await menu.getByRole("menuitemradio", { name: /^Others:/ }).click();
+  await expect(page).toHaveURL(/chapter=2&mode=read$/);
+  await expect(page.getByRole("button", { name: "Translation to read" })).toBeVisible();
+});
