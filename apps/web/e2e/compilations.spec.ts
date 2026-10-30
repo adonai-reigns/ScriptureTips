@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { expect, type Locator, type Page, test } from "@playwright/test";
-import { arriveFromOwnAddress, openEditorDialog, shot, signUp } from "./support.ts";
+import { arriveFromOwnAddress, longPress, openEditorDialog, shot, signUp } from "./support.ts";
 
 arriveFromOwnAddress();
 
@@ -35,6 +35,7 @@ async function addRule(
 
 test("domain-model §2.3: build a compilation in layers, read it, and delete it", async ({
   page,
+  isMobile,
 }) => {
   test.setTimeout(150_000);
   const handle = await signUp(page);
@@ -73,10 +74,16 @@ test("domain-model §2.3: build a compilation in layers, read it, and delete it"
   // Giving Genesis the base again drops the passage taken from elsewhere.
   await page.goto("/compilations/mine");
   const genesis = bookLink(page.getByRole("tabpanel"), "Genesis");
-  await genesis.hover();
-  await page.getByRole("button", { name: "Options for Genesis" }).click();
+  await page.waitForLoadState("networkidle");
+  // A phone opens the menu with a long press, as a dialog.
+  if (isMobile) {
+    await longPress(page, genesis);
+  } else {
+    await genesis.hover();
+    await page.getByRole("button", { name: "Options for Genesis" }).click();
+  }
   page.once("dialog", (d) => d.accept());
-  await page.getByRole("menuitem", { name: /^KJV:/ }).click();
+  await page.getByRole(isMobile ? "button" : "menuitem", { name: /^KJV:/ }).click();
   // Counting every verse is slow while other tests run.
   await expect(page.getByRole("figure").getByRole("listitem")).toHaveText([/^KJV/, /^WEB/], {
     timeout: 60_000,
@@ -428,7 +435,9 @@ test("vision §3.1: the editor shows where the verses come from, and each sectio
 
 test("vision §3.1: give a whole section a new base from its menu, after a warning", async ({
   page,
+  isMobile,
 }) => {
+  test.skip(isMobile, "Phones long-press instead (reading-area-phone.spec.ts).");
   test.setTimeout(90_000);
   await signUp(page);
   await page.goto("/compilations");
@@ -492,7 +501,9 @@ test("vision §3.1: give a whole section a new base from its menu, after a warni
 
 test("vision §3.1: give a whole book a new base from its menu, after a warning", async ({
   page,
+  isMobile,
 }) => {
+  test.skip(isMobile, "Phones long-press instead (reading-area-phone.spec.ts).");
   test.setTimeout(90_000);
   await signUp(page);
   await page.goto("/compilations");

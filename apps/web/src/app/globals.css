@@ -403,6 +403,62 @@ main {
 }
 
 /*
+ * A device that can't hover (a phone or tablet): the book tabs' ⋮ icons give way to a long press
+ * on the tab or book, which opens the menu as a dialog (SourceDialog). The icons stay for screen
+ * readers. A long press doesn't select the text or show the browser's link menu.
+ */
+@media (hover: none) {
+  .book-tabs .book-menu,
+  .book-tab-menu {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .book-tabs [role="tab"],
+  .book-tabs [role="tabpanel"] a {
+    -webkit-touch-callout: none;
+    user-select: none;
+  }
+}
+
+.source-dialog {
+  width: min(24rem, calc(100vw - 2rem));
+}
+
+.source-dialog-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.source-dialog-list button {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 0.5rem;
+  font: inherit;
+  text-align: start;
+  color: var(--ink);
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--rule);
+  cursor: pointer;
+}
+
+.source-dialog-list button[aria-current] {
+  color: var(--deep);
+  font-weight: 600;
+}
+
+.source-dialog-list small {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+/*
  * Placed against the window by the script (top or bottom, and right), clear of the columns. It's
  * drawn at the end of the page, so sticky headings (the reading area's and the table's) can't
  * cover it.

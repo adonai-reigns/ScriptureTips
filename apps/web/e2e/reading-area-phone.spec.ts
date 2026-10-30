@@ -1,5 +1,5 @@
 import { expect as baseExpect, type Locator, type Page, test } from "@playwright/test";
-import { arriveFromOwnAddress, shot, signUp } from "./support.ts";
+import { arriveFromOwnAddress, longPress, shot, signUp, tapAt } from "./support.ts";
 
 arriveFromOwnAddress();
 
@@ -305,31 +305,67 @@ test("domain-model §2.3: on a phone, compare remembers which translation each v
   await again.close();
 });
 
-test("vision §3.1: on a phone, a book's menu stays on screen, from either column", async ({
+test("vision §3.1: on a phone, a long press on a book or a section opens its menu as a dialog", async ({
   page,
 }) => {
   test.setTimeout(90_000);
-  await create(page, "Menus", "Menus");
-  await page.goto("/compilations/menus?book=Gen&chapter=1&mode=read");
+  await create(page, "Presses", "Presses");
+  await page.goto("/compilations/presses?book=Gen&chapter=1&mode=read");
   await page.waitForLoadState("networkidle");
   const width = page.viewportSize()?.width ?? 0;
-  for (const book of ["Genesis", "Ecclesiastes"]) {
-    const menu = page.getByRole("menu", { name: `Change the translation of ${book}` });
-    // Tapped again if the page's scripts weren't ready for the first tap.
+  const panel = page.getByRole("tabpanel").first();
+  const book = (name: string) =>
+    panel.locator("li > a").filter({ hasText: new RegExp(`^${name} `) });
+
+  // No ⋮ shows: it's there only for screen readers.
+  const icon = page.getByRole("button", { name: "Options for Genesis", exact: true });
+  expect((await icon.locator("..").boundingBox())?.width ?? 0).toBeLessThanOrEqual(1);
+
+  // A long press opens the book's menu, on screen, and doesn't follow the link.
+  for (const name of ["Genesis", "Ecclesiastes"]) {
+    const dialog = page.getByRole("dialog", { name: `Change the translation of ${name}` });
+    // Pressed again if the page's scripts weren't ready for the first.
     await expect(async () => {
-      if (!(await menu.isVisible()))
-        await page.getByRole("button", { name: `Options for ${book}`, exact: true }).click();
-      await expect(menu).toBeVisible({ timeout: 1_000 });
+      if (!(await dialog.isVisible())) await longPress(page, book(name));
+      await expect(dialog).toBeVisible({ timeout: 1_000 });
     }).toPass();
-    const r = await menu.boundingBox();
-    expect(r?.x ?? -1, book).toBeGreaterThanOrEqual(0);
-    expect((r?.x ?? 0) + (r?.width ?? 0), book).toBeLessThanOrEqual(width);
-    expect(r?.width ?? width, book).toBeLessThan(width);
-    if (book === "Genesis")
-      await page.screenshot({ ...shot("reading-area-phone-book-menu"), fullPage: false });
-    await page.keyboard.press("Escape");
-    await expect(menu).toBeHidden();
+    // It stays open once the finger lifts.
+    await page.waitForTimeout(500);
+    await expect(dialog).toBeVisible();
+    const r = await dialog.boundingBox();
+    expect(r?.x ?? -1, name).toBeGreaterThanOrEqual(0);
+    expect((r?.x ?? 0) + (r?.width ?? 0), name).toBeLessThanOrEqual(width);
+    await expect(dialog.getByRole("button", { name: /\(current\)/ })).toHaveText(/^KJV:/);
+    if (name === "Genesis") {
+      await page.screenshot({ ...shot("reading-area-phone-book-dialog"), fullPage: false });
+      // Its × closes it.
+      await dialog.getByRole("button", { name: "Close" }).tap();
+    } else {
+      // So does a tap on the page behind it.
+      await tapAt(page, 8, 8);
+    }
+    await expect(dialog).toBeHidden();
+    await expect(page).toHaveURL(/book=Gen&chapter=1/);
   }
+
+  // A quick tap still opens the book.
+  await book("Exodus").tap();
+  await expect(page).toHaveURL(/book=Exod/);
+
+  // A section's tab opens the section's menu; choosing a translation, after the warning, gives
+  // the whole section the new base.
+  const section = page.getByRole("dialog", {
+    name: "Change the translation of the Old Testament",
+  });
+  await expect(async () => {
+    if (!(await section.isVisible()))
+      await longPress(page, page.getByRole("tab", { name: "Old Testament" }).first());
+    await expect(section).toBeVisible({ timeout: 1_000 });
+  }).toPass();
+  page.once("dialog", (d) => d.accept());
+  await section.getByRole("button", { name: /^WEB:/ }).tap();
+  await expect(section).toBeHidden({ timeout: 15_000 });
+  await expect(book("Genesis")).toHaveText("Genesis WEB", { timeout: 15_000 });
 });
 
 /** Two quick taps on a verse (real touch events). */

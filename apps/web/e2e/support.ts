@@ -1,6 +1,6 @@
 /** Shared steps for the end-to-end tests. */
 
-import { expect, type Page, test } from "@playwright/test";
+import { expect, type Locator, type Page, test } from "@playwright/test";
 
 /** Mailpit, which catches the stack's email (compose.yaml). */
 export const MAILPIT = process.env["MAILPIT_URL"] ?? "http://mailpit:8025";
@@ -88,4 +88,25 @@ export async function openEditorDialog(page: Page, button: string, title: string
   const dialog = page.getByRole("dialog", { name: title });
   await expect(dialog).toBeVisible();
   return dialog;
+}
+
+/** A finger resting on `target` (real touch events), as a phone's long press. */
+export async function longPress(page: Page, target: Locator, ms = 800): Promise<void> {
+  await target.scrollIntoViewIfNeeded();
+  const r = await target.boundingBox();
+  if (!r) throw new Error("It isn't on screen.");
+  const cdp = await page.context().newCDPSession(page);
+  const at = [{ x: r.x + Math.min(r.width / 2, 40), y: r.y + r.height / 2 }];
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: at });
+  await page.waitForTimeout(ms);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await cdp.detach();
+}
+
+/** A quick tap at a point on the screen (real touch events). */
+export async function tapAt(page: Page, x: number, y: number): Promise<void> {
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x, y }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await cdp.detach();
 }

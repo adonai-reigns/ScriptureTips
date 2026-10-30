@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { type KeyboardEvent, type ReactNode, useRef, useState } from "react";
-import { type BookSourceChoice, SourceMenu } from "./SourceMenu.tsx";
+import { useLongPress } from "./longPress.ts";
+import { SourceDialog } from "./SourceDialog.tsx";
+import { type BookSourceChoice, SourceMenu, type SourceMenuSpec } from "./SourceMenu.tsx";
 
 export interface BookTab {
   id: string;
@@ -30,7 +32,8 @@ export interface BookTab {
  * section's books show at a time. Arrow keys move between tabs, as the ARIA tabs pattern has it;
  * Tab moves through the books, each followed by its menu. A book's link opens it in the
  * reading area. Each tab is followed by its section's menu, to give the whole section a new
- * translation.
+ * translation. On a phone, which can't hover to show the menus' ⋮, a long press on a tab or a
+ * book opens its menu as a dialog instead.
  */
 export function BookTabs({
   slug,
@@ -61,6 +64,9 @@ export function BookTabs({
   // The tab (or its menu) under the pointer: its menu's icon shows, as a book's does on hover.
   const [hovered, setHovered] = useState<string | null>(null);
   const selected = tabs.find((t) => t.id === current) ?? tabs[0];
+  // The menu a long press opened.
+  const [pressed, setPressed] = useState<SourceMenuSpec | null>(null);
+  const longPress = useLongPress(setPressed);
 
   const onKeyDown = (e: KeyboardEvent, index: number) => {
     const next =
@@ -85,6 +91,18 @@ export function BookTabs({
     const all = new Set(tab.books.map((b) => b.source));
     return all.size === 1 ? [...all][0] : undefined;
   };
+  const sectionMenu = (tab: BookTab): SourceMenuSpec => ({
+    heading: t("newBaseForSection", { section: tab.label }),
+    current: sectionSource(tab),
+    confirmText: (source) => t("confirmSection", { section: tab.label, source: source.label }),
+    endpoint: `/api/compilations/${slug}/sections/${tab.id}/source`,
+  });
+  const bookMenu = (b: BookTab["books"][number]): SourceMenuSpec => ({
+    heading: t("newBaseFor", { book: b.name }),
+    current: b.source,
+    confirmText: (source) => t("confirmReplace", { book: b.name, source: source.label }),
+    endpoint: `/api/compilations/${slug}/books/${b.osis}/source`,
+  });
   return (
     <div className="book-tabs">
       <div className="book-tabs-bar">
@@ -104,9 +122,13 @@ export function BookTabs({
               aria-controls={`${idPrefix}-panel-${tab.id}`}
               tabIndex={tab.id === selected.id ? 0 : -1}
               style={{ order: 2 * i }}
+              {...(menus ? longPress(sectionMenu(tab)) : {})}
               onPointerEnter={() => setHovered(tab.id)}
               onPointerLeave={() => setHovered(null)}
-              onClick={() => setCurrent(tab.id)}
+              onClick={(e) => {
+                if (menus) longPress(sectionMenu(tab)).onClick(e);
+                if (!e.defaultPrevented) setCurrent(tab.id);
+              }}
               onKeyDown={(e) => onKeyDown(e, i)}
             >
               {tab.label}
@@ -124,12 +146,7 @@ export function BookTabs({
           >
             <SourceMenu
               label={t("menuForSection", { section: tab.label })}
-              heading={t("newBaseForSection", { section: tab.label })}
-              current={sectionSource(tab)}
-              confirmText={(source) =>
-                t("confirmSection", { section: tab.label, source: source.label })
-              }
-              endpoint={`/api/compilations/${slug}/sections/${tab.id}/source`}
+              {...sectionMenu(tab)}
               sources={sources}
             />
           </div>
@@ -147,24 +164,21 @@ export function BookTabs({
               scroll={false}
               className={b.overridden ? "overridden" : undefined}
               aria-current={b.current ? "page" : undefined}
+              {...(menus ? longPress(bookMenu(b)) : {})}
             >
               {b.name} <strong>{b.abbreviation}</strong>
             </Link>
             {menus ? (
               <SourceMenu
                 label={t("menuFor", { book: b.name })}
-                heading={t("newBaseFor", { book: b.name })}
-                current={b.source}
-                confirmText={(source) =>
-                  t("confirmReplace", { book: b.name, source: source.label })
-                }
-                endpoint={`/api/compilations/${slug}/books/${b.osis}/source`}
+                {...bookMenu(b)}
                 sources={sources}
               />
             ) : null}
           </li>
         ))}
       </ul>
+      <SourceDialog menu={pressed} sources={sources} onClose={() => setPressed(null)} />
     </div>
   );
 }

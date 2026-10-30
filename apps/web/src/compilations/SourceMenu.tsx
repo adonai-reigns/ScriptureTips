@@ -12,6 +12,51 @@ export interface BookSourceChoice {
   label: string;
 }
 
+/** A translation menu's content: what it changes, and how it asks first. */
+export interface SourceMenuSpec {
+  /** The menu's heading ("Change the translation of Genesis"). */
+  heading: string;
+  /** The source it has now, marked in the list; none when it's mixed. */
+  current?: string | undefined;
+  /** The warning to confirm before replacing. */
+  confirmText: (source: BookSourceChoice) => string;
+  /** Where to `PUT {source}`. */
+  endpoint: string;
+}
+
+/**
+ * Giving `endpoint` a new source after the warning, then `done()` and the page reloaded; shared by
+ * the ⋮ menu and the dialog a long press opens on a phone.
+ */
+export function useSourceChange(
+  { confirmText, endpoint }: Pick<SourceMenuSpec, "confirmText" | "endpoint">,
+  done: () => void,
+) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const choose = async (source: BookSourceChoice) => {
+    if (!window.confirm(confirmText(source))) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(endpoint, {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ source: source.id }),
+      });
+      if (!res.ok) return setError(await errorCode(res));
+      done();
+      router.refresh();
+    } catch {
+      setError("unavailable");
+    } finally {
+      setBusy(false);
+    }
+  };
+  return { busy, error, setError, choose };
+}
+
 /**
  * A menu of translations behind a ⋮ icon, to give a whole book or chapter a new source after a
  * warning (the book tabs and the edit mode's chapter column). It's placed against the window,
@@ -25,31 +70,24 @@ export function SourceMenu({
   confirmText,
   endpoint,
   sources,
-}: {
+}: SourceMenuSpec & {
   /** The icon's name ("Options for Genesis"). */
   label: string;
-  /** The menu's heading ("Change the translation of Genesis"). */
-  heading: string;
-  /** The source it has now, marked in the list; none when it's mixed. */
-  current?: string | undefined;
-  /** The warning to confirm before replacing. */
-  confirmText: (source: BookSourceChoice) => string;
-  /** Where to `PUT {source}`. */
-  endpoint: string;
   sources: BookSourceChoice[];
 }) {
   const t = useTranslations("bookTabs");
   const errorText = useErrorText();
-  const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   // Where the open menu sits, against the window: it stays out of the book columns, which would
   // otherwise re-balance around it.
   const [place, setPlace] = useState<CSSProperties>({});
   const root = useRef<HTMLDivElement>(null);
   const toggle = useRef<HTMLButtonElement>(null);
   const menu = useRef<HTMLDivElement>(null);
+
+  const { busy, error, setError, choose } = useSourceChange({ confirmText, endpoint }, () =>
+    close(true),
+  );
 
   const close = (refocus: boolean) => {
     setOpen(false);
@@ -68,6 +106,7 @@ export function SourceMenu({
           : { right, top: r.bottom + 4 },
       );
     }
+    setError(null);
     setOpen(true);
   };
 
@@ -88,10 +127,7 @@ export function SourceMenu({
     menu.current
       ?.querySelector<HTMLButtonElement>("[role=menuitem]")
       ?.focus({ preventScroll: true });
-    const shut = () => {
-      setOpen(false);
-      setError(null);
-    };
+    const shut = () => setOpen(false);
     const outside = (e: PointerEvent) => {
       const target = e.target as Node;
       if (!root.current?.contains(target) && !menu.current?.contains(target)) shut();
@@ -118,26 +154,6 @@ export function SourceMenu({
       window.removeEventListener("resize", away);
     };
   }, [open]);
-
-  const choose = async (source: BookSourceChoice) => {
-    if (!window.confirm(confirmText(source))) return;
-    setBusy(true);
-    setError(null);
-    try {
-      const res = await fetch(endpoint, {
-        method: "PUT",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ source: source.id }),
-      });
-      if (!res.ok) return setError(await errorCode(res));
-      close(true);
-      router.refresh();
-    } catch {
-      setError("unavailable");
-    } finally {
-      setBusy(false);
-    }
-  };
 
   return (
     <div ref={root} className={`book-menu${open ? " open" : ""}`}>

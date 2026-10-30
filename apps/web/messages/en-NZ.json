@@ -343,6 +343,7 @@
     "menuFor": "Options for {book}",
     "newBaseFor": "Change the translation of {book}",
     "current": "(current)",
+    "close": "Close",
     "menuForSection": "Options for the {section}",
     "newBaseForSection": "Change the translation of the {section}",
     "confirmSection": "Use the {source} for the whole {section}?\n\nThis throws away every change you've made within the {section}: books, chapters and passages taken from other translations, and single verses, including corrections, adaptations and your own renderings. This can't be undone.",
