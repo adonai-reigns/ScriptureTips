@@ -4,17 +4,20 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   type CSSProperties,
+  Fragment,
   type MouseEvent,
   useCallback,
   useEffect,
   useRef,
   useState,
+  useTransition,
 } from "react";
 import type { Verse } from "../reader/api.ts";
 import { noteBody } from "../reader/layout.ts";
 import { ShownText } from "../reader/ShownText.tsx";
 import type { CompareView } from "./api.ts";
 import { errorCode, useErrorText } from "./errors.ts";
+import { InPlaceField } from "./forms.tsx";
 import { type BookSourceChoice, SourceMenu } from "./SourceMenu.tsx";
 
 /** The most translations shown beside the compilation (the API's `MAX_COMPARE`). */
@@ -88,9 +91,18 @@ export function CompareGrid({
   const picked = useRef<Selection>(selection);
   const anchor = useRef<{ row: number; col: number } | null>(null);
   const [busy, setBusy] = useState(false);
+  // A changed column: saved, then shown greyed with its new choice until the page has reloaded.
+  const [changing, setChanging] = useState<{ index: number; id: string } | null>(null);
+  const [reloading, startReload] = useTransition();
+  const loading = busy || reloading ? changing : null;
+  // A new column, drawn at once (greyed, after the column it was added beside) while it's saved
+  // and loaded.
+  const [adding, setAdding] = useState<{ index: number; id: string } | null>(null);
+  const placeholder = busy || reloading ? adding : null;
+  const shownColumns = view.columns.length + (placeholder ? 1 : 0);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const scrolls = view.columns.length > 3;
+  const scrolls = shownColumns > 3;
   const pane = useRef<HTMLDivElement>(null);
   const bar = useRef<HTMLDivElement>(null);
   const barWidth = useRef<HTMLDivElement>(null);
@@ -139,6 +151,18 @@ export function CompareGrid({
       p.style.removeProperty("--x");
     };
   }, [scrolls]);
+
+  // A column being added past the right edge slides into view as soon as it's drawn.
+  const addingAt = placeholder?.index;
+  useEffect(() => {
+    if (addingAt === undefined) return;
+    const p = pane.current;
+    const b = bar.current;
+    const cell = p?.querySelector("th.compare-adding");
+    if (!p || !b || !cell) return;
+    const over = cell.getBoundingClientRect().right - p.getBoundingClientRect().right;
+    if (over > 0) b.scrollLeft += over;
+  }, [addingAt]);
 
   const select = useCallback((next: Selection) => {
     picked.current = next;
@@ -227,17 +251,26 @@ export function CompareGrid({
   const chooseColumn = (index: number, id: string) => {
     const ids = [...columnIds];
     ids[index] = id;
+    setChanging({ index, id });
+    setAdding(null);
     return saveColumns(ids);
   };
 
   /** A new column after `index`, showing the first translation not shown yet. */
   const addColumn = (index: number) => {
     const more = options.find((o) => !columnIds.includes(o.id));
-    if (more) return saveColumns(columnIds.toSpliced(index + 1, 0, more.id));
+    if (!more) return;
+    setChanging(null);
+    setAdding({ index, id: more.id });
+    return saveColumns(columnIds.toSpliced(index + 1, 0, more.id));
   };
   const canAdd = columnIds.length < MAX_COLUMNS && options.some((o) => !columnIds.includes(o.id));
 
-  const removeColumn = (index: number) => saveColumns(columnIds.filter((_, i) => i !== index));
+  const removeColumn = (index: number) => {
+    setChanging(null);
+    setAdding(null);
+    return saveColumns(columnIds.filter((_, i) => i !== index));
+  };
 
   const saveColumns = async (ids: string[]) => {
     setBusy(true);
@@ -248,21 +281,27 @@ export function CompareGrid({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ translations: [...new Set(ids)] }),
       });
-      if (!res.ok) setError(await errorCode(res));
-      else router.refresh();
+      if (!res.ok) {
+        setChanging(null);
+        setAdding(null);
+        setError(await errorCode(res));
+      } else startReload(() => router.refresh());
     } catch {
+      setChanging(null);
+      setAdding(null);
       setError("unavailable");
     } finally {
       setBusy(false);
     }
   };
+  const working = busy || reloading;
 
   // The chapter's one source, if every verse comes from the same translation.
   const chapterSources = new Set(view.rows.map((r) => r.verse.source ?? baseId));
   const chapterSource = chapterSources.size === 1 ? [...chapterSources][0] : undefined;
 
   return (
-    <div className={`compare compare-${mode}`} aria-busy={busy}>
+    <div className={`compare compare-${mode}`} aria-busy={working}>
       {mode === "edit" ? (
         <p role="status" className="compare-status">
           {busy ? <span className="spinner" aria-hidden="true" /> : null}
@@ -286,20 +325,24 @@ export function CompareGrid({
       <div
         ref={pane}
         className={`compare-pane${scrolls ? " scrolls" : ""}`}
-        style={{ "--columns": view.columns.length + 1 } as CSSProperties}
+        style={{ "--columns": shownColumns + 1 } as CSSProperties}
       >
         <table className="compare-grid">
           <caption className="visually-hidden">{view.label}</caption>
           <colgroup>
             <col className="compare-own" />
-            {view.columns.map((column) => (
-              <col key={column.id} />
+            {view.columns.map((column, i) => (
+              <Fragment key={column.id}>
+                <col />
+                {placeholder?.index === i ? <col /> : null}
+              </Fragment>
             ))}
           </colgroup>
           <thead>
             <tr>
               <th scope="col" className="compare-own">
-                {abbreviation}
+                {/* The compilation's abbreviation, changed here in place. */}
+                <InPlaceField slug={slug} field="abbreviation" value={abbreviation} />
                 {mode === "edit" ? (
                   <SourceMenu
                     label={t("chapterMenu", { chapter: view.label })}
@@ -314,47 +357,73 @@ export function CompareGrid({
                 ) : null}
               </th>
               {view.columns.map((column, i) => (
-                <th scope="col" key={column.id}>
-                  <label>
-                    <span className="visually-hidden">{t("columnLabel", { n: i + 1 })}</span>
-                    <select
-                      value={column.id}
-                      disabled={busy}
-                      onChange={(e) => chooseColumn(i, e.target.value)}
-                    >
-                      {options.map((o) => (
-                        <option key={o.id} value={o.id}>
-                          {o.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <button
-                    type="button"
-                    className="compare-column-button"
-                    disabled={busy || !canAdd}
-                    aria-label={t("addColumn", { source: column.abbreviation })}
-                    title={t("addTooltip")}
-                    onClick={() => addColumn(i)}
-                  >
-                    +
-                  </button>
-                  {view.columns.length > 1 ? (
+                <Fragment key={column.id}>
+                  <th scope="col" className={loading?.index === i ? "compare-loading" : undefined}>
+                    <label>
+                      <span className="visually-hidden">{t("columnLabel", { n: i + 1 })}</span>
+                      <select
+                        value={loading?.index === i ? loading.id : column.id}
+                        disabled={working}
+                        onChange={(e) => chooseColumn(i, e.target.value)}
+                      >
+                        {options.map((o) => (
+                          <option key={o.id} value={o.id}>
+                            {o.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
                     <button
                       type="button"
                       className="compare-column-button"
-                      disabled={busy}
-                      aria-label={t("removeColumn", { source: column.abbreviation })}
-                      title={t("removeTooltip")}
-                      onClick={() => removeColumn(i)}
+                      disabled={working || !canAdd}
+                      aria-label={t("addColumn", { source: column.abbreviation })}
+                      title={t("addTooltip")}
+                      onClick={() => addColumn(i)}
                     >
-                      ×
+                      +
                     </button>
+                    {view.columns.length > 1 ? (
+                      <button
+                        type="button"
+                        className="compare-column-button"
+                        disabled={working}
+                        aria-label={t("removeColumn", { source: column.abbreviation })}
+                        title={t("removeTooltip")}
+                        onClick={() => removeColumn(i)}
+                      >
+                        ×
+                      </button>
+                    ) : null}
+                    {loading?.index === i ? (
+                      <small role="status" className="compare-loading-note">
+                        <span className="spinner" aria-hidden="true" />
+                        {t("loadingColumn")}
+                      </small>
+                    ) : null}
+                    {mode === "edit" && !column.compilable ? (
+                      <small className="compare-note">{t("notCompilable")}</small>
+                    ) : null}
+                  </th>
+                  {placeholder?.index === i ? (
+                    <th scope="col" className="compare-loading compare-adding">
+                      <label>
+                        <span className="visually-hidden">{t("columnLabel", { n: i + 2 })}</span>
+                        <select value={placeholder.id} disabled>
+                          {options.map((o) => (
+                            <option key={o.id} value={o.id}>
+                              {o.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <small role="status" className="compare-loading-note">
+                        <span className="spinner" aria-hidden="true" />
+                        {t("loadingColumn")}
+                      </small>
+                    </th>
                   ) : null}
-                  {mode === "edit" && !column.compilable ? (
-                    <small className="compare-note">{t("notCompilable")}</small>
-                  ) : null}
-                </th>
+                </Fragment>
               ))}
             </tr>
           </thead>
@@ -387,24 +456,32 @@ export function CompareGrid({
                     ));
                     const takeable = mode === "edit" && column.compilable && verses.length > 0;
                     return (
-                      <td key={column.id} dir={column.direction}>
-                        {takeable ? (
-                          <button
-                            type="button"
-                            className={`compare-take${selection.get(row) === col ? " picked" : ""}`}
-                            aria-pressed={selection.get(row) === col}
-                            disabled={busy}
-                            onClick={(e) => onCell(e, row, col)}
-                          >
-                            <span className="visually-hidden">
-                              {t("takeFrom", { source: column.abbreviation })}{" "}
-                            </span>
-                            {text}
-                          </button>
-                        ) : (
-                          text
-                        )}
-                      </td>
+                      <Fragment key={column.id}>
+                        <td
+                          dir={column.direction}
+                          className={loading?.index === col ? "compare-loading" : undefined}
+                        >
+                          {takeable ? (
+                            <button
+                              type="button"
+                              className={`compare-take${selection.get(row) === col ? " picked" : ""}`}
+                              aria-pressed={selection.get(row) === col}
+                              disabled={working}
+                              onClick={(e) => onCell(e, row, col)}
+                            >
+                              <span className="visually-hidden">
+                                {t("takeFrom", { source: column.abbreviation })}{" "}
+                              </span>
+                              {text}
+                            </button>
+                          ) : (
+                            text
+                          )}
+                        </td>
+                        {placeholder?.index === col ? (
+                          <td className="compare-loading compare-adding" />
+                        ) : null}
+                      </Fragment>
                     );
                   })}
                 </tr>

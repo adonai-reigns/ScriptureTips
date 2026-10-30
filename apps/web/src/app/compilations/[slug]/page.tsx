@@ -77,8 +77,6 @@ export default async function CompilationEditor({ params, searchParams }: Props)
               className="heading-logo"
             />
             <InPlaceField slug={c.slug} field="title" value={c.title} />
-            <span className="heading-break" />
-            <InPlaceField slug={c.slug} field="abbreviation" value={c.abbreviation} />
           </h1>
           <CompositionChart slug={c.slug} base={c.base.id} choices={choices} />
         </div>

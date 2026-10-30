@@ -139,18 +139,34 @@ main {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
-  gap: 0.5rem 1rem;
+  gap: 0.5rem 0.25rem;
   border-bottom: 1px solid var(--rule);
 }
 
+/*
+ * The tabs and their sections' menus share the bar's row: the tab list's box is dropped, and each
+ * tab and menu is placed in turn by its `order`.
+ */
 .book-tabs [role="tablist"] {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
+  display: contents;
 }
 
+.book-tab-menu {
+  position: relative;
+  align-self: center;
+  width: 1.6rem;
+  height: 1.8rem;
+  margin: 0 0.25rem 0 -0.4rem;
+}
+
+/* Shown while its tab or itself is hovered (or it's focused or open, as a book's menu is). */
+.book-tab-menu.shown .book-menu-toggle {
+  opacity: 1;
+}
+
+/* After the tabs and their menus (each placed by its `order`), at the right. */
 .book-tabs-actions {
-  order: 1;
+  order: 100;
   display: flex;
   gap: 0.5rem;
   margin-left: auto;
@@ -385,8 +401,12 @@ main {
   border-color: var(--deep);
 }
 
-/* Placed against the window by the script (top or bottom, and right), clear of the columns. */
-.book-menu [role="menu"] {
+/*
+ * Placed against the window by the script (top or bottom, and right), clear of the columns. It's
+ * drawn at the end of the page, so sticky headings (the reading area's and the table's) can't
+ * cover it.
+ */
+.book-menu-popup {
   position: fixed;
   z-index: 5;
   display: flex;
@@ -403,7 +423,7 @@ main {
   font-size: 0.95rem;
 }
 
-.book-menu [role="menuitem"] {
+.book-menu-popup [role="menuitem"] {
   font: inherit;
   color: var(--ink);
   text-align: start;
@@ -414,13 +434,13 @@ main {
   cursor: pointer;
 }
 
-.book-menu [role="menuitem"]:hover,
-.book-menu [role="menuitem"]:focus-visible {
+.book-menu-popup [role="menuitem"]:hover,
+.book-menu-popup [role="menuitem"]:focus-visible {
   background: var(--pale);
   outline: none;
 }
 
-.book-menu [role="menuitem"] small {
+.book-menu-popup [role="menuitem"] small {
   color: var(--muted);
 }
 
@@ -431,7 +451,7 @@ main {
   color: var(--muted);
 }
 
-.book-menu .error {
+.book-menu-popup .error {
   margin: 0.3rem 0.6rem;
   font-size: 0.85rem;
 }
@@ -584,12 +604,6 @@ main {
   gap: 0.25rem 0.75rem;
 }
 
-/* Puts the abbreviation on its own line, under the logo and title. */
-.heading-break {
-  flex-basis: 100%;
-  height: 0;
-}
-
 .heading-logo {
   width: 1.4em;
   height: 1.4em;
@@ -625,11 +639,6 @@ main {
   border-radius: 0;
 }
 
-.in-place-abbreviation,
-.in-place-abbreviation input {
-  color: var(--muted);
-}
-
 /* A hidden copy of the text sets the width; the input fills the same grid cell. */
 .in-place-editor {
   position: relative;
@@ -647,7 +656,8 @@ main {
 
 .in-place-editor input {
   grid-area: 1 / 1;
-  width: 100%;
+  /* The cell is the text's width less the shared negative margins; this adds them back. */
+  width: calc(100% + 0.5rem + 2px);
   min-width: 0;
   color: inherit;
   background: none;
@@ -1500,6 +1510,37 @@ a.reading-step:focus-visible {
   color: var(--ink);
 }
 
+/*
+ * A link's page loading: a spinner in its own color, shown after a moment (so a quick change
+ * doesn't flicker), and the reading area's content dimmed until the new content arrives.
+ */
+.link-pending {
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-left: 0.4rem;
+  border-color: color-mix(in srgb, currentColor 30%, transparent);
+  border-top-color: currentColor;
+  animation:
+    spin 0.8s linear infinite,
+    appear 0.2s 0.15s both;
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+}
+
+.reading:has(.link-pending) > :not(.reading-head) {
+  opacity: 0.45;
+  transition: opacity 0.2s 0.15s;
+  pointer-events: none;
+}
+
+.reading:has(.link-pending) {
+  cursor: progress;
+}
+
 .reading-modes a + a {
   border-left: 1px solid var(--rule);
 }
@@ -1677,6 +1718,31 @@ a.reading-step:focus-visible {
 
 .compare-grid .compare-own {
   background: color-mix(in srgb, var(--pale) 35%, var(--paper));
+}
+
+/* A column loading its new translation: greyed out, with a spinner under its heading. */
+.compare-grid td.compare-loading {
+  background: #eceff1;
+  color: var(--muted);
+  cursor: progress;
+}
+
+.compare-grid td.compare-loading > *,
+.compare-grid td.compare-loading .compare-take {
+  opacity: 0.45;
+}
+
+.compare-grid th.compare-loading {
+  background: #eceff1;
+}
+
+.compare-loading-note {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.3rem;
+  font-weight: 400;
+  color: var(--muted);
 }
 
 .compare-number {

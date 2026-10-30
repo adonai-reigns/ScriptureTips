@@ -272,6 +272,20 @@ export class CompilationsController {
   }
 
   /**
+   * A new base for one whole section (`ot`, `nt`, `additional`; `{source}`), throwing away
+   * every choice within it.
+   */
+  @Put(":slug/sections/:section/source")
+  async replaceSection(
+    @Headers() headers: Record<string, string>,
+    @Param("slug", new ZodPipe(Slug)) slug: string,
+    @Param("section", new ZodPipe(z.enum(SECTIONS))) section: (typeof SECTIONS)[number],
+    @Body(new ZodPipe(BookSource)) body: z.infer<typeof BookSource>,
+  ): Promise<CompilationView> {
+    return this.compilations.replaceSection(await this.user(headers), slug, section, body.source);
+  }
+
+  /**
    * A new base for one whole book (`{source}`), throwing away every narrower choice within it.
    */
   @Put(":slug/books/:book/source")

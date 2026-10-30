@@ -85,17 +85,57 @@ test("vision §3.1: compare a chapter verse by verse beside translations remembe
 }) => {
   test.setTimeout(90_000);
   await create(page, "Side by Side", "Side");
-  await page.getByRole("link", { name: "Compare" }).click();
-  await expect(page).toHaveURL(/mode=compare/);
+  await settled(page);
+  // While the mode's content loads (held back here), its button spins and the chapter dims.
+  let releaseMode = () => {};
+  const heldMode = new Promise<void>((r) => {
+    releaseMode = r;
+  });
+  await page.route("**/compilations/side?**", async (route) => {
+    if (route.request().headers()["rsc"]) await heldMode;
+    await route.continue();
+  });
+  const compare = page.getByRole("navigation", { name: "Reading mode" }).getByRole("link", {
+    name: "Compare",
+  });
+  await compare.click();
+  await expect(compare.locator(".link-pending")).toBeVisible();
+  await expect
+    .poll(() => page.locator(".reading-columns").evaluate((e) => getComputedStyle(e).opacity))
+    .toBe("0.45");
+  await page.screenshot({ ...shot("reading-area-mode-loading"), fullPage: false });
+  releaseMode();
+  await expect(page).toHaveURL(/mode=compare/, { timeout: 15_000 });
+  await expect(page.locator(".link-pending")).toHaveCount(0, { timeout: 15_000 });
+  await page.unroute("**/compilations/side?**");
   const table = page.getByRole("table", { name: "Genesis 1" });
   await expect(table.getByRole("columnheader")).toHaveCount(4);
   await expect(table.getByRole("columnheader").first()).toHaveText("Side");
 
   await settled(page);
+  // While the new translation loads (held back here), its column is greyed with a status.
+  let release = () => {};
+  const held = new Promise<void>((r) => {
+    release = r;
+  });
+  await page.route("**/compilations/side**", async (route) => {
+    if (route.request().headers()["rsc"]) await held;
+    await route.continue();
+  });
   const first = page.getByRole("combobox", { name: "Translation for column 1" });
   await first.selectOption("leb");
+  const column = page.getByRole("table").getByRole("columnheader").nth(1);
+  await expect(column.getByRole("status")).toHaveText("Loading…");
+  await expect(column).toHaveClass(/compare-loading/);
   await expect(first).toHaveValue("leb");
-  await expect(page.getByRole("table").getByRole("columnheader").nth(1)).toContainText("LEB");
+  await expect(table.locator("td.compare-loading").first()).toBeVisible();
+  await page.screenshot({ ...shot("reading-area-column-loading"), fullPage: false });
+  release();
+  await expect(column.getByRole("status")).toBeHidden({ timeout: 15_000 });
+  await expect(table.locator(".compare-loading")).toHaveCount(0);
+  await page.unroute("**/compilations/side**");
+  await expect(first).toHaveValue("leb");
+  await expect(column).toContainText("LEB");
   await page.reload();
   await expect(page.getByRole("combobox", { name: "Translation for column 1" })).toHaveValue("leb");
 
@@ -112,8 +152,25 @@ test("vision §3.1: compare a chapter verse by verse beside translations remembe
   // Its + adds a column after it, with the first translation not shown yet.
   const plus = table.getByRole("button", { name: /^Add a column after the / }).first();
   await expect(plus).toHaveAttribute("title", "Add a column after this one");
+  // The new column is drawn at once, greyed and loading, before it's saved and loaded.
+  let releaseAdd = () => {};
+  const heldAdd = new Promise<void>((r) => {
+    releaseAdd = r;
+  });
+  await page.route("**/compilations/side**", async (route) => {
+    if (route.request().headers()["rsc"]) await heldAdd;
+    await route.continue();
+  });
   await plus.click();
-  await expect(table.getByRole("columnheader")).toHaveCount(5, { timeout: 15_000 });
+  await expect(table.getByRole("columnheader")).toHaveCount(5, { timeout: 1_000 });
+  const added = table.getByRole("columnheader").nth(2);
+  await expect(added).toHaveClass(/compare-adding/);
+  await expect(added.getByRole("status")).toHaveText("Loading…");
+  await page.screenshot({ ...shot("reading-area-column-adding"), fullPage: false });
+  releaseAdd();
+  await expect(table.locator(".compare-adding")).toHaveCount(0, { timeout: 15_000 });
+  await page.unroute("**/compilations/side**");
+  await expect(table.getByRole("columnheader")).toHaveCount(5);
   await expect(page.getByRole("combobox", { name: "Translation for column 1" })).toHaveValue("leb");
   await expect(page.getByRole("combobox", { name: "Translation for column 2" })).not.toHaveValue(
     "leb",
@@ -253,6 +310,18 @@ test("vision §3.1: give the chapter in edit mode a new translation from its men
     page.getByRole("menu", { name: "Change the translation of Genesis 1" }),
   ).toBeVisible();
   await expect(page.getByRole("menuitem", { name: /^KJV:.*\(current\)$/ })).toBeVisible();
+  // Nothing covers it, even where it reaches over the sticky headings: each item shown is on top.
+  for (const item of await page.getByRole("menuitem").all()) {
+    const onTop = await item.evaluate((e) => {
+      const r = e.getBoundingClientRect();
+      const box = e.closest("[role=menu]")?.getBoundingClientRect();
+      const y = r.top + r.height / 2;
+      // Items scrolled out of the menu's own box aren't shown.
+      if (!box || y <= box.top || y >= box.bottom) return true;
+      return e.contains(document.elementFromPoint(r.left + r.width / 2, y));
+    });
+    expect(onTop).toBe(true);
+  }
   // Of the window only: a full-page shot resizes it, which closes the menu.
   await page.screenshot({ ...shot("reading-area-chapter-menu"), fullPage: false });
   page.once("dialog", (d) => d.dismiss());

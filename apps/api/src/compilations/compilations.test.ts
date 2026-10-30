@@ -291,6 +291,46 @@ describe("domain-model §2.3: compilations", () => {
     expect((await call("DELETE", owner, url)).statusCode).toBe(204);
   });
 
+  it("vision §3.1: give a whole section a new base, throwing away every choice within it", async () => {
+    await post(owner, "/api/compilations", {
+      title: "Testament",
+      abbreviation: "Tmt",
+      base: "kjv",
+    });
+    const url = "/api/compilations/tmt";
+    await post(owner, `${url}/rules`, { scope: { section: "ot" }, source: "kjv" });
+    await put(owner, `${url}/books/Joel/source`, { source: "other" });
+    await post(owner, `${url}/rules`, { scope: { reference: "Joel 3" }, source: "kjv" });
+    await post(owner, `${url}/verses`, { reference: "Joel 2:28", source: "kjv" });
+    expect((await get(owner, url)).json().verses).toHaveLength(1);
+
+    const res = await put(owner, `${url}/sections/ot/source`, { source: "other" });
+    expect(res.statusCode).toBe(200);
+    const view = res.json();
+    expect(view.rules).toMatchObject([{ kind: "section", entered: "ot", source: { id: "other" } }]);
+    expect(view.rules).toHaveLength(1);
+    expect(view.verses).toEqual([]);
+    // Choosing again replaces the section's rule rather than adding another.
+    const again = (await put(owner, `${url}/sections/ot/source`, { source: "kjv" })).json();
+    expect(again.rules).toMatchObject([{ kind: "section", source: { id: "kjv" } }]);
+    expect(again.rules).toHaveLength(1);
+
+    // The base has no New Testament here, and only the three sections exist.
+    expect(
+      (await put(owner, `${url}/sections/nt/source`, { source: "other" })).json(),
+    ).toMatchObject({ code: "not-in-base" });
+    expect((await put(owner, `${url}/sections/law/source`, { source: "other" })).statusCode).toBe(
+      400,
+    );
+    expect(
+      (await put(owner, `${url}/sections/ot/source`, { source: "unrecorded" })).json(),
+    ).toMatchObject({ code: "source-not-allowed" });
+    expect((await put(other, `${url}/sections/ot/source`, { source: "other" })).statusCode).toBe(
+      404,
+    );
+    expect((await call("DELETE", owner, url)).statusCode).toBe(204);
+  });
+
   it("vision §3.1: give one chapter a new source; a passage running past it keeps the rest", async () => {
     await post(owner, "/api/compilations", { title: "Part", abbreviation: "Part", base: "kjv" });
     const url = "/api/compilations/part";

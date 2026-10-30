@@ -343,6 +343,9 @@
     "menuFor": "Options for {book}",
     "newBaseFor": "Change the translation of {book}",
     "current": "(current)",
+    "menuForSection": "Options for the {section}",
+    "newBaseForSection": "Change the translation of the {section}",
+    "confirmSection": "Use the {source} for the whole {section}?\n\nThis throws away every change you've made within the {section}: books, chapters and passages taken from other translations, and single verses, including corrections, adaptations and your own renderings. This can't be undone.",
     "confirmReplace": "Use the {source} for the whole of {book}?\n\nThis throws away every change you've made within {book}: passages and chapters taken from other translations, and single verses, including corrections, adaptations and your own renderings. This can't be undone."
   },
   "reading": {
@@ -371,6 +374,7 @@
     "addColumn": "Add a column after the {source}",
     "removeColumn": "Remove the {source} column",
     "removeTooltip": "Remove this column",
+    "loadingColumn": "Loading…",
     "addTooltip": "Add a column after this one"
   }
 }

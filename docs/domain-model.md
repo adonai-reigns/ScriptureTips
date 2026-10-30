@@ -33,6 +33,8 @@ The only way content leaves a user's private workspace.
    - *Group:* the group's moderators, with the automated tools available to them.
 5. **Result:** published, returned with reasons (the user can fix it and resubmit), or appealed.
 
+**Planned: blockers shown early.** On the compilation page, under the composition bar, the problems that would stop publishing (step 2) are listed while the user works, and refreshed when the compilation's choices change, as the bar is. Users then find out while they curate, not after all the work is done.
+
 | Entity | Key fields |
 |---|---|
 | **PublishRequest** | item (publication, link, annotation, note, research library …), scope, requested_by, consented_at, status (`checking` · `in_review` · `published` · `returned`), reviewer notes |
@@ -271,7 +273,7 @@ All scripture text the API serves comes from **one cache**, the authoritative st
 
 Many translations come with their translators' own notes: footnotes, alternative renderings ("Or …"), textual notes, and the literal wording behind an idiomatic phrase. They are part of the translation as published, so they are imported with it and carried through wherever its text goes.
 
-- **Every translation that provides them.** The import keeps every note a translation's source gives (the LEB's 24,247, the NET's, the WEB's footnotes, …); none is dropped.
+- **Every translation that provides them,** where the license allows. The import keeps every note a translation's source gives (the LEB's 24,247, the WEB's footnotes, …); none is dropped. The NET's notes are the exception: its license grants nothing for them, so they aren't imported (§7.1).
 - **Anchored like an annotation.** A note's **anchor** is a point in the verse text (where the publisher prints the note mark), or a **span** of words when the publisher marks one. The LEB marks idiomatic phrases with lower corner brackets, ⸤like this⸥, and gives the literal wording in the note after them: the bracketed words are the span, and the note is its body. A span can run across a verse number (LEB Hos 4:10–11), so an anchor has a start and an end, each a canonical ref and a position in that verse's text.
 - **Always with the text.** Wherever a translation's text is shown, exported or printed, its notes are available with it. A reader can collapse them in a view, and an edition decides where they're placed (book-designer.md §5, stream B), but they can't be detached from the text. The publisher's own categories are kept: a note the LEB marks for screen only is left out of print unless the edition asks for it.
 - **In compilations,** notes travel with their verses and can be edited with them, keeping their provenance (§2.3).
@@ -521,6 +523,15 @@ Viewpoint signals for a user are calculated only while that user's consent is ac
 **What counts toward a share rule.** Verses are the unit for verse rules: every license restriction found names verses (licenses.md §8), so the LEB's 25%/50% rules count verses too. Where a rule counts words (the NLT and TLB online 25% rule), every word that comes from a user or from a rights holder counts: verse text, headings, footnotes, annotations and commentary. Book names, chapter and verse numbers, and references are identification marks, not translated or copyrightable content, so they don't count.
 
 The share check runs whenever a compilation changes (so the user sees the effect while curating) and again on every export, because an edition adds its own content (annotations, links, pages) to the total.
+
+### 7.1 Planned: the NET's notes aren't imported
+
+**Decided** (project owner, 2026-10-30): the NET's free permission covers "the NET Bible® Scripture text (without the NET Bible notes)" and grants nothing for the notes, which it says need permission asked for by email. So ScriptureTips doesn't hold or show them until that permission is given (sources.md §8, item 20). **The change is made after the compilation editor's UI work is committed.**
+
+- **The import skips them.** The loader (tools/scripture-import, `load.ts`) writes no translator's notes, and no note marks in the text, for a translation whose license has `notes_excluded` (read from the license module, not hard-coded to the NET).
+- **Notes already loaded are removed.** Reloading the NET drops its notes from the database, with their marks. Compilation data that came from them goes too: edited verses' source snapshots lose the NET's notes, and compilation notes reworded from or removing a NET note are deleted. The user's own notes stay.
+- **The check stays as a safety net.** The pre-publish `notes-excluded` problem (and the `notes_excluded` rule) are kept, so a note that somehow got through still can't be published. Once the notes are gone it never shows.
+- **Tests:** the import of a `notes_excluded` translation keeps its text and drops its notes; a compilation built on it has no NET notes anywhere (reader, editor, compare, PDF, publication), and its own notes are kept.
 
 ## 8. Editions (book designer)
 

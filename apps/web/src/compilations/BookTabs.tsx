@@ -29,7 +29,8 @@ export interface BookTab {
  * The compilation's books by section (Old Testament, New Testament, other writings) as tabs: one
  * section's books show at a time. Arrow keys move between tabs, as the ARIA tabs pattern has it;
  * Tab moves through the books, each followed by its menu. A book's link opens it in the
- * reading area.
+ * reading area. Each tab is followed by its section's menu, to give the whole section a new
+ * translation.
  */
 export function BookTabs({
   slug,
@@ -51,6 +52,8 @@ export function BookTabs({
     (tabs.find((tab) => tab.books.some((b) => b.current)) ?? tabs[0])?.id,
   );
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
+  // The tab (or its menu) under the pointer: its menu's icon shows, as a book's does on hover.
+  const [hovered, setHovered] = useState<string | null>(null);
   const selected = tabs.find((t) => t.id === current) ?? tabs[0];
 
   const onKeyDown = (e: KeyboardEvent, index: number) => {
@@ -71,6 +74,11 @@ export function BookTabs({
   };
 
   if (!selected) return null;
+  // A section's one source, if every book in it comes from the same translation.
+  const sectionSource = (tab: BookTab) => {
+    const all = new Set(tab.books.map((b) => b.source));
+    return all.size === 1 ? [...all][0] : undefined;
+  };
   return (
     <div className="book-tabs">
       <div className="book-tabs-bar">
@@ -89,6 +97,9 @@ export function BookTabs({
               aria-selected={tab.id === selected.id}
               aria-controls={`book-panel-${tab.id}`}
               tabIndex={tab.id === selected.id ? 0 : -1}
+              style={{ order: 2 * i }}
+              onPointerEnter={() => setHovered(tab.id)}
+              onPointerLeave={() => setHovered(null)}
               onClick={() => setCurrent(tab.id)}
               onKeyDown={(e) => onKeyDown(e, i)}
             >
@@ -96,6 +107,27 @@ export function BookTabs({
             </button>
           ))}
         </div>
+        {/* Outside the tab list, which may hold only tabs; each is placed after its tab. */}
+        {tabs.map((tab, i) => (
+          <div
+            key={tab.id}
+            className={`book-tab-menu${hovered === tab.id ? " shown" : ""}`}
+            style={{ order: 2 * i + 1 }}
+            onPointerEnter={() => setHovered(tab.id)}
+            onPointerLeave={() => setHovered(null)}
+          >
+            <SourceMenu
+              label={t("menuForSection", { section: tab.label })}
+              heading={t("newBaseForSection", { section: tab.label })}
+              current={sectionSource(tab)}
+              confirmText={(source) =>
+                t("confirmSection", { section: tab.label, source: source.label })
+              }
+              endpoint={`/api/compilations/${slug}/sections/${tab.id}/source`}
+              sources={sources}
+            />
+          </div>
+        ))}
       </div>
       <ul
         role="tabpanel"

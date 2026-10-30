@@ -8,6 +8,7 @@ import { type ChapterRef, neighbors } from "../reader/books.ts";
 import { Passage } from "../reader/Passage.tsx";
 import { type Compilation, compareView } from "./api.ts";
 import { CompareGrid } from "./CompareGrid.tsx";
+import { LinkPending } from "./LinkPending.tsx";
 
 export type ReadingMode = "read" | "compare" | "edit";
 export const READING_MODES: readonly ReadingMode[] = ["read", "compare", "edit"];
@@ -115,6 +116,7 @@ export async function ReadingArea({
               aria-current={m === mode ? "page" : undefined}
             >
               {t(`mode.${m}`)}
+              <LinkPending />
             </Link>
           ))}
         </nav>
@@ -128,6 +130,7 @@ export async function ReadingArea({
               aria-label={t("previous", { chapter: chapterLabel(previous) })}
             >
               ‹
+              <LinkPending />
             </Link>
           ) : (
             <span className="reading-step" aria-hidden="true" />
@@ -151,6 +154,7 @@ export async function ReadingArea({
                   aria-current={n === chapter ? "page" : undefined}
                 >
                   {n}
+                  <LinkPending />
                 </Link>
               ))}
             </nav>
@@ -164,6 +168,7 @@ export async function ReadingArea({
               aria-label={t("next", { chapter: chapterLabel(next) })}
             >
               ›
+              <LinkPending />
             </Link>
           ) : (
             <span className="reading-step" aria-hidden="true" />

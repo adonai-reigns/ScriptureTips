@@ -983,7 +983,7 @@ export function PublishForm({
 /**
  * A heading part changed in place: the compilation's title or abbreviation, shown as text until
  * clicked, then an input with the create form's rules. Enter or leaving the field saves; Escape
- * cancels. A new abbreviation moves the compilation to its new path.
+ * cancels. A new abbreviation moves the compilation to its new path, at the same chapter and mode.
  */
 export function InPlaceField({
   slug,
@@ -1026,7 +1026,7 @@ export function InPlaceField({
       () => {
         setEditing(false);
         if (field === "abbreviation" && next.toLowerCase() !== slug)
-          window.location.replace(`/compilations/${next.toLowerCase()}`);
+          window.location.replace(`/compilations/${next.toLowerCase()}${window.location.search}`);
         else router.refresh();
       },
     );

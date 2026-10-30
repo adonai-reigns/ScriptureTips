@@ -612,6 +612,20 @@ export class CompilationsService {
   }
 
   /**
+   * Gives a whole section (`ot`, `nt`, `additional`) a new base: the section comes from
+   * `source`, and every choice within it (its section, book, chapter and passage rules, and its
+   * single verses, edits and own renderings) is thrown away, as `replaceBook` does for a book.
+   */
+  replaceSection(
+    owner: User,
+    slug: string,
+    section: SectionId,
+    sourceId: string,
+  ): Promise<CompilationView> {
+    return this.replaceScope(owner, slug, section, sourceId, "section");
+  }
+
+  /**
    * Gives a whole book a new base: the book comes from `source`, and every narrower choice within
    * it (its book, chapter and passage rules, and its single verses, edits and own renderings
    * included) is thrown away, as each would be removed on its own. A section rule stays.
@@ -639,7 +653,7 @@ export class CompilationsService {
     slug: string,
     osis: string,
     sourceId: string,
-    kind: "book" | "chapter",
+    kind: "section" | "book" | "chapter",
   ): Promise<CompilationView> {
     const { c, base } = await this.find(owner, slug);
     const [source] = await this.db
@@ -654,18 +668,40 @@ export class CompilationsService {
       const parsed = parseReference(text, { scheme: c.scheme as SchemeId, verses: counts });
       return parsed.ok && parsed.references.length === 1 ? parsed.references[0] : undefined;
     };
-    const ref = canonical(osis);
+    // A section is named by its ID; a book or chapter by OSIS, in the compilation's numbering.
+    const ref = kind === "section" ? undefined : canonical(osis);
     if (
-      !ref?.canonical ||
-      ref.entered.start.book !== osis.split(".")[0] ||
-      kindOf(ref.entered, counts) !== kind
+      kind !== "section" &&
+      (!ref?.canonical ||
+        ref.entered.start.book !== osis.split(".")[0] ||
+        kindOf(ref.entered, counts) !== kind)
     )
       throw new BadRequestException({ code: "not-in-base" });
-    const scope = toOrdinalRange(ref.canonical);
-    const within = (column: typeof compilationRule.scope | typeof compilationVerse.scope) =>
-      sql`${column} && int4range(${scope.start}, ${scope.end}, '[]')`;
+    const scope =
+      kind === "section" || !ref?.canonical
+        ? sectionRange(osis as SectionId)
+        : toOrdinalRange(ref.canonical);
+    const within = (
+      column:
+        | typeof compilationRule.scope
+        | typeof compilationVerse.scope
+        | typeof verseText.canonicalRange,
+    ) => sql`${column} && int4range(${scope.start}, ${scope.end}, '[]')`;
+    if (kind === "section") {
+      // The section must hold some of the base's verses, as a section rule's must.
+      const [inBase] = await this.db
+        .select({ id: verseText.id })
+        .from(verseText)
+        .where(and(eq(verseText.translationId, base.id), within(verseText.canonicalRange)))
+        .limit(1);
+      if (!inBase) throw new BadRequestException({ code: "not-in-base" });
+    }
     const narrower: RuleKind[] =
-      kind === "book" ? ["book", "chapter", "range"] : ["chapter", "range"];
+      kind === "section"
+        ? ["section", "book", "chapter", "range"]
+        : kind === "book"
+          ? ["book", "chapter", "range"]
+          : ["chapter", "range"];
 
     await this.db.transaction(async (tx) => {
       const removedRules = await tx
@@ -679,7 +715,7 @@ export class CompilationsService {
         )
         .returning();
       // A passage running past the chapter keeps the verses outside it, still a passage.
-      if (kind === "chapter") {
+      if (kind === "chapter" && ref) {
         for (const r of removedRules) {
           if (r.kind !== "range") continue;
           for (const rest of outsideChapter(parseOsisPassage(r.entered), ref.entered, counts)) {
@@ -713,7 +749,7 @@ export class CompilationsService {
         compilationId: c.id,
         kind,
         scope,
-        entered: formatOsisPassage(ref.entered),
+        entered: ref ? formatOsisPassage(ref.entered) : osis,
         sourceTranslationId: source.id,
       });
       await tx.update(compilation).set({ updatedAt: new Date() }).where(eq(compilation.id, c.id));

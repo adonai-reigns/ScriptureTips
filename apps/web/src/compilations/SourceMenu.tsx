@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { type CSSProperties, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { errorCode, useErrorText } from "./errors.ts";
 
 /** A translation a book or chapter can be taken from. */
@@ -14,7 +15,8 @@ export interface BookSourceChoice {
 /**
  * A menu of translations behind a ⋮ icon, to give a whole book or chapter a new source after a
  * warning (the book tabs and the edit mode's chapter column). It's placed against the window,
- * so the book columns don't re-balance around it.
+ * so the book columns don't re-balance around it, and drawn at the end of the page, above the
+ * sticky headings.
  */
 export function SourceMenu({
   label,
@@ -82,7 +84,8 @@ export function SourceMenu({
       setError(null);
     };
     const outside = (e: PointerEvent) => {
-      if (!root.current?.contains(e.target as Node)) shut();
+      const target = e.target as Node;
+      if (!root.current?.contains(target) && !menu.current?.contains(target)) shut();
     };
     const at = toggle.current?.getBoundingClientRect();
     const away = (e: Event) => {
@@ -144,28 +147,37 @@ export function SourceMenu({
           <circle cx="8" cy="13" r="1.5" />
         </svg>
       </button>
-      {open ? (
-        <div ref={menu} role="menu" style={place} aria-label={heading}>
-          <p className="book-menu-heading">{heading}</p>
-          {sources.map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              role="menuitem"
-              disabled={busy}
-              onClick={() => choose(s)}
+      {open
+        ? createPortal(
+            <div
+              ref={menu}
+              role="menu"
+              className="book-menu-popup"
+              style={place}
+              aria-label={heading}
             >
-              {s.label}
-              {s.id === current ? <small> {t("current")}</small> : null}
-            </button>
-          ))}
-          {error ? (
-            <p role="alert" className="error">
-              {errorText(error)}
-            </p>
-          ) : null}
-        </div>
-      ) : null}
+              <p className="book-menu-heading">{heading}</p>
+              {sources.map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  role="menuitem"
+                  disabled={busy}
+                  onClick={() => choose(s)}
+                >
+                  {s.label}
+                  {s.id === current ? <small> {t("current")}</small> : null}
+                </button>
+              ))}
+              {error ? (
+                <p role="alert" className="error">
+                  {errorText(error)}
+                </p>
+              ) : null}
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

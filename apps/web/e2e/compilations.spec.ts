@@ -311,7 +311,7 @@ test("vision §3.1: rename a compilation in place, its title and its abbreviatio
   await page.getByRole("button", { name: "Create" }).click();
   await expect(page).toHaveURL(/\/compilations\/draft$/, { timeout: 15_000 });
   const heading = page.getByRole("heading", { level: 1 });
-  await expect(heading).toHaveText(/Draft Words\s*Draft/);
+  await expect(heading).toHaveText("Draft Words");
   await page.screenshot(shot("compilation-heading"));
 
   // The title: click, type, Enter.
@@ -328,19 +328,26 @@ test("vision §3.1: rename a compilation in place, its title and its abbreviatio
   await page.getByRole("textbox", { name: "Title" }).press("Escape");
   await expect(heading.getByRole("button", { name: "Final Words" })).toBeVisible();
 
-  // The abbreviation keeps the create form's rules: a published translation's is refused.
-  await heading.getByRole("button", { name: "Draft", exact: true }).click();
+  // The abbreviation heads the compilation's own column when comparing, and changes there. It
+  // keeps the create form's rules: a published translation's is refused.
+  await page
+    .getByRole("navigation", { name: "Reading mode" })
+    .getByRole("link", { name: "Compare" })
+    .click();
+  const own = page.locator("th.compare-own");
+  await own.getByRole("button", { name: "Draft", exact: true }).click();
   const abbreviation = page.getByRole("textbox", { name: "Abbreviation" });
   await abbreviation.fill("KJV");
   await abbreviation.press("Enter");
-  await expect(heading.getByRole("alert")).toHaveText(/name of a published translation/);
+  await expect(own.getByRole("alert")).toHaveText(/name of a published translation/);
   await page.screenshot(shot("compilation-heading-error"));
 
   // A new one moves the compilation to its new link.
   await abbreviation.fill("Final");
   await abbreviation.press("Enter");
-  await expect(page).toHaveURL(/\/compilations\/final$/, { timeout: 15_000 });
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/Final Words\s*Final/);
+  await expect(page).toHaveURL(/\/compilations\/final\?.*mode=compare/, { timeout: 15_000 });
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Final Words");
+  await expect(own.getByRole("button", { name: "Final", exact: true })).toBeVisible();
 });
 
 test("vision §3.1: the editor shows where the verses come from, and each section's books", async ({
@@ -399,10 +406,78 @@ test("vision §3.1: the editor shows where the verses come from, and each sectio
   await page.keyboard.press("ArrowLeft");
   await expect(tabs.getByRole("tab", { name: "Old Testament" })).toBeFocused();
   await expect(bookLink(panel, "Genesis")).toBeVisible();
-  // Tab moves from the tabs into the books.
+  // Tab moves from the tab to each section's menu, then into the books.
+  for (const section of ["Old Testament", "New Testament", "Additional writings"]) {
+    await page.keyboard.press("Tab");
+    await expect(page.getByRole("button", { name: `Options for the ${section}` })).toBeFocused();
+  }
   await page.keyboard.press("Tab");
   await expect(bookLink(panel, "Genesis")).toBeFocused();
   await page.screenshot(shot("compilation-top"));
+});
+
+test("vision §3.1: give a whole section a new base from its menu, after a warning", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  await signUp(page);
+  await page.goto("/compilations");
+  await page.getByRole("textbox", { name: "Title" }).fill("Section Bases");
+  await page.getByRole("textbox", { name: "Abbreviation" }).fill("Sections");
+  await page.getByRole("combobox", { name: "Base translation" }).selectOption("eng-kjv");
+  await page.getByRole("button", { name: "Create" }).click();
+  await expect(page).toHaveURL(/\/compilations\/sections$/, { timeout: 15_000 });
+  await addRule(page, "sections", { reference: "Genesis 1" }, "leb");
+  await page.goto("/compilations/sections");
+  await page.waitForLoadState("networkidle");
+
+  // Each tab has its own menu, just after it. Every Old Testament book's base is the KJV (only
+  // a chapter differs), so it's marked current.
+  const panel = page.getByRole("tabpanel");
+  const tabRight = await page
+    .getByRole("tab", { name: "New Testament" })
+    .evaluate((e) => e.getBoundingClientRect().right);
+  const ntMenu = page.getByRole("button", { name: "Options for the New Testament" });
+  // At rest it's hidden, as a book's is; hovering its tab shows it.
+  const opacity = () => ntMenu.evaluate((e) => getComputedStyle(e).opacity);
+  expect(await opacity()).toBe("0");
+  await page.getByRole("tab", { name: "New Testament" }).hover();
+  await expect.poll(opacity).toBe("1");
+  await ntMenu.hover();
+  await expect.poll(opacity).toBe("1");
+  await page.getByRole("tab", { name: "Old Testament" }).hover();
+  await expect.poll(opacity).toBe("0");
+  const ntLeft = await ntMenu.evaluate((e) => e.getBoundingClientRect().left);
+  expect(ntLeft).toBeGreaterThanOrEqual(tabRight - 8);
+  expect(ntLeft - tabRight).toBeLessThan(12);
+  const options = page.getByRole("button", { name: "Options for the Old Testament" });
+  await options.click();
+  await expect(
+    page.getByRole("menu", { name: "Change the translation of the Old Testament" }),
+  ).toBeVisible();
+  await expect(page.getByRole("menuitem", { name: /\(current\)/ })).toHaveText(/^KJV:/);
+  await page.screenshot({ ...shot("compilation-section-menu"), fullPage: false });
+
+  // Accepting the warning gives the whole Old Testament the WEB, and throws away Genesis 1's LEB.
+  const legend = page.getByRole("figure").getByRole("listitem");
+  await expect(legend).toHaveText([/^KJV/, /^LEB/], { timeout: 30_000 });
+  page.once("dialog", (d) => {
+    expect(d.message()).toContain(
+      "This throws away every change you've made within the Old Testament",
+    );
+    d.accept();
+  });
+  await page.getByRole("menuitem", { name: /^WEB:/ }).click();
+  await expect(bookLink(panel, "Genesis")).toHaveText("Genesis WEB", { timeout: 15_000 });
+  await expect(bookLink(panel, "Malachi")).toHaveText("Malachi WEB");
+  // The legend runs largest first: the Old Testament outweighs the rest.
+  await expect(legend).toHaveText([/^WEB/, /^KJV/], { timeout: 30_000 });
+  await options.click();
+  await expect(page.getByRole("menuitem", { name: /^WEB:.*\(current\)$/ })).toBeVisible();
+  await page.keyboard.press("Escape");
+  // The New Testament keeps the base.
+  await page.getByRole("tab", { name: "New Testament" }).click();
+  await expect(bookLink(panel, "Matthew")).toHaveText("Matthew KJV");
 });
 
 test("vision §3.1: give a whole book a new base from its menu, after a warning", async ({
@@ -422,9 +497,9 @@ test("vision §3.1: give a whole book a new base from its menu, after a warning"
   await expect(page.getByText("From the LEB.")).toBeVisible({ timeout: 15_000 });
   await page.goto("/compilations/bases");
 
-  // Tab goes through each book and then its menu.
+  // Tab goes from the tabs past the sections' menus, then through each book and its menu.
   const panel = page.getByRole("tabpanel");
-  await page.getByRole("tab", { name: "Old Testament" }).focus();
+  await page.getByRole("button", { name: "Options for the Additional writings" }).focus();
   await page.keyboard.press("Tab");
   await expect(bookLink(panel, "Genesis")).toBeFocused();
   await page.keyboard.press("Tab");
