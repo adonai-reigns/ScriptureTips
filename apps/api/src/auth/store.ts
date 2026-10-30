@@ -1,6 +1,6 @@
 import { Redis } from "ioredis";
 
-/** Counters and one-time markers that expire: Valkey in the stack, memory in tests. */
+/** Counters, one-time markers and cached values that expire: Valkey in the stack, memory in tests. */
 export interface KeyStore {
   /**
    * Adds one to `key`, which expires `ttl` seconds after its first count. Returns the new count
@@ -9,6 +9,10 @@ export interface KeyStore {
   increment(key: string, ttl: number): Promise<{ count: number; expiresIn: number }>;
   /** Sets `key` for `ttl` seconds if it isn't set. True if this call set it. */
   claim(key: string, ttl: number): Promise<boolean>;
+  /** The value stored under `key`, if it's there and hasn't expired. */
+  get(key: string): Promise<string | null>;
+  /** Stores `value` under `key` for `ttl` seconds. */
+  put(key: string, value: string, ttl: number): Promise<void>;
   close(): Promise<void>;
 }
 
@@ -29,6 +33,12 @@ export function valkeyStore(url: string): KeyStore {
     async claim(key, ttl) {
       return (await valkey.set(key, "1", "EX", ttl, "NX")) === "OK";
     },
+    get(key) {
+      return valkey.get(key);
+    },
+    async put(key, value, ttl) {
+      await valkey.set(key, value, "EX", ttl);
+    },
     async close() {
       await valkey.quit();
     },
@@ -37,7 +47,7 @@ export function valkeyStore(url: string): KeyStore {
 
 /** The store in memory, for tests. `now` gives the time in milliseconds. */
 export function memoryStore(now: () => number = Date.now): KeyStore {
-  const entries = new Map<string, { count: number; expires: number }>();
+  const entries = new Map<string, { count: number; expires: number; value?: string }>();
   const live = (key: string) => {
     const e = entries.get(key);
     if (e && e.expires <= now()) entries.delete(key);
@@ -54,6 +64,12 @@ export function memoryStore(now: () => number = Date.now): KeyStore {
       if (live(key)) return false;
       entries.set(key, { count: 1, expires: now() + ttl * 1000 });
       return true;
+    },
+    async get(key) {
+      return live(key)?.value ?? null;
+    },
+    async put(key, value, ttl) {
+      entries.set(key, { count: 0, expires: now() + ttl * 1000, value });
     },
     async close() {},
   };

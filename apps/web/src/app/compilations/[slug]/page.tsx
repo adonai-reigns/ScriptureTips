@@ -35,15 +35,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
  * chapter, read, compared or edited; `?book=&chapter=&mode=`).
  */
 export default async function CompilationEditor({ params, searchParams }: Props) {
-  const account = await currentAccount();
+  const { slug } = await params;
+  const [account, c] = await Promise.all([currentAccount(), myCompilation(slug)]);
   if (!account) redirect("/sign-in");
-  const c = await myCompilation((await params).slug);
   if (!c) notFound();
   const t = await getTranslations("compilations");
   const tr = await getTranslations("reader");
   const tp = await getTranslations("pdfBuilds");
   const [available, all, published, pdfBuilds] = await Promise.all([
-    books(c.id),
+    // Cached until its base or rules change.
+    books(c.id, [c.base.id, ...c.rules.map((r) => `${r.id}:${r.source.id}`)].join(",")),
     translations().catch(() => []),
     myPublication(c.slug),
     myPdfBuilds(c.slug),

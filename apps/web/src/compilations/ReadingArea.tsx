@@ -178,6 +178,8 @@ export async function ReadingArea({
               className="reading-step"
               href={readingHref(previous.osis, previous.chapter, mode, read)}
               rel="prev"
+              // Loaded ahead (in a production build), so stepping through chapters is instant.
+              prefetch
               aria-label={t("previous", { chapter: chapterLabel(previous) })}
             >
               ‹
@@ -231,6 +233,8 @@ export async function ReadingArea({
               className="reading-step"
               href={readingHref(next.osis, next.chapter, mode, read)}
               rel="next"
+              // Loaded ahead (in a production build), so stepping through chapters is instant.
+              prefetch
               aria-label={t("next", { chapter: chapterLabel(next) })}
             >
               ›

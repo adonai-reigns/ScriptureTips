@@ -15,8 +15,9 @@ import {
   verseText,
 } from "@scripturetips/db";
 import { testDatabase } from "@scripturetips/db/test-support";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { createApp } from "../app.ts";
+import type { KeyStore } from "../auth/store.ts";
 import { signIn, testAccounts } from "../auth/test-support.ts";
 import { testBuilds } from "../pdf-builds/test-support.ts";
 
@@ -24,6 +25,7 @@ let db: Database;
 let drop: () => Promise<void>;
 let app: NestFastifyApplication;
 let sent: ReturnType<typeof testAccounts>["sent"];
+let store: KeyStore;
 let owner: string;
 let other: string;
 
@@ -113,6 +115,7 @@ beforeAll(async () => {
 
   const accounts = testAccounts();
   sent = accounts.sent;
+  store = accounts.settings.store;
   app = await createApp({
     databaseUrl: url,
     accounts: accounts.settings,
@@ -252,6 +255,36 @@ describe("domain-model §2.3: compilations", () => {
     });
     expect((await get(other, "/api/compilations/mixed/composition")).statusCode).toBe(404);
     expect((await call("DELETE", owner, "/api/compilations/mixed")).statusCode).toBe(204);
+  });
+
+  it("vision §3.1: count the composition once per change, kept in the store", async () => {
+    await post(owner, "/api/compilations", { title: "Kept", abbreviation: "Kept", base: "kjv" });
+    const put = vi.spyOn(store, "put");
+    try {
+      const composition = async () =>
+        (await get(owner, "/api/compilations/kept/composition")).json();
+      const first = await composition();
+      expect(put).toHaveBeenCalledTimes(1);
+      // Asked again with nothing changed, it comes from the store.
+      expect(await composition()).toEqual(first);
+      expect(put).toHaveBeenCalledTimes(1);
+      // A single verse, then a rule, each count it again.
+      await post(owner, "/api/compilations/kept/verses", {
+        reference: "Joel 3:1",
+        source: "other",
+      });
+      expect(await composition()).toMatchObject({ sources: [{ verses: 4 }, { verses: 1 }] });
+      expect(put).toHaveBeenCalledTimes(2);
+      await post(owner, "/api/compilations/kept/rules", {
+        scope: { reference: "Joel" },
+        source: "other",
+      });
+      expect(await composition()).toMatchObject({ sources: [{ id: "other" }] });
+      expect(put).toHaveBeenCalledTimes(3);
+    } finally {
+      put.mockRestore();
+    }
+    expect((await call("DELETE", owner, "/api/compilations/kept")).statusCode).toBe(204);
   });
 
   it("vision §3.1: give a whole book a new base, throwing away every narrower choice within it", async () => {

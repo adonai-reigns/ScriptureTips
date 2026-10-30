@@ -120,11 +120,26 @@ export async function passage(translation: string, ref: string): Promise<Passage
   };
 }
 
-/** The books a translation has text for, with their chapters; null for an unknown translation. */
+/**
+ * The books a translation has text for, with their chapters; null for an unknown translation.
+ * A compilation's are cached under `version` (what they depend on: its base and its rules) when
+ * it's given, so a change to those asks again.
+ */
 export async function books(
   translation: string,
+  version?: string,
 ): Promise<{ osis: string; chapters: number[] }[] | null> {
-  const res = await request(translation, "/books");
+  const res =
+    version && translation.startsWith("@")
+      ? await fetch(
+          `${compilationPath(translation)}/books?${new URLSearchParams({ v: version })}`,
+          {
+            // Keyed by the session cookie too, so it's only ever the owner's.
+            headers: { cookie: (await cookies()).toString() },
+            next: { revalidate: 3600 },
+          },
+        )
+      : await request(translation, "/books");
   if (res.status === 404 || res.status === 401) return null;
   if (!res.ok) throw new Error(`API: ${res.status}`);
   return ((await res.json()) as { books: { osis: string; chapters: number[] }[] }).books;

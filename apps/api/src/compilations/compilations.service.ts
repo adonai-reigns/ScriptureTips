@@ -34,7 +34,9 @@ import {
 } from "@scripturetips/passage";
 import { formatPassage, parseReference, type VerseCounts } from "@scripturetips/reference";
 import type { SchemeId } from "@scripturetips/versification";
+import type { AccountSettings } from "../auth/config.ts";
 import type { User } from "../auth/session.ts";
+import { SETTINGS } from "../auth/tokens.ts";
 import { DATABASE, type Database, isUniqueViolation } from "../database.ts";
 import {
   MAX_VERSES,
@@ -316,12 +318,16 @@ export type RuleScope = { readonly section: SectionId } | { readonly reference: 
  * Compilations (domain-model §2.3, stage 1): a base with layered rules, private to the owner.
  * Every verse is resolved through the layers when read (`resolve.ts`).
  */
+/** How long a counted composition is kept (seconds). */
+const COMPOSITION_TTL = 24 * 60 * 60;
+
 @Injectable()
 export class CompilationsService {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     @Inject(TranslationsService) private readonly translations: TranslationsService,
     @Inject(AuthorshipService) private readonly authorship: AuthorshipService,
+    @Inject(SETTINGS) private readonly settings: AccountSettings,
   ) {}
 
   async list(owner: User): Promise<CompilationSummary[]> {
@@ -1006,8 +1012,38 @@ export class CompilationsService {
    * every book of its base, each verse resolved through the layers as the reader has it, with
    * the translations it draws on and the verses still pasted.
    */
-  /** Its composition by source; reads every verse, so it's asked for separately from the view. */
+  /**
+   * Its composition by source; reads every verse, so it's asked for separately from the view.
+   * Kept in the store under what it depends on (its base, rules and single verses), so it's
+   * counted once per change; a day at most, in case a translation is imported again.
+   */
   async composition(owner: User, slug: string): Promise<CompositionView> {
+    const { c, base } = await this.find(owner, slug);
+    const [layers, choices] = await Promise.all([
+      this.layers(c.id),
+      this.db
+        .select({
+          id: compilationVerse.id,
+          scope: compilationVerse.scope,
+          origin: compilationVerse.origin,
+          source: compilationVerse.sourceTranslationId,
+        })
+        .from(compilationVerse)
+        .where(eq(compilationVerse.compilationId, c.id)),
+    ]);
+    const byId = (a: { id: string }, b: { id: string }) => a.id.localeCompare(b.id);
+    const key = `composition:${c.id}:${textHash(
+      JSON.stringify([base.id, layers.sort(byId), choices.sort(byId)]),
+    )}`;
+    // The store is a shortcut: if it's away, the count is made as before.
+    const cached = await this.settings.store.get(key).catch(() => null);
+    if (cached) return JSON.parse(cached) as CompositionView;
+    const view = await this.count(owner, slug);
+    await this.settings.store.put(key, JSON.stringify(view), COMPOSITION_TTL).catch(() => {});
+    return view;
+  }
+
+  private async count(owner: User, slug: string): Promise<CompositionView> {
     const s = await this.snapshot(owner, slug);
     const verses = s.sources.reduce((n, x) => n + x.verses, 0) + s.own;
     const share = (n: number) => (verses ? Math.round((1000 * n) / verses) / 10 : 0);

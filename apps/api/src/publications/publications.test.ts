@@ -203,6 +203,40 @@ describe("domain-model §2.3: publications", () => {
     ).toMatchObject({ books: [{ osis: "Joel", chapters: [1, 2] }], publication: { slug: "mine" } });
   });
 
+  it("domain-model §1.6: readers cache a version briefly, revalidated by its ETag", async () => {
+    await call("POST", "/api/compilations", {
+      title: "Cached",
+      abbreviation: "Cached",
+      base: "kjv",
+    });
+    expect((await publish({ visibility: "public" }, "cached")).statusCode).toBe(200);
+    const url = "/api/publications/publisher/cached/passages?ref=Joel%201";
+    const first = await call("GET", url, undefined, "");
+    expect(first.statusCode).toBe(200);
+    expect(first.headers["cache-control"]).toBe("public, max-age=60");
+    const etag = String(first.headers.etag);
+    expect(etag).toMatch(/^".+"$/);
+    // Unchanged, asking again with its tag gives a bodiless 304.
+    const again = await app.inject({ method: "GET", url, headers: { "if-none-match": etag } });
+    expect(again.statusCode).toBe(304);
+    expect(again.body).toBe("");
+    // A new version is a new tag.
+    await call("POST", "/api/compilations/cached/verses", {
+      reference: "Joel 1:2",
+      source: "other",
+    });
+    expect((await publish({ visibility: "public" }, "cached")).statusCode).toBe(200);
+    const changed = await app.inject({ method: "GET", url, headers: { "if-none-match": etag } });
+    expect(changed.statusCode).toBe(200);
+    expect(changed.headers.etag).not.toBe(etag);
+    // The books too; an error isn't cached.
+    const books = await call("GET", "/api/publications/publisher/cached/books", undefined, "");
+    expect(books.headers.etag).toBeDefined();
+    const missing = await call("GET", "/api/publications/nobody/cached/books", undefined, "");
+    expect(missing.statusCode).toBe(404);
+    expect(missing.headers["cache-control"]).toBeUndefined();
+  });
+
   it("refuse a version that isn't theirs, an unknown one, and a malformed one", async () => {
     expect(await read("ZZZZZZZZZZ")).toBe(404);
     expect(await read("short")).toBe(400);

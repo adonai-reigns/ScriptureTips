@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import {
   Body,
   Controller,
@@ -8,11 +9,12 @@ import {
   Param,
   Post,
   Query,
+  Res,
 } from "@nestjs/common";
 import { z } from "zod";
 import type { Auth } from "../auth/auth.ts";
 import { signedInUser, type User } from "../auth/session.ts";
-import { AUTH } from "../auth/tokens.ts";
+import { AUTH, type FastifyReplyLike } from "../auth/tokens.ts";
 import { DATABASE, type Database } from "../database.ts";
 import { ZodPipe } from "../zod-pipe.ts";
 import {
@@ -86,25 +88,52 @@ export class PublicationsController {
 
   /** A version's books: the latest (if public), or the pinned `?version=`. */
   @Get("publications/:handle/:slug/books")
-  books(
+  async books(
     @Param("handle", new ZodPipe(Handle)) handle: string,
     @Param("slug", new ZodPipe(Slug)) slug: string,
     @Query(new ZodPipe(ReadQuery)) query: z.infer<typeof ReadQuery>,
+    @Headers("if-none-match") seen: string | undefined,
+    @Res({ passthrough: true }) reply: FastifyReplyLike,
   ) {
-    return this.publications.books(handle, slug, query.version);
+    return cacheable(await this.publications.books(handle, slug, query.version), seen, reply);
   }
 
   /** A passage of a version, like a translation's: `?ref=Genesis 1[&version=…]`. */
   @Get("publications/:handle/:slug/passages")
-  passage(
+  async passage(
     @Param("handle", new ZodPipe(Handle)) handle: string,
     @Param("slug", new ZodPipe(Slug)) slug: string,
     @Query(new ZodPipe(PassageQuery)) query: z.infer<typeof PassageQuery>,
+    @Headers("if-none-match") seen: string | undefined,
+    @Res({ passthrough: true }) reply: FastifyReplyLike,
   ) {
-    return this.publications.passage(handle, slug, query.ref, query.version);
+    return cacheable(
+      await this.publications.passage(handle, slug, query.ref, query.version),
+      seen,
+      reply,
+    );
   }
 
   private user(headers: Record<string, string>): Promise<User> {
     return signedInUser(this.auth, this.db, headers);
   }
+}
+
+/** How long a reader's copy of a published version's response is fresh (seconds). */
+const READ_MAX_AGE = 60;
+
+/**
+ * A published version's response, cached briefly by readers and revalidated by its ETag (domain
+ * model §1.6): unchanged, it's a bodiless 304. Not yet immutable for a pinned version: the
+ * response also says whether a newer version exists, which changes.
+ */
+function cacheable<T>(body: T, seen: string | undefined, reply: FastifyReplyLike): T | undefined {
+  const etag = `"${createHash("sha256").update(JSON.stringify(body)).digest("base64url")}"`;
+  reply.header("cache-control", `public, max-age=${READ_MAX_AGE}`);
+  reply.header("etag", etag);
+  if (seen?.split(",").some((tag) => tag.trim() === etag)) {
+    reply.status(304);
+    return undefined;
+  }
+  return body;
 }

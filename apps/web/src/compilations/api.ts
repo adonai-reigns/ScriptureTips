@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { cache } from "react";
 import type { Verse } from "../reader/api.ts";
 
 /** The signed-in user's compilations (apps/api `CompilationsController`). Server components only. */
@@ -146,9 +147,10 @@ export async function myCompilations(): Promise<CompilationSummary[]> {
   return (await get<{ compilations: CompilationSummary[] }>(""))?.compilations ?? [];
 }
 
-export function myCompilation(slug: string): Promise<Compilation | null> {
-  return get<Compilation>(`/${encodeURIComponent(slug)}`);
-}
+/** Fetched once per request: the page's title and the page itself both ask for it. */
+export const myCompilation = cache(
+  (slug: string): Promise<Compilation | null> => get<Compilation>(`/${encodeURIComponent(slug)}`),
+);
 
 /** The verse editor's view of `ref`, or the API's error code for it. */
 export async function verseEditor(
