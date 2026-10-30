@@ -1,22 +1,47 @@
 #!/usr/bin/env bash
 # Start or stop the local development stack (testing.md §2): ./dev up, ./dev down, ./dev logs.
-# `./dev up --lan` also serves the web app to the local network (to try it on a phone); the
-# API and database stay on localhost. Runs on the host, since Docker isn't available inside
-# the toolbox.
+# `./dev up --lan` also serves the web app to the local network (to try it on a phone or
+# tablet); the API and database stay on localhost. Runs on the host, since Docker isn't
+# available inside the toolbox.
+#
+# The web app is served over HTTPS with a self-signed certificate (in .dev-certs/, not in git),
+# so every device gets a secure context, which the sign-in bot check needs (Web Crypto). The
+# certificate covers localhost and this machine's network addresses; it's made again when they
+# change, and a browser warns about it once.
 set -euo pipefail
 cd "$(dirname "$0")"
 
 export HOST_UID="$(id -u)" HOST_GID="$(id -g)"
 
+# cspell:ignore newkey addext keyout
+
+# This machine's private network addresses.
+addresses="$(hostname -I | tr ' ' '\n' | grep -E '^(192\.168|10)\.' || true)"
+
+# Makes the certificate if it's missing or doesn't cover the current addresses.
+certificate() {
+  local names="DNS:localhost,DNS:web,IP:127.0.0.1"
+  for a in $addresses; do names+=",IP:$a"; done
+  if [[ -f .dev-certs/cert.pem && "$(cat .dev-certs/names 2>/dev/null)" == "$names" ]]; then
+    return
+  fi
+  mkdir -p .dev-certs
+  ./toolbox openssl req -x509 -newkey rsa:2048 -nodes -days 825 \
+    -subj "/CN=ScriptureTips development" \
+    -addext "subjectAltName=$names" -addext "extendedKeyUsage=serverAuth" \
+    -keyout .dev-certs/key.pem -out .dev-certs/cert.pem 2>/dev/null
+  echo "$names" >.dev-certs/names
+}
+
 case "${1:-}" in
   up)
+    certificate
     if [[ "${2:-}" == "--lan" ]]; then
-      addresses="$(hostname -I | tr ' ' '\n' | grep -E '^(192\.168|10)\.' || true)"
       export LAN_BIND=0.0.0.0 DEV_ORIGINS="$(paste -sd, <<<"$addresses")"
-      LAN_ORIGINS="$(for a in $addresses; do printf 'http://%s:3000\n' "$a"; done | paste -sd,)"
+      LAN_ORIGINS="$(for a in $addresses; do printf 'https://%s:3000\n' "$a"; done | paste -sd,)"
       export LAN_ORIGINS
       docker compose --profile dev up -d --wait --force-recreate web api pdf-worker
-      for a in $addresses; do echo "Web app on the network: http://$a:3000"; done
+      for a in $addresses; do echo "Web app on the network: https://$a:3000"; done
       exit
     fi
     exec docker compose --profile dev up -d --wait --force-recreate web api pdf-worker

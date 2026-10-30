@@ -72,8 +72,8 @@ services:
       PORT: "3001"
       # Accounts (apps/api/src/auth). A development-only secret: production sets its own.
       AUTH_SECRET: development-only-secret-not-for-production-use
-      AUTH_URL: http://127.0.0.1:3000
-      TRUSTED_ORIGINS: http://localhost:3000,http://web:3000,${LAN_ORIGINS:-}
+      AUTH_URL: https://127.0.0.1:3000
+      TRUSTED_ORIGINS: https://localhost:3000,https://web:3000,${LAN_ORIGINS:-}
       VALKEY_URL: redis://valkey:6379
       SMTP_URL: smtp://mailpit:1025
       MAIL_FROM: ScriptureTips <no-reply@scripturetips.localhost>
@@ -165,13 +165,25 @@ services:
       - 127.0.0.1:8025:8025
     profiles: [dev]
 
-  # The web app (apps/web), with hot reload. http://127.0.0.1:3000, or on the local network
-  # with `./dev up --lan`.
+  # The web app (apps/web), with hot reload. https://127.0.0.1:3000, or on the local network
+  # with `./dev up --lan`. HTTPS, with the self-signed certificate `./dev` makes, so devices on
+  # the network get a secure context too (the sign-in bot check needs one).
   web:
     image: scripturetips-toolbox:dev
     user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     working_dir: /workspace
-    command: [pnpm, --filter, "@scripturetips/web", dev]
+    command:
+      [
+        pnpm,
+        --filter,
+        "@scripturetips/web",
+        dev,
+        --experimental-https,
+        --experimental-https-key,
+        /workspace/.dev-certs/key.pem,
+        --experimental-https-cert,
+        /workspace/.dev-certs/cert.pem,
+      ]
     # `./dev up` waits until the web app serves its first page.
     healthcheck:
       test:
@@ -179,7 +191,7 @@ services:
           CMD,
           node,
           -e,
-          "fetch('http://127.0.0.1:3000/').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))",
+          "process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; fetch('https://127.0.0.1:3000/').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))",
         ]
       interval: 2s
       timeout: 30s

@@ -5,11 +5,10 @@ import { defineConfig, devices } from "@playwright/test";
  * reaches the web app as `web:3000`. Screenshots go to test-results/ (not committed).
  */
 /**
- * The browser opens the app as `localhost:3000`, which Chromium maps to the `web` container. The
- * bot check needs Web Crypto, which browsers allow only on HTTPS or localhost, and the dev stack
- * is plain HTTP.
+ * The browser opens the app as `localhost:3000`, which Chromium maps to the `web` container,
+ * over HTTPS with the dev stack's self-signed certificate (accepted here).
  */
-const baseURL = "http://localhost:3000";
+const baseURL = "https://localhost:3000";
 const webHost = process.env["WEB_HOST"] ?? "web";
 
 export default defineConfig({
@@ -17,6 +16,7 @@ export default defineConfig({
   outputDir: "test-results",
   use: {
     baseURL,
+    ignoreHTTPSErrors: true,
     ...devices["Desktop Chrome"],
     launchOptions: { args: [`--host-resolver-rules=MAP localhost ${webHost}`] },
   },

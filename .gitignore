@@ -11,4 +11,5 @@ dist/
 *.tsbuildinfo
 test-results/
 .next/
+.dev-certs/
 next-env.d.ts
