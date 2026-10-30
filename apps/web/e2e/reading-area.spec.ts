@@ -387,3 +387,58 @@ test("vision §3.1: read mode's ⋮ reads another translation whole, and back", 
   await expect(page).toHaveURL(/chapter=2&mode=read$/);
   await expect(page.getByRole("button", { name: "Translation to read" })).toBeVisible();
 });
+
+test("vision §3.1: in edit mode, a click on the compilation's verse changes its wording in place", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  await create(page, "In Place", "Place");
+  await page.goto("/compilations/place?book=Gen&chapter=1&mode=edit");
+  const own = page.locator("td.compare-own");
+  await own.first().getByRole("button").click();
+  const box = page.getByRole("textbox", { name: "The wording of Genesis 1:1" });
+  await expect(box).toHaveValue("In the beginning God created the heaven and the earth.");
+  await expect(box).toBeFocused();
+  // The other verses fade while it's changed, and come back after.
+  const rows = page.locator(".compare-grid tbody tr");
+  await expect(rows.first()).toHaveCSS("opacity", "1");
+  await expect(rows.nth(1)).toHaveCSS("opacity", "0.5");
+  // Its number stays, and the first line starts after it.
+  await expect(own.first().locator(".verse-in-place-number")).toHaveText(/^1/);
+  expect(
+    await box.evaluate((el) => Number.parseFloat(getComputedStyle(el).textIndent)),
+  ).toBeGreaterThan(0);
+  await page.screenshot(shot("reading-area-edit-in-place"));
+
+  // Escape leaves it as it was.
+  await page.keyboard.press("Escape");
+  await expect(box).toBeHidden();
+  await expect(rows.nth(1)).toHaveCSS("opacity", "1");
+
+  // Unchanged, leaving it saves nothing.
+  await own.first().getByRole("button").click();
+  await expect(box).toBeFocused();
+  await page.getByRole("heading", { name: "Genesis 1" }).click();
+  await expect(box).toBeHidden();
+  await expect(own.first()).not.toContainText("Corrected");
+
+  // A one-word change, saved by leaving it, is a correction of the KJV.
+  await own.first().getByRole("button").click();
+  await box.fill("In the beginning God created the heavens and the earth.");
+  await page.getByRole("heading", { name: "Genesis 1" }).click();
+  await expect(box).toBeHidden();
+  await expect(own.first()).toContainText("created the heavens and the earth.");
+  await expect(own.first()).toContainText("Corrected from the KJV");
+
+  await own.nth(2).getByRole("button").click();
+  const third = page.getByRole("textbox", { name: "The wording of Genesis 1:3" });
+  // A bigger change, saved with Enter, is an adaptation.
+  await third.fill("Then God spoke: Let light shine out, and light shone.");
+  await third.press("Enter");
+  await expect(own.nth(2)).toContainText("Let light shine out");
+  await expect(own.nth(2)).toContainText("Adapted from the KJV");
+
+  // Compare mode only reads.
+  await page.goto("/compilations/place?book=Gen&chapter=1&mode=compare");
+  await expect(own.first().getByRole("button")).toHaveCount(0);
+});

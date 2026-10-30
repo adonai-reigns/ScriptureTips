@@ -354,6 +354,8 @@ test("vision §3.1: rename a compilation in place, its title and its abbreviatio
   await abbreviation.press("Enter");
   await expect(page).toHaveURL(/\/compilations\/final\?.*mode=compare/, { timeout: 15_000 });
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Final Words");
+  // After the new page's scripts have run, so the ⋮ opens.
+  await page.waitForLoadState("networkidle");
   if (isMobile) await openMenu();
   await expect(own.getByRole("button", { name: "Final", exact: true })).toBeVisible();
 });

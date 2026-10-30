@@ -377,6 +377,7 @@
     "loadingColumn": "Loading…",
     "notIn": "Not in the {source}.",
     "compareChoice": "Translations to compare with",
+    "editVerse": "Change the wording:",
     "abbreviationHeading": "Your compilation's abbreviation",
     "readChoice": "Translation to read",
     "readChoiceOther": "Translation to read: reading the {source}",
@@ -388,7 +389,14 @@
     "saveChanges": "Save",
     "saving": "Saving…",
     "swipeHint": "Swipe a verse left or right, or use the arrow keys, to read it in the other translations.",
+    "swipeEditHint": "Swipe a verse left or right, or use the arrow keys, to read it in the other translations. Double tap it, or press Enter, to change its wording.",
     "books": "Books",
     "addTooltip": "Add a column after this one"
+  },
+  "verseInPlace": {
+    "wording": "The wording of {verse}: leave it or press Enter to save, Escape to cancel",
+    "loading": "Loading…",
+    "own": "Your own wording is changed on <link>the verse's page</link>, where its authorship is recorded.",
+    "locked": "The {source}'s licence doesn't allow its wording to be changed."
   }
 }

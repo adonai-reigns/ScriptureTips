@@ -6,9 +6,13 @@ import { type KeyboardEvent, type PointerEvent, useRef, useState } from "react";
 import type { CompareView } from "./api.ts";
 import { VerseText, verseLabel } from "./CompareVerse.tsx";
 import { errorCode, useErrorText } from "./errors.ts";
+import { VerseInPlace } from "./VerseInPlace.tsx";
 
 /** How far a finger must travel sideways for a swipe to change the translation. */
 const SWIPE = 50;
+/** The most time between the taps of a double tap (ms), and the most a tap may move (px). */
+const DOUBLE_TAP = 350;
+const TAP = 10;
 
 /**
  * The compare and edit modes on a phone (shown instead of `CompareGrid`'s table, by screen
@@ -19,7 +23,8 @@ const SWIPE = 50;
  * In compare mode, the translation each verse is shown in is remembered for the user (saved a
  * moment after each swipe, without waiting on it), and shown again next time, on any device.
  *
- * In edit mode, a verse left showing another translation is a change not yet saved: a footer
+ * In edit mode, a double tap (or Enter) changes a verse's wording in place, starting from the
+ * translation it shows. A verse left showing another translation is a change not yet saved: a footer
  * held at the bottom of the window appears while there are any, to take them all into the
  * compilation, or put them back.
  */
@@ -84,21 +89,28 @@ export function CompareList({
     );
   };
 
+  // The latest choices, so swipes quicker than a redraw each build on the one before.
+  const latest = useRef(shown);
+  latest.current = shown;
   const turn = (row: number, by: number) => {
-    const at = ((shown.get(row) ?? 0) + by + count) % count;
-    setShown(new Map(shown).set(row, at));
+    const at = ((latest.current.get(row) ?? 0) + by + count) % count;
+    latest.current = new Map(latest.current).set(row, at);
+    setShown(latest.current);
     remember(row, at);
   };
   const router = useRouter();
   const errorText = useErrorText();
   const [busy, setBusy] = useState(false);
+  // The verse being changed in place (by row), in edit mode.
+  const [editing, setEditing] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // The changes to save: verses shown in a translation that can be compiled and has them.
+  // The changes to save: verses shown in a translation that can be compiled and has them (not
+  // the one being changed in place, which saves itself).
   const changes =
     mode === "edit"
       ? [...shown].flatMap(([row, at]) => {
-          const r = view.rows[row];
+          const r = row === editing ? undefined : view.rows[row];
           const column = view.columns[at - 1];
           if (!r || !column?.compilable || (r.compare[at - 1]?.length ?? 0) === 0) return [];
           return [
@@ -130,35 +142,61 @@ export function CompareList({
   return (
     <div className="compare-phone">
       <p id="compare-list-hint" className="visually-hidden">
-        {t("swipeHint")}
+        {mode === "edit" ? t("swipeEditHint") : t("swipeHint")}
       </p>
-      <ol className="compare-list">
+      <ol className={editing === null ? "compare-list" : "compare-list in-place"}>
         {view.rows.map((r, row) => {
           const at = shown.get(row) ?? 0;
           const column = at === 0 ? null : view.columns[at - 1];
           const verses = column ? (r.compare[at - 1] ?? []) : [r.verse];
+          // Kept while it's changed in place, so the verse doesn't move.
+          const label =
+            at > 0 ? (
+              <small className="compare-list-source">
+                {column?.abbreviation}
+                <span className="compare-list-dots" aria-hidden="true">
+                  {Array.from({ length: count }, (_, i) => (
+                    // biome-ignore lint/suspicious/noArrayIndexKey: one dot per translation, in order.
+                    <span key={i} className={i === at ? "on" : undefined} />
+                  ))}
+                </span>
+              </small>
+            ) : (
+              <small className="compare-list-source own">
+                <span className="visually-hidden">{abbreviation}: </span>
+                {tags[row]}
+              </small>
+            );
+          if (editing === row)
+            return (
+              <li key={`${r.verse.chapter}.${r.verse.verse}`} className="compare-list-editing">
+                {label}
+                <VerseInPlace
+                  slug={slug}
+                  reference={`${bookName} ${r.verse.chapter}:${r.verse.verse}`}
+                  source={column?.id}
+                  shown={verses[0]}
+                  number={verseLabel(verses[0] ?? r.verse)}
+                  onClose={(saved) => {
+                    setEditing(null);
+                    // Saved, it's the compilation's own wording now.
+                    if (saved) {
+                      const next = new Map(shown);
+                      next.delete(row);
+                      setShown(next);
+                    }
+                  }}
+                />
+              </li>
+            );
           return (
             <SwipeVerse
               key={`${r.verse.chapter}.${r.verse.verse}`}
               direction={column?.direction}
               onTurn={(by) => turn(row, by)}
+              onEdit={mode === "edit" ? () => setEditing(row) : undefined}
             >
-              {at > 0 ? (
-                <small className="compare-list-source">
-                  {column?.abbreviation}
-                  <span className="compare-list-dots" aria-hidden="true">
-                    {Array.from({ length: count }, (_, i) => (
-                      // biome-ignore lint/suspicious/noArrayIndexKey: one dot per translation, in order.
-                      <span key={i} className={i === at ? "on" : undefined} />
-                    ))}
-                  </span>
-                </small>
-              ) : (
-                <small className="compare-list-source own">
-                  <span className="visually-hidden">{abbreviation}: </span>
-                  {tags[row]}
-                </small>
-              )}
+              {label}
               {verses.length > 0 ? (
                 verses.map((v) => (
                   <VerseText
@@ -217,14 +255,18 @@ export function CompareList({
 function SwipeVerse({
   direction,
   onTurn,
+  onEdit,
   children,
 }: {
   direction: "ltr" | "rtl" | undefined;
   onTurn: (by: 1 | -1) => void;
+  /** A double tap (or Enter): changes the wording, in edit mode. */
+  onEdit?: (() => void) | undefined;
   children: React.ReactNode;
 }) {
   const body = useRef<HTMLDivElement>(null);
-  const start = useRef<{ x: number; id: number } | null>(null);
+  const start = useRef<{ x: number; y: number; id: number } | null>(null);
+  const lastTap = useRef(0);
 
   const move = (dx: number) => {
     if (body.current) body.current.style.transform = dx ? `translateX(${dx}px)` : "";
@@ -236,9 +278,20 @@ function SwipeVerse({
     body.current?.classList.remove("dragging");
     move(0);
     const dx = e.clientX - from.x;
-    if (!cancelled && Math.abs(dx) >= SWIPE) onTurn(dx < 0 ? 1 : -1);
+    if (cancelled) return;
+    if (Math.abs(dx) >= SWIPE) return onTurn(dx < 0 ? 1 : -1);
+    // A tap: the second of two quick ones edits.
+    if (!onEdit || Math.abs(dx) > TAP || Math.abs(e.clientY - from.y) > TAP) return;
+    if (e.timeStamp - lastTap.current < DOUBLE_TAP) {
+      lastTap.current = 0;
+      onEdit();
+    } else lastTap.current = e.timeStamp;
   };
   const onKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Enter" && onEdit) {
+      e.preventDefault();
+      return onEdit();
+    }
     if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
     e.preventDefault();
     onTurn(e.key === "ArrowRight" ? 1 : -1);
@@ -249,7 +302,7 @@ function SwipeVerse({
       dir={direction}
       onPointerDown={(e) => {
         if (e.pointerType === "mouse" && e.button !== 0) return;
-        start.current = { x: e.clientX, id: e.pointerId };
+        start.current = { x: e.clientX, y: e.clientY, id: e.pointerId };
         body.current?.classList.add("dragging");
       }}
       onPointerMove={(e) => {

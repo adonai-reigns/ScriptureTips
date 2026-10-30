@@ -314,9 +314,13 @@ test("vision §3.1: on a phone, a book's menu stays on screen, from either colum
   await page.waitForLoadState("networkidle");
   const width = page.viewportSize()?.width ?? 0;
   for (const book of ["Genesis", "Ecclesiastes"]) {
-    await page.getByRole("button", { name: `Options for ${book}`, exact: true }).click();
     const menu = page.getByRole("menu", { name: `Change the translation of ${book}` });
-    await expect(menu).toBeVisible();
+    // Tapped again if the page's scripts weren't ready for the first tap.
+    await expect(async () => {
+      if (!(await menu.isVisible()))
+        await page.getByRole("button", { name: `Options for ${book}`, exact: true }).click();
+      await expect(menu).toBeVisible({ timeout: 1_000 });
+    }).toPass();
     const r = await menu.boundingBox();
     expect(r?.x ?? -1, book).toBeGreaterThanOrEqual(0);
     expect((r?.x ?? 0) + (r?.width ?? 0), book).toBeLessThanOrEqual(width);
@@ -326,4 +330,88 @@ test("vision §3.1: on a phone, a book's menu stays on screen, from either colum
     await page.keyboard.press("Escape");
     await expect(menu).toBeHidden();
   }
+});
+
+/** Two quick taps on a verse (real touch events). */
+async function doubleTap(page: Page, verse: Locator) {
+  const r = await verse.boundingBox();
+  if (!r) throw new Error("The verse isn't on screen.");
+  const cdp = await page.context().newCDPSession(page);
+  const at = [{ x: r.x + r.width / 2, y: r.y + Math.min(r.height / 2, 30) }];
+  for (let i = 0; i < 2; i++) {
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: at });
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  }
+  await cdp.detach();
+}
+
+test("vision §3.1: in edit mode on a phone, a double tap changes a verse's wording in place", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  await create(page, "Tap Edit", "Taps");
+  await page.goto("/compilations/taps?book=Gen&chapter=1&mode=edit");
+  await page.waitForLoadState("networkidle");
+  await toVerses(page);
+  const verses = page.locator(".compare-list > li");
+
+  // One tap does nothing; two edit the wording shown (here, the compilation's KJV).
+  await verses.first().locator(".compare-list-verse").tap();
+  await expect(page.getByRole("textbox")).toHaveCount(0);
+  await doubleTap(page, verses.first().locator(".compare-list-verse"));
+  const box = page.getByRole("textbox", { name: "The wording of Genesis 1:1" });
+  await expect(box).toHaveValue("In the beginning God created the heaven and the earth.");
+  // Its label stays, so the verse doesn't move.
+  await expect(verses.first().locator(".compare-list-source")).toBeVisible();
+  // The other verses fade while it's changed.
+  await expect(verses.first()).toHaveCSS("opacity", "1");
+  await expect(verses.nth(1)).toHaveCSS("opacity", "0.5");
+  await page.screenshot({ ...shot("reading-area-phone-edit-in-place"), fullPage: false });
+  // Saved by tapping elsewhere.
+  await box.fill("In the beginning God created the heavens and the earth.");
+  await page.locator(".reading-bar").tap();
+  await expect(box).toBeHidden();
+  await expect(verses.nth(1)).toHaveCSS("opacity", "1");
+  await expect(verses.first()).toContainText("created the heavens and the earth.");
+  await expect(verses.first().locator(".own")).toHaveText(/Corrected from the KJV$/);
+
+  // A verse swiped to another translation starts from that one's wording, and saving takes it.
+  const second = verses.nth(1).locator(".compare-list-verse");
+  await second.focus();
+  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("ArrowRight");
+  await expect(second.locator(".compare-list-source")).toHaveText("BSB");
+  await page.keyboard.press("Enter");
+  const two = page.getByRole("textbox", { name: "The wording of Genesis 1:2" });
+  await expect(two).toHaveValue(/^Now the earth was formless and void/);
+  await expect(verses.nth(1).locator(".compare-list-source")).toHaveText("BSB");
+  // Its number stays too.
+  await expect(verses.nth(1).locator(".verse-in-place-number")).toHaveText(/^2/);
+  // Only the editor saves it: the footer leaves it out.
+  await expect(page.getByRole("region", { name: "Changes not saved" })).toBeHidden();
+  await two.fill((await two.inputValue()).replace("formless", "shapeless"));
+  await two.press("Enter");
+  await expect(verses.nth(1)).toContainText("shapeless");
+  await expect(verses.nth(1).locator(".own")).toHaveText(/Corrected from the BSB$/);
+  await expect(page.getByRole("region", { name: "Changes not saved" })).toBeHidden();
+
+  // Compare mode doesn't edit.
+  await page.goto("/compilations/taps?book=Gen&chapter=1&mode=compare");
+  await toVerses(page);
+  await doubleTap(page, page.locator(".compare-list-verse").first());
+  await expect(page.getByRole("textbox")).toHaveCount(0);
+});
+
+test("vision §3.1: on a phone, quick turns of a verse each count", async ({ page }) => {
+  test.setTimeout(90_000);
+  await create(page, "Quick Turns", "Quick");
+  await page.goto("/compilations/quick?book=Gen&chapter=1&mode=compare");
+  await page.waitForLoadState("networkidle");
+  const verse = page.locator(".compare-list-verse").first();
+  // Three turns sent at once, before the page can redraw: ASV, BSB, then DRA.
+  await verse.evaluate((el) => {
+    for (let i = 0; i < 3; i++)
+      el.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+  });
+  await expect(verse.locator(".compare-list-source")).toHaveText("DRA");
 });

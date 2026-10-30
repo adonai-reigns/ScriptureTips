@@ -1914,6 +1914,72 @@ a.reading-step:focus-visible {
   cursor: progress;
 }
 
+/* In edit mode, the compilation's verse is clicked to change it in place. */
+.compare-own-edit {
+  display: block;
+  width: 100%;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: start;
+  background: none;
+  border: 1px dashed transparent;
+  border-radius: 0.3rem;
+  cursor: text;
+}
+
+.compare-own-edit:hover,
+.compare-own-edit:focus-visible {
+  border-color: var(--deep);
+  outline: none;
+}
+
+/* A verse's wording changed in place (VerseInPlace): the text itself, as it's shown. */
+.verse-in-place textarea {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  font: inherit;
+  font-family: var(--serif);
+  line-height: inherit;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  outline: none;
+  resize: none;
+  overflow: hidden;
+}
+
+/* While a verse is changed in place, the others fade a little, so it stands out. */
+.compare-grid.in-place tbody tr:not(.editing),
+.compare-list.in-place > li:not(.compare-list-editing) {
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+/* The verse's number, where it's shown; the text box's first line is indented past it. */
+.verse-in-place-text {
+  position: relative;
+}
+
+.verse-in-place-number {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  font-family: var(--serif);
+  white-space: pre;
+  pointer-events: none;
+}
+
+.verse-in-place-note {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  color: var(--muted);
+  outline: none;
+}
+
 /*
  * The compare and edit modes on a phone: the chapter in one column (CompareList) instead of the
  * table, each verse swiped sideways through the translations. The book's name in the sticky head
@@ -1963,6 +2029,13 @@ a.reading-step:focus-visible {
     touch-action: pan-y;
     user-select: none;
     transition: transform 0.2s ease-out;
+  }
+
+  /* Laid out as the verse is, so its text doesn't move when it becomes editable. */
+  .compare-list-editing {
+    padding: 0.5rem 0.75rem;
+    font-size: 1.05rem;
+    line-height: 1.6;
   }
 
   .compare-list-verse.dragging {

@@ -19,6 +19,7 @@ import { VerseText, verseLabel } from "./CompareVerse.tsx";
 import { errorCode, useErrorText } from "./errors.ts";
 import { InPlaceField } from "./forms.tsx";
 import { type BookSourceChoice, SourceMenu } from "./SourceMenu.tsx";
+import { VerseInPlace } from "./VerseInPlace.tsx";
 
 /** The most translations shown beside the compilation (the API's `MAX_COMPARE`). */
 export const MAX_COLUMNS = 10;
@@ -75,6 +76,8 @@ export function CompareGrid({
   const picked = useRef<Selection>(selection);
   const anchor = useRef<{ row: number; col: number } | null>(null);
   const [busy, setBusy] = useState(false);
+  // The verse being changed in place (by row), in edit mode.
+  const [editing, setEditing] = useState<number | null>(null);
   // A changed column: saved, then shown greyed with its new choice until the page has reloaded.
   const [changing, setChanging] = useState<{ index: number; id: string } | null>(null);
   const [reloading, startReload] = useTransition();
@@ -319,7 +322,7 @@ export function CompareGrid({
         className={`compare-pane${scrolls ? " scrolls" : ""}`}
         style={{ "--columns": shownColumns + 1 } as CSSProperties}
       >
-        <table className="compare-grid">
+        <table className={editing === null ? "compare-grid" : "compare-grid in-place"}>
           <caption className="visually-hidden">{view.label}</caption>
           <colgroup>
             <col className="compare-own" />
@@ -426,10 +429,41 @@ export function CompareGrid({
               const tag =
                 v.rendering || v.edit || (v.source && v.source !== baseId) ? tagOf(v) : null;
               return (
-                <tr key={`${r.verse.chapter}.${r.verse.verse}`}>
+                <tr
+                  key={`${r.verse.chapter}.${r.verse.verse}`}
+                  className={editing === row ? "editing" : undefined}
+                >
                   <td className="compare-own">
-                    <VerseText verse={r.verse} number={verseLabel(r.verse)} />
-                    {tag ? <small className="compare-tag"> {tag}</small> : null}
+                    {editing === row ? (
+                      <>
+                        <VerseInPlace
+                          slug={slug}
+                          reference={`${bookName} ${r.verse.chapter}:${r.verse.verse}`}
+                          shown={r.verse}
+                          number={verseLabel(r.verse)}
+                          onClose={() => setEditing(null)}
+                        />
+                        {/* Kept while it's changed in place, so the verse doesn't move. */}
+                        {tag ? <small className="compare-tag"> {tag}</small> : null}
+                      </>
+                    ) : mode === "edit" ? (
+                      // In edit mode, a click changes the verse's wording in place.
+                      <button
+                        type="button"
+                        className="compare-own-edit"
+                        disabled={working}
+                        onClick={() => setEditing(row)}
+                      >
+                        <span className="visually-hidden">{t("editVerse")} </span>
+                        <VerseText verse={r.verse} number={verseLabel(r.verse)} />
+                        {tag ? <small className="compare-tag"> {tag}</small> : null}
+                      </button>
+                    ) : (
+                      <>
+                        <VerseText verse={r.verse} number={verseLabel(r.verse)} />
+                        {tag ? <small className="compare-tag"> {tag}</small> : null}
+                      </>
+                    )}
                   </td>
                   {view.columns.map((column, col) => {
                     const verses = r.compare[col] ?? [];
