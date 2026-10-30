@@ -54,8 +54,11 @@ test("domain-model §2.3: build a compilation in layers, read it, and delete it"
   await addRule(page, "mine", { section: "nt" }, "eng-web");
   const panel = page.getByRole("tabpanel");
   await expect(bookLink(panel, "Genesis")).toHaveText("Genesis KJV");
-  await page.getByRole("tab", { name: "New Testament" }).click();
-  await expect(bookLink(panel, "Matthew")).toHaveText("Matthew WEB");
+  // Tapped again until it answers: under load, a tap before hydration is lost.
+  await expect(async () => {
+    await page.getByRole("tab", { name: "New Testament" }).click();
+    await expect(bookLink(panel, "Matthew")).toHaveText("Matthew WEB", { timeout: 2_000 });
+  }).toPass({ timeout: 20_000 });
   await expect(page.getByRole("figure").getByRole("listitem")).toHaveText(
     [/^KJV/, /^WEB/, /^LEB/],
     { timeout: 30_000 },
@@ -537,7 +540,8 @@ test("vision §3.1: give a whole book a new base from its menu, after a warning"
   await expect(page.getByRole("menu")).toHaveCount(0);
   await expect(options).toBeFocused();
   await options.click();
-  await page.screenshot(shot("compilation-book-menu"));
+  // Not the whole page: that resizes the window, which closes the menu.
+  await page.screenshot({ ...shot("compilation-book-menu"), fullPage: false });
   const web = page.getByRole("menuitem", { name: /^WEB:/ });
   const legend = page.getByRole("figure").getByRole("listitem");
   page.once("dialog", (d) => d.dismiss());

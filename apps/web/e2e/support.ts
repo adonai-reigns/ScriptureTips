@@ -51,6 +51,8 @@ export async function signUp(page: Page, canon = "Protestant"): Promise<string> 
   const stamp = `${Date.now()}w${test.info().workerIndex}${test.info().project.name}`;
   const email = `new-${stamp}@example.com`;
   await page.goto("/sign-in");
+  // Settled, so the form is hydrated: submitted before that, it reloads the page instead.
+  await page.waitForLoadState("networkidle");
   await page.getByRole("textbox", { name: "Email address" }).fill(email);
   await passBotCheck(page);
   await page.getByRole("button", { name: "Send code" }).click();

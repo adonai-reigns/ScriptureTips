@@ -134,7 +134,8 @@ export function SourceMenu({
     };
     const at = toggle.current?.getBoundingClientRect();
     const away = (e: Event) => {
-      if (menu.current?.contains(e.target as Node)) return;
+      // A resize's target is the window, which isn't a Node.
+      if (e.target instanceof Node && menu.current?.contains(e.target)) return;
       const now = toggle.current?.getBoundingClientRect();
       if (!at || !now || now.top !== at.top || now.right !== at.right) shut();
     };

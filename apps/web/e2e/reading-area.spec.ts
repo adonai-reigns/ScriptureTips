@@ -351,6 +351,8 @@ test("vision §3.1: read mode's ⋮ reads another translation whole, and back", 
   test.setTimeout(90_000);
   await create(page, "Reading Others", "Others");
   await page.goto("/compilations/others?book=Gen&chapter=1&mode=read");
+  // Settled, so the ⋮ answers a click.
+  await page.waitForLoadState("networkidle");
   const area = reading(page);
   await expect(area).toContainText("In the beginning God created the heaven and the earth.");
 
