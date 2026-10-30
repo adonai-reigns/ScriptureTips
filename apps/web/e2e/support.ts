@@ -84,6 +84,12 @@ export async function passBotCheck(page: Page): Promise<void> {
   }).toPass({ timeout: 30_000 });
 }
 
+/** Opens the compilations page's "+ New compilation" dialog, with the form to fill. */
+export async function openNewCompilation(page: Page) {
+  await page.getByRole("button", { name: "+ New compilation" }).click();
+  await expect(page.getByRole("dialog", { name: "New compilation" })).toBeVisible();
+}
+
 /** Opens one of the compilation editor's dialogs (Publish, Build PDF) and returns it. */
 export async function openEditorDialog(page: Page, button: string, title: string) {
   await page.locator(".compilation-actions").getByRole("button", { name: button }).click();

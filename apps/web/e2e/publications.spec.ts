@@ -1,5 +1,11 @@
 import { expect, test } from "@playwright/test";
-import { arriveFromOwnAddress, openEditorDialog, shot, signUp } from "./support.ts";
+import {
+  arriveFromOwnAddress,
+  openEditorDialog,
+  openNewCompilation,
+  shot,
+  signUp,
+} from "./support.ts";
 
 arriveFromOwnAddress();
 
@@ -10,6 +16,7 @@ test("domain-model §2.3: publish unlisted, then publicly as version 2, each ver
   test.setTimeout(240_000);
   const handle = await signUp(page);
   await page.goto("/compilations");
+  await openNewCompilation(page);
   await page.getByRole("textbox", { name: "Title" }).fill("Plain Words");
   await page.getByRole("textbox", { name: "Abbreviation" }).fill("Plain");
   await page.getByRole("combobox", { name: "Base translation" }).selectOption("eng-kjv");

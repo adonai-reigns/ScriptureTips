@@ -49,6 +49,11 @@
     "newerVersion": "A newer version is available: version {number}.",
     "permalink": "Permanent link to this version"
   },
+  "notFound": {
+    "title": "Page not found",
+    "text": "We couldn't find that page. If it's a compilation, it may not be published, or its link may have changed.",
+    "home": "Back to the home page"
+  },
   "errors": {
     "unknown-publication": "We couldn't find that publication.",
     "unknown-translation": "We don't have that translation.",
@@ -126,10 +131,9 @@
     "intro": "A compilation is your own translation. Start from a base translation, then take books, chapters or passages from others. It stays private to you.",
     "none": "You haven't made a compilation yet.",
     "needHandle": "Choose a handle on your account page first: your compilations' links use it.",
-    "builtOn": "Built on the {base}.",
-    "read": "Read",
     "edit": "Edit",
     "new": "New compilation",
+    "newButton": "+ New compilation",
     "titleField": "Title",
     "titleHelp": "E.g. My Study Bible.",
     "abbreviation": "Abbreviation",

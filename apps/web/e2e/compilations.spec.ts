@@ -1,6 +1,13 @@
 import { readFileSync } from "node:fs";
 import { expect, type Locator, type Page, test } from "@playwright/test";
-import { arriveFromOwnAddress, longPress, openEditorDialog, shot, signUp } from "./support.ts";
+import {
+  arriveFromOwnAddress,
+  longPress,
+  openEditorDialog,
+  openNewCompilation,
+  shot,
+  signUp,
+} from "./support.ts";
 
 arriveFromOwnAddress();
 
@@ -42,6 +49,7 @@ test("domain-model §2.3: build a compilation in layers, read it, and delete it"
 
   await page.getByRole("link", { name: "Compilations" }).click();
   await expect(page.getByText("You haven't made a compilation yet.")).toBeVisible();
+  await openNewCompilation(page);
   await page.getByRole("textbox", { name: "Title" }).fill("My Study Bible");
   await page.getByRole("textbox", { name: "Abbreviation" }).fill("Mine");
   await page.getByRole("combobox", { name: "Base translation" }).selectOption("eng-kjv");
@@ -112,6 +120,7 @@ test("domain-model §2.3: take a single verse, correct one and adapt another, cr
   test.setTimeout(90_000);
   const handle = await signUp(page);
   await page.goto("/compilations");
+  await openNewCompilation(page);
   await page.getByRole("textbox", { name: "Title" }).fill("Verse Study");
   await page.getByRole("textbox", { name: "Abbreviation" }).fill("Verses");
   await page.getByRole("combobox", { name: "Base translation" }).selectOption("eng-kjv");
@@ -178,6 +187,7 @@ test.describe("in the reader's own time zone", () => {
     test.setTimeout(90_000);
     const handle = await signUp(page);
     await page.goto("/compilations");
+    await openNewCompilation(page);
     await page.getByRole("textbox", { name: "Title" }).fill("Own Words");
     await page.getByRole("textbox", { name: "Abbreviation" }).fill("Own");
     await page.getByRole("combobox", { name: "Base translation" }).selectOption("eng-kjv");
@@ -257,6 +267,7 @@ test("domain-model §2.3: reword a translation's note, editing its verse, and ad
   test.setTimeout(90_000);
   const handle = await signUp(page);
   await page.goto("/compilations");
+  await openNewCompilation(page);
   await page.getByRole("textbox", { name: "Title" }).fill("Noted");
   await page.getByRole("textbox", { name: "Abbreviation" }).fill("Noted");
   await page.getByRole("combobox", { name: "Base translation" }).selectOption("eng-web");
@@ -316,6 +327,7 @@ test("vision §3.1: rename a compilation in place, its title and its abbreviatio
   test.setTimeout(90_000);
   await signUp(page);
   await page.goto("/compilations");
+  await openNewCompilation(page);
   await page.getByRole("textbox", { name: "Title" }).fill("Draft Words");
   await page.getByRole("textbox", { name: "Abbreviation" }).fill("Draft");
   await page.getByRole("combobox", { name: "Base translation" }).selectOption("eng-kjv");
@@ -376,6 +388,7 @@ test("vision §3.1: the editor shows where the verses come from, and each sectio
   test.setTimeout(90_000);
   await signUp(page);
   await page.goto("/compilations");
+  await openNewCompilation(page);
   await page.getByRole("textbox", { name: "Title" }).fill("Mixed Sources");
   await page.getByRole("textbox", { name: "Abbreviation" }).fill("Mixed");
   await page.getByRole("combobox", { name: "Base translation" }).selectOption("eng-kjv");
@@ -444,6 +457,7 @@ test("vision §3.1: give a whole section a new base from its menu, after a warni
   test.setTimeout(90_000);
   await signUp(page);
   await page.goto("/compilations");
+  await openNewCompilation(page);
   await page.getByRole("textbox", { name: "Title" }).fill("Section Bases");
   await page.getByRole("textbox", { name: "Abbreviation" }).fill("Sections");
   await page.getByRole("combobox", { name: "Base translation" }).selectOption("eng-kjv");
@@ -510,6 +524,7 @@ test("vision §3.1: give a whole book a new base from its menu, after a warning"
   test.setTimeout(90_000);
   await signUp(page);
   await page.goto("/compilations");
+  await openNewCompilation(page);
   await page.getByRole("textbox", { name: "Title" }).fill("Book Bases");
   await page.getByRole("textbox", { name: "Abbreviation" }).fill("Bases");
   await page.getByRole("combobox", { name: "Base translation" }).selectOption("eng-kjv");
@@ -562,4 +577,76 @@ test("vision §3.1: give a whole book a new base from its menu, after a warning"
     { timeout: 30_000 },
   );
   await expect(page.getByRole("menu")).toHaveCount(0);
+});
+
+test("vision §3.1: the compilations page lists cards, and a modal starts a new one", async ({
+  page,
+  isMobile,
+}) => {
+  test.setTimeout(120_000);
+  const handle = await signUp(page);
+  await page.goto("/compilations");
+  await page.waitForLoadState("networkidle");
+
+  // A compilation is started from the modal, with its buttons by the conventions.
+  await openNewCompilation(page);
+  const dialog = page.getByRole("dialog", { name: "New compilation" });
+  await page.getByRole("textbox", { name: "Title" }).fill("Card One");
+  await page.getByRole("textbox", { name: "Abbreviation" }).fill("Alpha");
+  await page.getByRole("combobox", { name: "Base translation" }).selectOption("eng-kjv");
+  // The submit button is in the middle of the modal.
+  const [box, submit] = [
+    await dialog.boundingBox(),
+    await dialog.getByRole("button", { name: "Create" }).boundingBox(),
+  ];
+  if (!box || !submit) throw new Error("The modal isn't on screen.");
+  expect(Math.abs(submit.x + submit.width / 2 - (box.x + box.width / 2))).toBeLessThan(
+    box.width * 0.1,
+  );
+  await page.screenshot(shot("compilations-new-modal"));
+  await dialog.getByRole("button", { name: "Create" }).click();
+  await expect(page).toHaveURL(/\/compilations\/alpha$/, { timeout: 15_000 });
+
+  // Another, built on the KJV and then given a second source, so its legend has more keys.
+  await page.goto("/compilations");
+  await openNewCompilation(page);
+  await page.getByRole("textbox", { name: "Title" }).fill("Card Two");
+  await page.getByRole("textbox", { name: "Abbreviation" }).fill("Beta");
+  await page.getByRole("combobox", { name: "Base translation" }).selectOption("eng-kjv");
+  await page.getByRole("button", { name: "Create" }).click();
+  await expect(page).toHaveURL(/\/compilations\/beta$/, { timeout: 15_000 });
+  await addRule(page, "beta", { section: "nt" }, "eng-web");
+
+  await page.goto("/compilations");
+  await page.waitForLoadState("networkidle");
+  const cards = page.locator(".compilation-card");
+  await expect(cards).toHaveCount(2);
+  await expect(page.getByRole("link", { name: "Read", exact: true })).toHaveCount(0);
+  await expect(cards.nth(0).locator(".composition-legend li")).toHaveCount(1, { timeout: 30_000 });
+  await expect(cards.nth(1).locator(".composition-legend li")).toHaveCount(2, { timeout: 30_000 });
+  // Every logo is the same size, however tall its card is.
+  const sizes = await cards
+    .locator(".compilation-card-icon img")
+    .evaluateAll((imgs) =>
+      imgs.map((i) => [i.getBoundingClientRect().width, i.getBoundingClientRect().height]),
+    );
+  expect(sizes[0]).toEqual(sizes[1]);
+  // The add button is at the bottom left of the list on a computer, centered on a phone.
+  const add = await page.getByRole("button", { name: "+ New compilation" }).boundingBox();
+  const list = await page.locator(".compilation-cards").boundingBox();
+  if (!add || !list) throw new Error("The list isn't on screen.");
+  if (isMobile) expect(Math.abs(add.x + add.width / 2 - (list.x + list.width / 2))).toBeLessThan(4);
+  else expect(add.x).toBeLessThan(list.x + 4);
+  expect(add.y).toBeGreaterThan(list.y + list.height);
+  await page.screenshot(shot("compilations-cards"));
+  // A card opens its compilation.
+  await cards.filter({ hasText: "Card One" }).click();
+  await expect(page).toHaveURL(/\/compilations\/alpha$/);
+
+  // Nothing is at a compilation's public address until it's published: a 404 page.
+  for (const path of [`/p/${handle}/alpha`, `/@${handle}/alpha`, "/@nobody/abc"]) {
+    const res = await page.goto(path);
+    expect(res?.status(), path).toBe(404);
+    await expect(page.getByRole("heading", { name: "Page not found" })).toBeVisible();
+  }
 });

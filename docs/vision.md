@@ -450,6 +450,7 @@ ScriptureTips is never monetized (§1.1), so running costs are kept low.
 - **UI text:** New Zealand English (for example, "colour", "organise", "favourite").
 - **Code, CSS, comments and documentation:** US English (for example, `color`, `organize`).
 - **Look-alike characters in code:** write dashes, curly quotes and other characters that look like ASCII as `\u` escapes (`"\u2013"`, `/[-\u2014]/`), so a reviewer can tell them apart. Prose (docs, comments) and text data (test inputs, source-text excerpts) use the characters themselves.
+- **Buttons that add or submit:** a button that adds an item to a list sits at the bottom left of the list (centered on a phone). A form's submit button sits at the bottom right of the form (with its other buttons, such as Remove, before it). In a modal, a form's button is centered; two buttons (such as submit and cancel) are both centered, with space around them and the usual gap between.
 - **Git:** conventional commit prefixes (`feat:`, `fix:`, `docs:`, `refactor:`, `chore:` …).
 
 ## 9. Legacy repositories

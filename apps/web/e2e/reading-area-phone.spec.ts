@@ -1,5 +1,12 @@
 import { expect as baseExpect, type Locator, type Page, test } from "@playwright/test";
-import { arriveFromOwnAddress, longPress, shot, signUp, tapAt } from "./support.ts";
+import {
+  arriveFromOwnAddress,
+  longPress,
+  openNewCompilation,
+  shot,
+  signUp,
+  tapAt,
+} from "./support.ts";
 
 arriveFromOwnAddress();
 
@@ -11,6 +18,7 @@ const expect = baseExpect.configure({ timeout: 15_000 });
 async function create(page: Page, title: string, abbreviation: string) {
   await signUp(page);
   await page.goto("/compilations");
+  await openNewCompilation(page);
   await page.getByRole("textbox", { name: "Title" }).fill(title);
   await page.getByRole("textbox", { name: "Abbreviation" }).fill(abbreviation);
   await page.getByRole("combobox", { name: "Base translation" }).selectOption("eng-kjv");

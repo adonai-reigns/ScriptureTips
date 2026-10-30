@@ -1,5 +1,11 @@
 import { expect, test } from "@playwright/test";
-import { arriveFromOwnAddress, openEditorDialog, shot, signUp } from "./support.ts";
+import {
+  arriveFromOwnAddress,
+  openEditorDialog,
+  openNewCompilation,
+  shot,
+  signUp,
+} from "./support.ts";
 
 arriveFromOwnAddress();
 
@@ -9,6 +15,7 @@ test("book-designer.md §9: build a PDF of part of a compilation, and download t
   test.setTimeout(180_000);
   await signUp(page);
   await page.goto("/compilations");
+  await openNewCompilation(page);
   await page.getByRole("textbox", { name: "Title" }).fill("Printed Words");
   await page.getByRole("textbox", { name: "Abbreviation" }).fill("Print");
   await page.getByRole("combobox", { name: "Base translation" }).selectOption("eng-kjv");

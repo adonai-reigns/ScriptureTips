@@ -723,11 +723,6 @@ function NoteForm({
       <ErrorText code={error} />
       <p className="actions">
         {note.removed ? null : (
-          <button type="submit" disabled={busy || !hydrated}>
-            {t("saveNote", { n })}
-          </button>
-        )}
-        {note.removed ? null : (
           <button
             type="button"
             className="secondary"
@@ -747,6 +742,11 @@ function NoteForm({
             {t("restoreNote", { source, n })}
           </button>
         ) : null}
+        {note.removed ? null : (
+          <button type="submit" disabled={busy || !hydrated}>
+            {t("saveNote", { n })}
+          </button>
+        )}
       </p>
     </form>
   );

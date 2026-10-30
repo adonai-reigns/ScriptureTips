@@ -51,6 +51,8 @@ test("vision §11: sign in with an emailed code, choose a handle and canon, sign
   await expect(page.getByRole("link", { name: "Next: Matthew 1" })).toBeVisible();
 
   await page.goto("/account");
+  // Settled, so the button answers a click.
+  await page.waitForLoadState("networkidle");
 
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(page.getByRole("link", { name: "Sign in" })).toBeVisible();
