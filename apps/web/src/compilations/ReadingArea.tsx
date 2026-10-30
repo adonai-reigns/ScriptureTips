@@ -163,7 +163,12 @@ export async function ReadingArea({
               ]}
             />
           ) : (
-            <CompareChoice slug={c.slug} chosen={columnIds} options={options} />
+            <CompareChoice
+              abbreviation={c.abbreviation}
+              slug={c.slug}
+              chosen={columnIds}
+              options={options}
+            />
           )}
         </div>
         <header className="reading-bar">

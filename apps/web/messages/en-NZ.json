@@ -377,6 +377,7 @@
     "loadingColumn": "Loading…",
     "notIn": "Not in the {source}.",
     "compareChoice": "Translations to compare with",
+    "abbreviationHeading": "Your compilation's abbreviation",
     "readChoice": "Translation to read",
     "readChoiceOther": "Translation to read: reading the {source}",
     "readChoiceHeading": "Read",

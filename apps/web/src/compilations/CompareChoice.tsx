@@ -6,18 +6,23 @@ import { type CSSProperties, useCallback, useEffect, useRef, useState, useTransi
 import { createPortal } from "react-dom";
 import { MAX_COLUMNS } from "./CompareGrid.tsx";
 import { errorCode, useErrorText } from "./errors.ts";
+import { InPlaceField } from "./forms.tsx";
 import { usePopupClose } from "./popup.ts";
 
 /**
  * Which translations the compare and edit modes show, ticked in a list behind a ⋮ beside the
  * mode buttons. Each tick is saved at once; a newly ticked translation goes last. At least one
- * stays ticked, and at most `MAX_COLUMNS`.
+ * stays ticked, and at most `MAX_COLUMNS`. On a phone, which has no comparison table, the
+ * compilation's abbreviation is changed here too (the table's first heading elsewhere).
  */
 export function CompareChoice({
+  abbreviation,
   slug,
   chosen,
   options,
 }: {
+  /** The compilation's abbreviation, changed here on a phone. */
+  abbreviation: string;
   slug: string;
   /** The translations compared with now, in order (catalog IDs). */
   chosen: string[];
@@ -103,6 +108,10 @@ export function CompareChoice({
               aria-labelledby="compare-choice-heading"
               aria-busy={busy}
             >
+              <div className="compare-choice-abbreviation">
+                <p className="book-menu-heading">{t("abbreviationHeading")}</p>
+                <InPlaceField slug={slug} field="abbreviation" value={abbreviation} />
+              </div>
               <p id="compare-choice-heading" className="book-menu-heading">
                 {t("compareChoiceHeading", { max: MAX_COLUMNS })}
                 {busy ? <span className="spinner" aria-hidden="true" /> : null}

@@ -329,27 +329,32 @@ test("vision §3.1: rename a compilation in place, its title and its abbreviatio
   await page.getByRole("textbox", { name: "Title" }).press("Escape");
   await expect(heading.getByRole("button", { name: "Final Words" })).toBeVisible();
 
-  // The abbreviation heads the compilation's own column when comparing, and changes there. It
-  // keeps the create form's rules: a published translation's is refused. Phones don't show that
-  // table, and have no place to change it yet.
-  if (isMobile) return;
+  // The abbreviation heads the compilation's own column when comparing, and changes there; on a
+  // phone (no table), in the ⋮ menu beside the modes. It keeps the create form's rules: a
+  // published translation's is refused.
   await page
     .getByRole("navigation", { name: "Reading mode" })
     .getByRole("link", { name: "Compare" })
     .click();
-  const own = page.locator("th.compare-own");
+  const openMenu = () => page.getByRole("button", { name: "Translations to compare with" }).click();
+  const own = isMobile
+    ? page.getByRole("dialog", { name: /^Compare with/ })
+    : page.locator("th.compare-own");
+  if (isMobile) await openMenu();
   await own.getByRole("button", { name: "Draft", exact: true }).click();
   const abbreviation = page.getByRole("textbox", { name: "Abbreviation" });
   await abbreviation.fill("KJV");
   await abbreviation.press("Enter");
   await expect(own.getByRole("alert")).toHaveText(/name of a published translation/);
-  await page.screenshot(shot("compilation-heading-error"));
+  await expect(abbreviation).toHaveJSProperty("scrollLeft", 0);
+  await page.screenshot({ ...shot("compilation-heading-error"), fullPage: false });
 
   // A new one moves the compilation to its new link.
   await abbreviation.fill("Final");
   await abbreviation.press("Enter");
   await expect(page).toHaveURL(/\/compilations\/final\?.*mode=compare/, { timeout: 15_000 });
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Final Words");
+  if (isMobile) await openMenu();
   await expect(own.getByRole("button", { name: "Final", exact: true })).toBeVisible();
 });
 

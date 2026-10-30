@@ -1541,6 +1541,53 @@ a.reading-step:focus-visible {
   border-color: var(--deep);
 }
 
+/* The abbreviation, changed here on a phone only (the comparison table's heading elsewhere). */
+.compare-choice-abbreviation {
+  display: none;
+  padding: 0 0.6rem 0.5rem;
+  margin-bottom: 0.3rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.compare-choice-abbreviation .book-menu-heading {
+  padding: 0.35rem 0;
+}
+
+/* In the menu, a plain full-width field, its help under it rather than over the list. */
+.compare-choice-abbreviation .in-place,
+.compare-choice-abbreviation .in-place-editor,
+.compare-choice-abbreviation .in-place-editor input {
+  display: block;
+  width: 100%;
+  margin: 0;
+}
+
+.compare-choice-abbreviation .in-place,
+.compare-choice-abbreviation .in-place-editor input {
+  padding: 0.3rem 0.4rem;
+  font-weight: 600;
+  border-color: var(--rule);
+  background: #fff;
+}
+
+.compare-choice-abbreviation .in-place-editor::after {
+  display: none;
+}
+
+.compare-choice-abbreviation .in-place-notes {
+  position: static;
+  width: auto;
+  max-width: none;
+  margin-top: 0.3rem;
+  box-shadow: none;
+}
+
+@media (max-width: 48rem) {
+  .compare-choice-abbreviation {
+    display: block;
+  }
+}
+
 .compare-choice label {
   display: flex;
   align-items: center;
