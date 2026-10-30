@@ -110,7 +110,8 @@ main {
 
 /*
  * The top of the compilation editor: the heading (logo and title, then the abbreviation) and the
- * composition chart under it on the left, and the books by section on the right.
+ * composition chart under it, then the Publish, Build PDF and Delete buttons, on the left, and the
+ * books by section on the right.
  */
 .compilation-top {
   display: flex;
@@ -166,12 +167,11 @@ main {
 }
 
 /* After the tabs and their menus (each placed by its `order`), at the right. */
-.book-tabs-actions {
-  order: 100;
+.compilation-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
-  margin-left: auto;
-  padding-bottom: 0.4rem;
+  margin-top: 0.75rem;
 }
 
 .action-button {
@@ -2076,7 +2076,7 @@ a.reading-step:focus-visible {
     border-bottom: 1px solid var(--rule);
   }
 
-  /* Follows a finger sideways, and springs back when let go; up and down scroll the page. */
+  /* Swiped sideways (it fades to the next translation, CompareList.tsx); up and down scroll the page. */
   .compare-list-verse {
     padding: 0.5rem 0.75rem;
     font-family: var(--serif);
@@ -2084,7 +2084,6 @@ a.reading-step:focus-visible {
     line-height: 1.6;
     touch-action: pan-y;
     user-select: none;
-    transition: transform 0.2s ease-out;
   }
 
   /* Laid out as the verse is, so its text doesn't move when it becomes editable. */
@@ -2092,10 +2091,6 @@ a.reading-step:focus-visible {
     padding: 0.5rem 0.75rem;
     font-size: 1.05rem;
     line-height: 1.6;
-  }
-
-  .compare-list-verse.dragging {
-    transition: none;
   }
 
   .compare-list-verse:focus-visible {

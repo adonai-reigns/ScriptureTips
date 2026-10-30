@@ -354,16 +354,26 @@ test("vision §3.1: read mode's ⋮ reads another translation whole, and back", 
   const area = reading(page);
   await expect(area).toContainText("In the beginning God created the heaven and the earth.");
 
+  // The ⋮ names the compilation while it's read.
   const toggle = page.getByRole("button", { name: /^Translation to read/ });
+  await expect(toggle).toHaveText("Others");
   await toggle.click();
   const menu = page.getByRole("menu", { name: "Read" });
   await expect(
     menu.getByRole("menuitemradio", { name: /^Others: Reading Others/ }),
   ).toHaveAttribute("aria-checked", "true");
   await page.screenshot(shot("reading-area-read-choice"));
+  // Held back a moment, so the spinner can be seen while it loads.
+  await page.route(/read=bsb/, async (route) => {
+    await new Promise((done) => setTimeout(done, 1_000));
+    await route.continue();
+  });
   await menu.getByRole("menuitemradio", { name: /^BSB:/ }).click();
-  await expect(page).toHaveURL(/book=Gen&chapter=1&mode=read&read=bsb/);
   await expect(menu).toBeHidden();
+  await expect(toggle.locator(".spinner")).toBeVisible();
+  await expect(page).toHaveURL(/book=Gen&chapter=1&mode=read&read=bsb/);
+  await expect(toggle.locator(".spinner")).toBeHidden();
+  await page.unroute(/read=bsb/);
   await expect(area).toContainText("In the beginning God created the heavens and the earth.");
   // The ⋮ names it.
   await expect(
@@ -385,7 +395,9 @@ test("vision §3.1: read mode's ⋮ reads another translation whole, and back", 
   await page.getByRole("button", { name: /^Translation to read/ }).click();
   await menu.getByRole("menuitemradio", { name: /^Others:/ }).click();
   await expect(page).toHaveURL(/chapter=2&mode=read$/);
-  await expect(page.getByRole("button", { name: "Translation to read" })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Translation to read: reading the Others" }),
+  ).toHaveText("Others");
 });
 
 test("vision §3.1: in edit mode, a click on the compilation's verse changes its wording in place", async ({

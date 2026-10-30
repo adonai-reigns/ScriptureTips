@@ -30,8 +30,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 /**
- * The compilation editor (vision §3.1): its heading and composition, the books by section with
- * their menus, the Publish, Build PDF and Delete dialogs, and under them the reading area (a
+ * The compilation editor (vision §3.1): its heading, composition and, under it, the Publish,
+ * Build PDF and Delete dialogs; the books by section with their menus; and under them the reading area (a
  * chapter, read, compared or edited; `?book=&chapter=&mode=`).
  */
 export default async function CompilationEditor({ params, searchParams }: Props) {
@@ -99,76 +99,67 @@ export default async function CompilationEditor({ params, searchParams }: Props)
             <InPlaceField slug={c.slug} field="title" value={c.title} />
           </h1>
           <CompositionChart slug={c.slug} base={c.base.id} choices={choices} />
+          <div className="compilation-actions">
+            <ModalButton
+              label={t("publishButton")}
+              title={t("publishTitle")}
+              closeLabel={t("close")}
+            >
+              <p>{t("publishIntro")}</p>
+              <p>
+                {!published
+                  ? t("notPublished")
+                  : published.visibility === "public"
+                    ? t.rich("publishedPublic", {
+                        link: (chunks) => (
+                          <a href={publicationPath(published.handle, published.slug)}>{chunks}</a>
+                        ),
+                      })
+                    : t("publishedUnlisted")}
+              </p>
+              <PublishForm
+                slug={c.slug}
+                visibility={published?.visibility ?? null}
+                published={published !== null}
+              />
+              {published ? (
+                <>
+                  <h3>{t("versionsTitle")}</h3>
+                  <ol className="versions" reversed>
+                    {published.versions.map((v) => (
+                      <li key={v.id}>
+                        <a href={publicationPath(published.handle, published.slug, "", v.id)}>
+                          {t.rich("versionLine", {
+                            number: v.number,
+                            date: () => <LocalDate at={v.publishedAt} />,
+                          })}
+                        </a>
+                        {v.changedVerses !== null ? (
+                          <small> {t("versionChanges", { count: v.changedVerses })}</small>
+                        ) : null}
+                        {v.changeNote ? <small> {v.changeNote}</small> : null}
+                      </li>
+                    ))}
+                  </ol>
+                </>
+              ) : null}
+            </ModalButton>
+            <ModalButton label={tp("button")} title={tp("title")} closeLabel={t("close")}>
+              <p>{tp("intro")}</p>
+              <PdfBuilds slug={c.slug} initial={pdfBuilds} />
+            </ModalButton>
+            <ModalButton
+              label={t("deleteButton")}
+              title={t("deleteTitle")}
+              closeLabel={t("close")}
+              danger
+            >
+              <DeleteCompilationForm slug={c.slug} title={c.title} />
+            </ModalButton>
+          </div>
         </div>
         <div className="compilation-top-main">
-          <BookTabs
-            slug={c.slug}
-            label={t("bookMenus")}
-            actions={
-              <>
-                <ModalButton
-                  label={t("publishButton")}
-                  title={t("publishTitle")}
-                  closeLabel={t("close")}
-                >
-                  <p>{t("publishIntro")}</p>
-                  <p>
-                    {!published
-                      ? t("notPublished")
-                      : published.visibility === "public"
-                        ? t.rich("publishedPublic", {
-                            link: (chunks) => (
-                              <a href={publicationPath(published.handle, published.slug)}>
-                                {chunks}
-                              </a>
-                            ),
-                          })
-                        : t("publishedUnlisted")}
-                  </p>
-                  <PublishForm
-                    slug={c.slug}
-                    visibility={published?.visibility ?? null}
-                    published={published !== null}
-                  />
-                  {published ? (
-                    <>
-                      <h3>{t("versionsTitle")}</h3>
-                      <ol className="versions" reversed>
-                        {published.versions.map((v) => (
-                          <li key={v.id}>
-                            <a href={publicationPath(published.handle, published.slug, "", v.id)}>
-                              {t.rich("versionLine", {
-                                number: v.number,
-                                date: () => <LocalDate at={v.publishedAt} />,
-                              })}
-                            </a>
-                            {v.changedVerses !== null ? (
-                              <small> {t("versionChanges", { count: v.changedVerses })}</small>
-                            ) : null}
-                            {v.changeNote ? <small> {v.changeNote}</small> : null}
-                          </li>
-                        ))}
-                      </ol>
-                    </>
-                  ) : null}
-                </ModalButton>
-                <ModalButton label={tp("button")} title={tp("title")} closeLabel={t("close")}>
-                  <p>{tp("intro")}</p>
-                  <PdfBuilds slug={c.slug} initial={pdfBuilds} />
-                </ModalButton>
-                <ModalButton
-                  label={t("deleteButton")}
-                  title={t("deleteTitle")}
-                  closeLabel={t("close")}
-                  danger
-                >
-                  <DeleteCompilationForm slug={c.slug} title={c.title} />
-                </ModalButton>
-              </>
-            }
-            sources={sources}
-            tabs={tabs}
-          />
+          <BookTabs slug={c.slug} label={t("bookMenus")} sources={sources} tabs={tabs} />
         </div>
       </div>
       {book && chapter !== null ? (

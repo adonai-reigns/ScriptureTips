@@ -247,10 +247,14 @@ export function CompareList({
   );
 }
 
+/** How long the old wording takes to fade out, and the new one to fade in (ms). */
+const FADE_OUT = 120;
+const FADE_IN = 180;
+
 /**
- * One verse that follows a finger sideways: let go past `SWIPE`, it turns to the next
- * translation (swiped left) or the one before (swiped right). Up and down stay the page's
- * scrolling (`touch-action: pan-y`).
+ * One verse swiped sideways: let go past `SWIPE`, it turns to the next translation (swiped
+ * left) or the one before (swiped right), fading out and the new wording fading in. Up and down
+ * stay the page's scrolling (`touch-action: pan-y`).
  */
 function SwipeVerse({
   direction,
@@ -268,18 +272,27 @@ function SwipeVerse({
   const start = useRef<{ x: number; y: number; id: number } | null>(null);
   const lastTap = useRef(0);
 
-  const move = (dx: number) => {
-    if (body.current) body.current.style.transform = dx ? `translateX(${dx}px)` : "";
+  const turn = async (by: 1 | -1) => {
+    const el = body.current;
+    if (!el || matchMedia("(prefers-reduced-motion: reduce)").matches) return onTurn(by);
+    // Held faded until the new wording is drawn, then faded in over it.
+    const out = el.animate([{ opacity: 1 }, { opacity: 0 }], {
+      duration: FADE_OUT,
+      easing: "ease-in",
+      fill: "forwards",
+    });
+    await out.finished.catch(() => {});
+    onTurn(by);
+    el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: FADE_IN, easing: "ease-out" });
+    out.cancel();
   };
   const end = (e: PointerEvent, cancelled: boolean) => {
     const from = start.current;
     if (!from || from.id !== e.pointerId) return;
     start.current = null;
-    body.current?.classList.remove("dragging");
-    move(0);
     const dx = e.clientX - from.x;
     if (cancelled) return;
-    if (Math.abs(dx) >= SWIPE) return onTurn(dx < 0 ? 1 : -1);
+    if (Math.abs(dx) >= SWIPE) return turn(dx < 0 ? 1 : -1);
     // A tap: the second of two quick ones edits.
     if (!onEdit || Math.abs(dx) > TAP || Math.abs(e.clientY - from.y) > TAP) return;
     if (e.timeStamp - lastTap.current < DOUBLE_TAP) {
@@ -294,7 +307,7 @@ function SwipeVerse({
     }
     if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
     e.preventDefault();
-    onTurn(e.key === "ArrowRight" ? 1 : -1);
+    turn(e.key === "ArrowRight" ? 1 : -1);
   };
 
   return (
@@ -303,10 +316,6 @@ function SwipeVerse({
       onPointerDown={(e) => {
         if (e.pointerType === "mouse" && e.button !== 0) return;
         start.current = { x: e.clientX, y: e.clientY, id: e.pointerId };
-        body.current?.classList.add("dragging");
-      }}
-      onPointerMove={(e) => {
-        if (start.current?.id === e.pointerId) move(e.clientX - start.current.x);
       }}
       onPointerUp={(e) => end(e, false)}
       onPointerCancel={(e) => end(e, true)}

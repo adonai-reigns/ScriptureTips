@@ -77,18 +77,16 @@ test("vision §3.1: compare on a phone, one column, each verse swiped through th
   await expect(first.locator(".compare-list-source")).toHaveText("BSB");
   await expect(first).toContainText("In the beginning God created the heavens");
   await expect(verses.nth(1)).not.toContainText("BSB");
-  // Sprung back into place once let go.
-  await expect
-    .poll(() => first.evaluate((e) => getComputedStyle(e).transform))
-    .toMatch(/^(none|matrix\(1, 0, 0, 1, 0, 0\))$/);
+  // Faded in where it was: it doesn't move with the finger.
+  await expect.poll(() => first.evaluate((e) => getComputedStyle(e).opacity)).toBe("1");
+  await expect(first).toHaveCSS("transform", "none");
   await page.screenshot({ ...shot("reading-area-phone-swiped"), fullPage: false });
 
-  // Swiped right, the one before; a short drag springs back without changing.
+  // Swiped right, the one before; a short drag changes nothing.
   await swipe(page, first, 120);
   await expect(first.locator(".compare-list-source")).toHaveText("ASV");
   await swipe(page, first, 20);
   await expect(first.locator(".compare-list-source")).toHaveText("ASV");
-  await expect.poll(() => first.evaluate((e) => e.style.transform)).toBe("");
 
   // Round past the first, to the last; and round past the last, back to the compilation's.
   await swipe(page, verses.nth(2), 120);
@@ -126,6 +124,29 @@ test("vision §3.1: on a phone, the book's name in the head opens the books", as
   await expect(page).toHaveURL(/book=Matt&chapter=1&mode=edit/);
   await expect(head.getByRole("button", { name: "Matthew" })).toBeVisible();
   await expect(picker).toBeHidden();
+});
+
+test("vision §3.1: on a phone, read mode's ⋮ names what's read, the compilation too", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  await create(page, "Read Phone", "Glance");
+  await page.goto("/compilations/glance?book=Gen&chapter=1&mode=read");
+  await page.waitForLoadState("networkidle");
+  const toggle = page.getByRole("button", { name: "Translation to read: reading the Glance" });
+  await expect(toggle).toHaveText("Glance");
+  await page.screenshot({ ...shot("reading-area-phone-read-choice"), fullPage: false });
+  // Held back a moment, so the spinner can be seen while it loads.
+  await page.route(/read=bsb/, async (route) => {
+    await new Promise((done) => setTimeout(done, 1_000));
+    await route.continue();
+  });
+  await toggle.click();
+  await page.getByRole("menuitemradio", { name: /^BSB:/ }).click();
+  const named = page.getByRole("button", { name: /^Translation to read/ });
+  await expect(named.locator(".spinner")).toBeVisible();
+  await expect(named).toHaveText("BSB");
+  await expect(named.locator(".spinner")).toBeHidden();
 });
 
 test("vision §3.1: on a phone, the ⋮ beside the modes picks the translations compared with", async ({

@@ -381,7 +381,7 @@
     "editVerse": "Change the wording:",
     "abbreviationHeading": "Your compilation's abbreviation",
     "readChoice": "Translation to read",
-    "readChoiceOther": "Translation to read: reading the {source}",
+    "readChoiceNamed": "Translation to read: reading the {source}",
     "readChoiceHeading": "Read",
     "compareChoiceHeading": "Compare with (up to {max})",
     "unsavedRegion": "Changes not saved",

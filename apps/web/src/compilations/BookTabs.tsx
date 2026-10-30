@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { type KeyboardEvent, type ReactNode, useRef, useState } from "react";
+import { type KeyboardEvent, useRef, useState } from "react";
 import { useLongPress } from "./longPress.ts";
 import { SourceDialog } from "./SourceDialog.tsx";
 import { type BookSourceChoice, SourceMenu, type SourceMenuSpec } from "./SourceMenu.tsx";
@@ -40,7 +40,6 @@ export function BookTabs({
   tabs,
   label,
   sources,
-  actions,
   menus = true,
   idPrefix = "book",
 }: {
@@ -48,8 +47,6 @@ export function BookTabs({
   tabs: BookTab[];
   label: string;
   sources: BookSourceChoice[];
-  /** Buttons at the right end of the tab row. */
-  actions?: ReactNode;
   /** The sections' and books' menus; left out where the tabs only pick a book. */
   menus?: boolean;
   /** Starts the tabs' and panel's IDs, unique when the tabs show twice on a page. */
@@ -106,8 +103,6 @@ export function BookTabs({
   return (
     <div className="book-tabs">
       <div className="book-tabs-bar">
-        {/* First in Tab order, so Tab goes from the tabs straight into the books; shown on the right. */}
-        {actions ? <div className="book-tabs-actions">{actions}</div> : null}
         <div role="tablist" aria-label={label}>
           {tabs.map((tab, i) => (
             <button

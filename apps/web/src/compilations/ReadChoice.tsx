@@ -1,15 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { type CSSProperties, useCallback, useRef, useState } from "react";
+import { type CSSProperties, useCallback, useRef, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 import { usePopupClose } from "./popup.ts";
 
 /**
  * Which translation read mode shows, chosen behind a ⋮ beside the mode buttons: the compilation
  * (first), or any translation, read whole. The choice is in the page's address (`read`), so the
- * chapter links keep it. While another translation is read, the ⋮ names it.
+ * chapter links keep it. The ⋮ names the one being read, with a spinner while a new choice loads.
  */
 export function ReadChoice({
   current,
@@ -21,6 +22,8 @@ export function ReadChoice({
   options: { id: string; abbreviation: string; label: string; href: string }[];
 }) {
   const t = useTranslations("reading");
+  const router = useRouter();
+  const [loading, startLoading] = useTransition();
   const [open, setOpen] = useState(false);
   const [place, setPlace] = useState<CSSProperties>({});
   const toggle = useRef<HTMLButtonElement>(null);
@@ -34,25 +37,28 @@ export function ReadChoice({
     setOpen(true);
   };
   const reading = options.find((o) => o.id === current);
-  const other = reading && reading !== options[0] ? reading : null;
 
   return (
     <>
       <button
         ref={toggle}
         type="button"
-        className={`book-menu-toggle compare-choice-toggle${other ? " naming" : ""}`}
+        className="book-menu-toggle compare-choice-toggle naming"
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={other ? t("readChoiceOther", { source: other.abbreviation }) : t("readChoice")}
+        aria-label={
+          reading ? t("readChoiceNamed", { source: reading.abbreviation }) : t("readChoice")
+        }
         onClick={() => (open ? close() : show())}
       >
-        {other ? <span aria-hidden="true">{other.abbreviation}</span> : null}
+        {reading ? <span aria-hidden="true">{reading.abbreviation}</span> : null}
         <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
           <circle cx="8" cy="3" r="1.5" />
           <circle cx="8" cy="8" r="1.5" />
           <circle cx="8" cy="13" r="1.5" />
         </svg>
+        {/* Dims the reading area while it shows (globals.css). */}
+        {loading ? <span className="spinner link-pending" aria-hidden="true" /> : null}
       </button>
       {open
         ? createPortal(
@@ -71,7 +77,13 @@ export function ReadChoice({
                   aria-checked={o.id === current}
                   href={o.href}
                   scroll={false}
-                  onClick={close}
+                  onClick={(e) => {
+                    close();
+                    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+                    // Loaded in a transition, so the ⋮ can show it's on its way.
+                    e.preventDefault();
+                    startLoading(() => router.push(o.href, { scroll: false }));
+                  }}
                 >
                   {o.label}
                 </Link>
