@@ -80,6 +80,14 @@ const CompareQuery = z.object({
 
 const CompareWith = z.object({ translations: z.array(TranslationId).max(MAX_COMPARE) }).strict();
 
+/** A verse of the compare view and the translation it's shown in (null: the compilation's). */
+const CompareShown = z
+  .object({
+    verse: z.string().regex(/^[1-4]?[A-Z][A-Za-z]{1,8}\.\d{1,3}\.\d{1,3}$/),
+    source: TranslationId.nullable(),
+  })
+  .strict();
+
 const TakeVerses = z
   .object({
     choices: z
@@ -228,6 +236,17 @@ export class CompilationsController {
     @Body(new ZodPipe(CompareWith)) body: z.infer<typeof CompareWith>,
   ): Promise<CompilationView> {
     return this.compilations.setCompareWith(await this.user(headers), slug, body.translations);
+  }
+
+  /** Remembers the translation a verse is shown in, in the compare view: `{verse, source}`. */
+  @Put(":slug/compare-shown")
+  @HttpCode(204)
+  async setShown(
+    @Headers() headers: Record<string, string>,
+    @Param("slug", new ZodPipe(Slug)) slug: string,
+    @Body(new ZodPipe(CompareShown)) body: z.infer<typeof CompareShown>,
+  ): Promise<void> {
+    await this.compilations.setShown(await this.user(headers), slug, body.verse, body.source);
   }
 
   /** Several verses taken unchanged at once: `{choices: [{reference, source}]}`. */

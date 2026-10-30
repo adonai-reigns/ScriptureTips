@@ -445,6 +445,32 @@ describe("domain-model §2.3: compilations", () => {
     ).toBe(400);
   });
 
+  it("domain-model §2.3: remember which translation each verse is shown in, in compare view", async () => {
+    const url = "/api/compilations/side";
+    const shown = async () =>
+      (await get(owner, `${url}/compare?ref=Joel%202:28-29&with=other`))
+        .json()
+        .rows.map((r: { shown?: string }) => r.shown ?? null);
+    expect(await shown()).toEqual([null, null]);
+    expect(
+      (await put(owner, `${url}/compare-shown`, { verse: "Joel.2.29", source: "other" }))
+        .statusCode,
+    ).toBe(204);
+    expect(await shown()).toEqual([null, "other"]);
+    // Changed, then forgotten.
+    await put(owner, `${url}/compare-shown`, { verse: "Joel.2.29", source: "heb" });
+    expect(await shown()).toEqual([null, "heb"]);
+    await put(owner, `${url}/compare-shown`, { verse: "Joel.2.29", source: null });
+    expect(await shown()).toEqual([null, null]);
+    expect(
+      (await put(owner, `${url}/compare-shown`, { verse: "Joel.2.29", source: "nowhere" })).json(),
+    ).toMatchObject({ code: "unknown-translation" });
+    expect(
+      (await put(owner, `${url}/compare-shown`, { verse: "Joel 2:29", source: "other" }))
+        .statusCode,
+    ).toBe(400);
+  });
+
   it("take several verses at once, each from its source", async () => {
     const url = "/api/compilations/side";
     const res = await post(owner, `${url}/verses/batch`, {

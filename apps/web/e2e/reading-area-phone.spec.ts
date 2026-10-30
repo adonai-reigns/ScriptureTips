@@ -255,3 +255,52 @@ test("vision §3.1: on a narrow phone, nothing runs off the right edge", async (
   await page.goto("/compilations/narrow?book=Gen&chapter=1&mode=read");
   await page.screenshot({ ...shot("reading-area-phone-narrow"), fullPage: false });
 });
+
+test("domain-model §2.3: on a phone, compare remembers which translation each verse was swiped to", async ({
+  page,
+  browser,
+}) => {
+  test.setTimeout(90_000);
+  await create(page, "Remember", "Remember");
+  await page.goto("/compilations/remember?book=Gen&chapter=1&mode=compare");
+  await page.waitForLoadState("networkidle");
+  const verses = page.locator(".compare-list-verse");
+  await verses.nth(1).focus();
+  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("ArrowRight");
+  await expect(verses.nth(1).locator(".compare-list-source")).toHaveText("BSB");
+  await verses.nth(4).focus();
+  await page.keyboard.press("ArrowLeft");
+  await expect(verses.nth(4).locator(".compare-list-source")).toHaveText("DRA");
+  const saved = page.waitForResponse((r) => r.url().endsWith("/compare-shown"));
+  await saved;
+  await page.waitForLoadState("networkidle");
+
+  // Opened again (another visit, as on another device): the verses come back as they were left.
+  const again = await browser.newContext({
+    ...test.info().project.use,
+    storageState: await page.context().storageState(),
+  });
+  const other = await again.newPage();
+  await other.goto("/compilations/remember?book=Gen&chapter=1&mode=compare");
+  const back = other.locator(".compare-list-verse");
+  await expect(back.nth(1).locator(".compare-list-source")).toHaveText("BSB");
+  await expect(back.nth(4).locator(".compare-list-source")).toHaveText("DRA");
+  await expect(back.nth(0).locator(".compare-list-source.own")).toHaveText(/KJV$/);
+
+  // Edit mode starts from the compilation's wording: nothing waits to be saved.
+  await other.goto("/compilations/remember?book=Gen&chapter=1&mode=edit");
+  await expect(back.nth(1).locator(".compare-list-source.own")).toHaveText(/KJV$/);
+  await expect(other.getByRole("region", { name: "Changes not saved" })).toBeHidden();
+
+  // Swiped back to the compilation's own wording, it's forgotten.
+  await other.goto("/compilations/remember?book=Gen&chapter=1&mode=compare");
+  await back.nth(1).focus();
+  for (let i = 0; i < 2; i++) await other.keyboard.press("ArrowLeft");
+  await expect(back.nth(1).locator(".compare-list-source.own")).toHaveText(/KJV$/);
+  await other.waitForResponse((r) => r.url().endsWith("/compare-shown"));
+  await page.reload();
+  await expect(verses.nth(1).locator(".compare-list-source.own")).toHaveText(/KJV$/);
+  await expect(verses.nth(4).locator(".compare-list-source")).toHaveText("DRA");
+  await again.close();
+});

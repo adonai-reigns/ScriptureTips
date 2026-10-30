@@ -61,7 +61,8 @@ export interface CompareView {
     direction: "ltr" | "rtl";
     compilable: boolean;
   }[];
-  rows: { verse: Verse; compare: Verse[][] }[];
+  /** `shown`: the translation the user last showed the verse in (catalog ID), if any. */
+  rows: { verse: Verse; compare: Verse[][]; shown?: string }[];
 }
 
 /** `ref` in the compilation's numbering beside `with` (catalog IDs), or null. */

@@ -16,12 +16,16 @@ const SWIPE = 50;
  * shows it in the next translation it's compared with, and right the one before, round to the
  * compilation's again; the arrow keys do the same for a focused verse.
  *
+ * In compare mode, the translation each verse is shown in is remembered for the user (saved a
+ * moment after each swipe, without waiting on it), and shown again next time, on any device.
+ *
  * In edit mode, a verse left showing another translation is a change not yet saved: a footer
  * held at the bottom of the window appears while there are any, to take them all into the
  * compilation, or put them back.
  */
 export function CompareList({
   tags,
+  book,
   slug,
   view,
   mode,
@@ -30,6 +34,8 @@ export function CompareList({
 }: {
   /** Where each of the compilation's verses comes from ("KJV", "Own wording"), by row. */
   tags: string[];
+  /** The book's OSIS ID, for the verses remembered. */
+  book: string;
   slug: string;
   view: CompareView;
   mode: "compare" | "edit";
@@ -40,10 +46,49 @@ export function CompareList({
 }) {
   const t = useTranslations("reading");
   // Which translation each verse shows (by row): 0 the compilation's, then each column's.
-  const [shown, setShown] = useState<ReadonlyMap<number, number>>(new Map());
+  const remembers = mode === "compare";
+  const [shown, setShown] = useState<ReadonlyMap<number, number>>(
+    () =>
+      new Map(
+        remembers
+          ? view.rows.flatMap((r, row) => {
+              const at = view.columns.findIndex((c) => c.id === r.shown);
+              return at >= 0 ? [[row, at + 1] as const] : [];
+            })
+          : [],
+      ),
+  );
   const count = view.columns.length + 1;
-  const turn = (row: number, by: number) =>
-    setShown((now) => new Map(now).set(row, ((now.get(row) ?? 0) + by + count) % count));
+  const timers = useRef(new Map<number, ReturnType<typeof setTimeout>>());
+
+  // Saved a moment after the last swipe of a verse, so a run of swipes saves once. Fire and
+  // forget: if it's lost, the verse just opens in the compilation's wording next time.
+  const remember = (row: number, at: number) => {
+    const r = view.rows[row];
+    if (!remembers || !r) return;
+    clearTimeout(timers.current.get(row));
+    timers.current.set(
+      row,
+      setTimeout(() => {
+        timers.current.delete(row);
+        fetch(`/api/compilations/${slug}/compare-shown`, {
+          method: "PUT",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            verse: `${book}.${r.verse.chapter}.${r.verse.verse}`,
+            source: at === 0 ? null : (view.columns[at - 1]?.id ?? null),
+          }),
+          keepalive: true,
+        }).catch(() => {});
+      }, 600),
+    );
+  };
+
+  const turn = (row: number, by: number) => {
+    const at = ((shown.get(row) ?? 0) + by + count) % count;
+    setShown(new Map(shown).set(row, at));
+    remember(row, at);
+  };
   const router = useRouter();
   const errorText = useErrorText();
   const [busy, setBusy] = useState(false);

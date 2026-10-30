@@ -259,6 +259,30 @@ export const compilation = pgTable(
 );
 
 /**
+ * Which translation a verse was last shown in, in a user's compare view of a compilation
+ * (domain-model §2.3, `CompareShown`): swiped to on a phone, and shown again next time, on any
+ * device. `verse` is the row's first verse (OSIS, the compilation's numbering). A verse shown
+ * in the compilation's own wording has no row.
+ */
+export const compareShown = pgTable(
+  "compare_shown",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    compilationId: uuid("compilation_id")
+      .notNull()
+      .references(() => compilation.id, { onDelete: "cascade" }),
+    verse: text("verse").notNull(),
+    translationId: uuid("translation_id")
+      .notNull()
+      .references(() => translation.id, { onDelete: "cascade" }),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.compilationId, t.verse] })],
+);
+
+/**
  * A layered override (domain-model §2.3, `CompilationRule`): verses within `scope` come from
  * `source`. Scopes are canonical ordinal ranges; `entered` keeps the scope as the user gave it
  * (OSIS in the compilation's numbering, or the section ID). The most specific kind wins:

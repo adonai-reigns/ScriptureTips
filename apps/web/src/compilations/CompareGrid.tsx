@@ -483,6 +483,7 @@ export function CompareGrid({
       {/* On a phone, the chapter in one column instead (CSS shows one or the other). */}
       <CompareList
         tags={view.rows.map((r) => tagOf(r.verse))}
+        book={chapterOsis.split(".")[0] ?? ""}
         slug={slug}
         view={view}
         mode={mode}

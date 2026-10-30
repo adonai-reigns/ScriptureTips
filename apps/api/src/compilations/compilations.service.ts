@@ -9,6 +9,7 @@ import {
 import {
   and,
   asc,
+  compareShown,
   compilation,
   compilationNote,
   compilationRule,
@@ -169,6 +170,8 @@ export interface CompareView {
     readonly verse: CompilationVerse;
     /** One list per column, in column order. */
     readonly compare: PassageVerse[][];
+    /** The translation the user last showed this verse in (a catalog ID), if not the compilation's. */
+    readonly shown?: string;
   }[];
 }
 
@@ -385,6 +388,35 @@ export class CompilationsService {
     return this.view(owner, slug);
   }
 
+  /**
+   * Remembers the translation `verse` (OSIS, the compilation's numbering) is shown in, in the
+   * user's compare view; null forgets it (the compilation's own wording again).
+   */
+  async setShown(owner: User, slug: string, verse: string, source: string | null): Promise<void> {
+    const { c } = await this.find(owner, slug);
+    const key = and(
+      eq(compareShown.userId, owner.id),
+      eq(compareShown.compilationId, c.id),
+      eq(compareShown.verse, verse),
+    );
+    if (source === null) {
+      await this.db.delete(compareShown).where(key);
+      return;
+    }
+    const [t] = await this.db
+      .select({ id: translation.id })
+      .from(translation)
+      .where(eq(translation.catalogId, source));
+    if (!t) throw new BadRequestException({ code: "unknown-translation" });
+    await this.db
+      .insert(compareShown)
+      .values({ userId: owner.id, compilationId: c.id, verse, translationId: t.id })
+      .onConflictDoUpdate({
+        target: [compareShown.userId, compareShown.compilationId, compareShown.verse],
+        set: { translationId: t.id, updatedAt: sql`now()` },
+      });
+  }
+
   /** One passage (a chapter, usually) of the compilation beside `withIds` (CompareView). */
   async compare(
     owner: User,
@@ -392,10 +424,28 @@ export class CompilationsService {
     reference: string,
     withIds: string[],
   ): Promise<CompareView> {
-    const { base } = await this.find(owner, slug);
+    const { c, base } = await this.find(owner, slug);
     const { passages } = await this.passage(owner, slug, reference);
     const [p, ...more] = passages;
     if (!p || more.length > 0) throw new BadRequestException({ code: "one-reference" });
+    // Which translation each verse was last shown in (CompareShown), by its OSIS.
+    const book = p.entered.split(".")[0];
+    const keyOf = (v: { chapter: number; verse: number }) => `${book}.${v.chapter}.${v.verse}`;
+    const keys = p.verses.map(keyOf);
+    const shownRows = keys.length
+      ? await this.db
+          .select({ verse: compareShown.verse, id: translation.catalogId })
+          .from(compareShown)
+          .innerJoin(translation, eq(translation.id, compareShown.translationId))
+          .where(
+            and(
+              eq(compareShown.userId, owner.id),
+              eq(compareShown.compilationId, c.id),
+              inArray(compareShown.verse, keys),
+            ),
+          )
+      : [];
+    const shown = new Map(shownRows.map((r) => [r.verse, r.id]));
     // The base's verses again, for their canonical ranges (the resolved ones don't carry them).
     const baseVerses = await this.translations.versesIn(base.id, parseOsisPassage(p.entered));
     const ranges = baseVerses.map((v) => v.range);
@@ -438,10 +488,14 @@ export class CompilationsService {
         direction: t.direction as "ltr" | "rtl",
         compilable: canCompile(t.licenseKey),
       })),
-      rows: p.verses.map((verse, i) => ({
-        verse,
-        compare: compare.map((cells) => cells[i] ?? []),
-      })),
+      rows: p.verses.map((verse, i) => {
+        const at = shown.get(keyOf(verse));
+        return {
+          verse,
+          compare: compare.map((cells) => cells[i] ?? []),
+          ...(at ? { shown: at } : {}),
+        };
+      }),
     };
   }
 
