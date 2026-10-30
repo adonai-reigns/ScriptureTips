@@ -304,3 +304,26 @@ test("domain-model §2.3: on a phone, compare remembers which translation each v
   await expect(verses.nth(4).locator(".compare-list-source")).toHaveText("DRA");
   await again.close();
 });
+
+test("vision §3.1: on a phone, a book's menu stays on screen, from either column", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  await create(page, "Menus", "Menus");
+  await page.goto("/compilations/menus?book=Gen&chapter=1&mode=read");
+  await page.waitForLoadState("networkidle");
+  const width = page.viewportSize()?.width ?? 0;
+  for (const book of ["Genesis", "Ecclesiastes"]) {
+    await page.getByRole("button", { name: `Options for ${book}`, exact: true }).click();
+    const menu = page.getByRole("menu", { name: `Change the translation of ${book}` });
+    await expect(menu).toBeVisible();
+    const r = await menu.boundingBox();
+    expect(r?.x ?? -1, book).toBeGreaterThanOrEqual(0);
+    expect((r?.x ?? 0) + (r?.width ?? 0), book).toBeLessThanOrEqual(width);
+    expect(r?.width ?? width, book).toBeLessThan(width);
+    if (book === "Genesis")
+      await page.screenshot({ ...shot("reading-area-phone-book-menu"), fullPage: false });
+    await page.keyboard.press("Escape");
+    await expect(menu).toBeHidden();
+  }
+});

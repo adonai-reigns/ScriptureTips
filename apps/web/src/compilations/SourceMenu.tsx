@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { type CSSProperties, useEffect, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { errorCode, useErrorText } from "./errors.ts";
 
@@ -70,6 +70,15 @@ export function SourceMenu({
     }
     setOpen(true);
   };
+
+  // Kept on screen: lined up with the icon's right edge, unless that runs it off the left edge
+  // (an icon in the left column on a phone), when it moves right to fit.
+  useLayoutEffect(() => {
+    const el = menu.current;
+    if (!open || !el) return;
+    const r = el.getBoundingClientRect();
+    if (r.left < 8) el.style.right = `${Math.max(8, window.innerWidth - r.width - 8)}px`;
+  }, [open]);
 
   // Closes on Escape (back to the icon), a click outside, or a scroll or resize that moves the
   // icon away from the menu; and focuses the first item of what opens.

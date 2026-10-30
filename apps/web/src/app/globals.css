@@ -412,8 +412,8 @@ main {
   z-index: 5;
   display: flex;
   flex-direction: column;
-  min-width: 16rem;
-  max-width: min(26rem, 90vw);
+  min-width: min(16rem, calc(100vw - 1rem));
+  max-width: min(26rem, calc(100vw - 2rem));
   max-height: 22rem;
   overflow-y: auto;
   padding: 0.3rem;
