@@ -75,6 +75,15 @@
     "legend": "What the colours mean",
     "together1": "Go",
     "together2": "together",
+    "tip": {
+      "label": "The selected words",
+      "none": "No marked words in this selection. Words are marked in the KJV.",
+      "more": "and {count} more",
+      "used": "Used {count, plural, one {# time} other {# times}} in the original text",
+      "dictionary": "Dictionary",
+      "copy": "Copy",
+      "copied": "Copied"
+    },
     "only": "Marked in the KJV, whose Strong's numbers line up with the original words.",
     "category": {
       "person": "Person",

@@ -22,6 +22,7 @@ const config: NextConfig = {
     { source: "/api/auth/:path*", destination: `${API}/auth/:path*` },
     { source: "/api/account", destination: `${API}/account` },
     { source: "/api/account/:path*", destination: `${API}/account/:path*` },
+    { source: "/api/study/:path*", destination: `${API}/study/:path*` },
     { source: "/api/compilations", destination: `${API}/compilations` },
     { source: "/api/compilations/:path*", destination: `${API}/compilations/:path*` },
   ],

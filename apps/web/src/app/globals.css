@@ -2398,3 +2398,115 @@ a.reading-step:focus-visible {
   opacity: 0.6;
   cursor: default;
 }
+
+/* In study mode, a verse's text can be selected, even where it's inside a button (edit mode). */
+.reading[data-study] .compare-take,
+.reading[data-study] .compare-own-edit {
+  user-select: text;
+  -webkit-user-select: text;
+  cursor: text;
+}
+
+/* The tooltip over a selection. */
+.study-tip {
+  position: fixed;
+  z-index: 50;
+  width: min(22.5rem, calc(100vw - 1rem));
+  max-height: 70vh;
+  overflow: auto;
+  padding: 0.75rem 0.9rem;
+  font-size: 0.9rem;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 0.5rem;
+  box-shadow: 0 0.6rem 1.5rem rgb(0 30 60 / 0.22);
+}
+
+.study-tip p {
+  margin: 0;
+}
+
+.study-tip-text {
+  font-family: var(--serif);
+  font-style: italic;
+  margin-bottom: 0.5rem !important;
+}
+
+.study-tip-empty,
+.study-tip-used {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.study-tip-words {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.study-tip-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.6rem;
+}
+
+.study-tip-head .study-word {
+  font-size: 1.15rem;
+  padding: 0 0.15rem;
+}
+
+.study-tip-number {
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.study-tip-kind {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.study-tip-gloss {
+  font-weight: 600;
+}
+
+.study-tip-button {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.15rem 0.6rem;
+  margin-top: 0.3rem;
+  color: var(--deep);
+  background: none;
+  border: 1px solid var(--rule);
+  border-radius: 0.3rem;
+  cursor: pointer;
+}
+
+.study-tip-button[aria-expanded="true"] {
+  background: var(--pale);
+}
+
+.study-tip-entries {
+  margin: 0.4rem 0 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.study-tip-entries dt {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.study-tip-entries dd {
+  margin: 0;
+}
+
+.study-tip-actions {
+  margin-top: 0.6rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid var(--rule);
+}

@@ -545,3 +545,81 @@ test("vision §3.2: study mode paints each tagged word by its kind, and moves no
   await page.getByRole("button", { name: "Study", exact: true }).click();
   await expect(page.locator(".study-word")).toHaveCount(0);
 });
+
+/** Drags the mouse across a locator's text, as a person selects it. */
+async function dragAcross(page: Page, target: import("@playwright/test").Locator) {
+  const box = await target.boundingBox();
+  if (!box) throw new Error("Nothing to select.");
+  const y = box.y + box.height / 2;
+  await page.mouse.move(box.x + 1, y);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width - 1, y, { steps: 6 });
+  await page.mouse.up();
+}
+
+test("vision §3.2: selecting words in study mode opens a tooltip with what they are", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  await create(page, "Pick Words", "Pickup");
+  await page.goto("/compilations/pickup?book=Gen&chapter=4&mode=compare&study=1");
+  await settled(page);
+  const own = page.locator("td.compare-own").first();
+  const tip = page.getByRole("dialog", { name: "The selected words" });
+  await expect(tip).toBeHidden();
+
+  // Let go of the mouse after selecting a word: the tooltip opens by it.
+  await dragAcross(page, own.locator('.study-word[data-strong="H2332"]').first());
+  await expect(tip).toBeVisible();
+  await expect(tip).toContainText("Eve");
+  await expect(tip).toContainText("H2332");
+  await expect(tip).toContainText(/[\u0590-\u05FF]{3}/);
+  await expect(tip).toContainText(/Used \d+ times? in the original text/);
+  await page.screenshot(shot("reading-area-study-tip"));
+  // The dictionaries' entries open from it, and a click in it keeps the selection.
+  await tip.getByRole("button", { name: "Dictionary" }).click();
+  await expect(tip.locator("dt").first()).toBeVisible();
+  await expect(tip).toBeVisible();
+  // Escape, or a click elsewhere, closes it.
+  await page.keyboard.press("Escape");
+  await expect(tip).toBeHidden();
+
+  // Words that aren't marked (another translation's column) say so.
+  const asv = page.locator("td").filter({ hasText: "the man knew Eve" }).first();
+  // Words in another translation's column, dragged across on its first line.
+  const box = await asv.boundingBox();
+  if (!box) throw new Error("No ASV column.");
+  await page.mouse.move(box.x + 24, box.y + 14);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width - 24, box.y + 14, { steps: 6 });
+  await page.mouse.up();
+  await expect(tip).toContainText("No marked words in this selection");
+  await page.mouse.click(5, 5);
+  await expect(tip).toBeHidden();
+
+  // In edit mode, selecting the compilation's text isn't a click that changes its wording.
+  await page.goto("/compilations/pickup?book=Gen&chapter=4&mode=edit&study=1");
+  await settled(page);
+  const verse = page.locator("td.compare-own").first();
+  await dragAcross(page, verse.locator('.study-word[data-strong="H2332"]').first());
+  await expect(tip).toBeVisible();
+  await expect(tip).toContainText("Eve");
+  await expect(page.getByRole("textbox", { name: /^The wording of/ })).toHaveCount(0);
+  // With the tooltip open, a click on a verse only closes it: it isn't a take or an edit.
+  const asvCell = page.locator("td").filter({ hasText: "the man knew Eve" }).first();
+  await asvCell.getByRole("button").first().click();
+  await expect(tip).toBeHidden();
+  // And it stays closed: the old selection doesn't open it again a moment later.
+  await page.evaluate(() => new Promise((done) => setTimeout(done, 300)));
+  await expect(tip).toBeHidden();
+  await expect(verse).toContainText("Adam knew Eve");
+  await expect(page.getByRole("textbox", { name: /^The wording of/ })).toHaveCount(0);
+  await dragAcross(page, verse.locator('.study-word[data-strong="H2332"]').first());
+  await expect(tip).toBeVisible();
+  await verse.getByRole("button").first().click();
+  await expect(tip).toBeHidden();
+  await expect(page.getByRole("textbox", { name: /^The wording of/ })).toHaveCount(0);
+  // With it closed, a plain click still changes the wording.
+  await verse.getByRole("button").first().click();
+  await expect(page.getByRole("textbox", { name: /^The wording of/ })).toBeVisible();
+});

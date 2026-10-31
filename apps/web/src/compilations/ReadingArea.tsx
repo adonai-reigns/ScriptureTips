@@ -9,6 +9,7 @@ import { Passage } from "../reader/Passage.tsx";
 import { studyWords } from "../study/api.ts";
 import { StudyLegend } from "../study/StudyLegend.tsx";
 import { StudyProvider } from "../study/StudyProvider.tsx";
+import { StudySelection } from "../study/StudySelection.tsx";
 import { StudyToggle } from "../study/StudyToggle.tsx";
 import { strongsIn } from "../study/units.ts";
 import { type Compilation, compareView } from "./api.ts";
@@ -145,14 +146,21 @@ export async function ReadingArea({
     body = !grid ? (
       <p className="error">{t("unavailable")}</p>
     ) : words ? (
-      <StudyProvider words={words}>{grid}</StudyProvider>
+      <StudyProvider words={words}>
+        {grid}
+        <StudySelection />
+      </StudyProvider>
     ) : (
       grid
     );
   }
 
   return (
-    <section className="reading" aria-labelledby="reading-title">
+    <section
+      className="reading"
+      aria-labelledby="reading-title"
+      data-study={study && mode !== "read" ? "" : undefined}
+    >
       {/* The modes and the chapter bar stay at the top of the window while it scrolls. */}
       <div className="reading-head">
         <div className="reading-tools">

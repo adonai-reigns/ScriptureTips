@@ -13,6 +13,8 @@ import {
   useTransition,
 } from "react";
 import type { Verse } from "../reader/api.ts";
+import { useStudy } from "../study/StudyProvider.tsx";
+import { ignoresClick } from "../study/selection.ts";
 import type { CompareView } from "./api.ts";
 import { CompareList } from "./CompareList.tsx";
 import { VerseText, verseLabel } from "./CompareVerse.tsx";
@@ -217,8 +219,11 @@ export function CompareGrid({
     };
   }, [mode, take, select]);
 
+  // In study mode, a click that ends a selection, or that closes the tooltip, isn't a choice of
+  // the verse.
+  const studying = useStudy() !== null;
   const onCell = (e: MouseEvent, row: number, col: number) => {
-    if (busy) return;
+    if (busy || (studying && ignoresClick())) return;
     const next = new Map(picked.current);
     if (e.shiftKey) {
       const from = anchor.current;
@@ -452,7 +457,10 @@ export function CompareGrid({
                         type="button"
                         className="compare-own-edit"
                         disabled={working}
-                        onClick={() => setEditing(row)}
+                        onClick={() => {
+                          if (studying && ignoresClick()) return;
+                          setEditing(row);
+                        }}
                       >
                         <span className="visually-hidden">{t("editVerse")} </span>
                         <VerseText
