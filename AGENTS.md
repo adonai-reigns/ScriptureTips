@@ -62,7 +62,7 @@ Markdown isn't formatted by Biome yet (it's excluded in `biome.json`), and cspel
 
 ## Git
 
-- The project owner runs the git workflow. Agents never stage, unstage, commit or push.
+- The project owner runs the git workflow. Agents stage, unstage or commit only when the owner says to, and never push (that needs credentials: give the command instead).
 - When a task is done, suggest a commit message with a conventional prefix (`feat:`, `fix:`, `docs:`, `refactor:`, `chore:` …).
 - Never carry anything over from the legacy repos' secrets (JWT keys, `.env` files). Treat those keys as compromised.
 

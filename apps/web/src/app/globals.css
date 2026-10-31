@@ -851,6 +851,27 @@ main:has(> .compilation) {
   margin-bottom: 1rem;
 }
 
+/* Stands in for the search field until its script has loaded: the same look. */
+.search .home-fallback {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.search .home-fallback input {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 0.5rem 0.7rem;
+  border-color: var(--muted);
+}
+
+.search .home-fallback button {
+  padding: 0 1rem;
+  font-size: inherit;
+  font-weight: 400;
+  border-radius: 0.4rem;
+}
+
 .search-ref .search-label {
   display: block;
   margin-bottom: 0.25rem;

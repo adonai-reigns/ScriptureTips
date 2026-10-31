@@ -2,8 +2,7 @@
 
 import { getSearch } from "@scripturetips/search";
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useState } from "react";
-import { useHydrated } from "../hydrated.ts";
+import { useEffect, useId, useRef, useState } from "react";
 
 /** The home page's search: its own instance of the core search, which an integration can address. */
 export const HOME_SEARCH = "home";
@@ -38,13 +37,33 @@ export function HomeSearch({
   };
 }) {
   const router = useRouter();
-  const hydrated = useHydrated();
   const id = useId();
   const [translation, setTranslation] = useState(initial);
   const catalog = translations.some((t) => t.id === translation);
 
+  // Why there are two fields: <st-search-input> is a web component, so it only exists once the
+  // page's scripts have loaded, and the field would pop in late. A plain field, written into the
+  // server's HTML, stands in its place until then (so the page never has a gap, and it still reads
+  // a passage with scripts off). When the component is ready, whatever was typed, and the focus,
+  // move over to it and the plain field goes.
+  const [ready, setReady] = useState(false);
+  const fallback = useRef<HTMLInputElement>(null);
   useEffect(() => {
-    void import("@scripturetips/search/elements");
+    void import("@scripturetips/search/elements")
+      .then(() => customElements.whenDefined("st-search-input"))
+      .then(() => {
+        const typed = fallback.current?.value ?? "";
+        const focused = document.activeElement === fallback.current;
+        if (typed) getSearch(HOME_SEARCH).setQuery(typed);
+        setReady(true);
+        if (focused)
+          requestAnimationFrame(() =>
+            document
+              .querySelector<HTMLElement>(`st-search-input[instance="${HOME_SEARCH}"]`)
+              ?.shadowRoot?.querySelector("input")
+              ?.focus(),
+          );
+      });
   }, []);
 
   // The search's scope follows the translation.
@@ -78,8 +97,10 @@ export function HomeSearch({
           <span>{labels.translation}</span>
           <select
             id={id}
+            // Named and tied to the stand-in form below, so a submit without scripts carries it.
+            name="t"
+            form={`${id}-fallback`}
             value={translation}
-            disabled={!hydrated}
             onChange={(e) => setTranslation(e.target.value)}
           >
             {compilations.length > 0 ? (
@@ -102,7 +123,21 @@ export function HomeSearch({
         </label>
         <div className="search-ref">
           <span className="search-label">{labels.field}</span>
-          <st-search-input instance={HOME_SEARCH} />
+          {/* The stand-in field (see above): the same look as the component, gone once it's ready. */}
+          {ready ? null : (
+            <form id={`${id}-fallback`} className="home-fallback" action="/read" method="get">
+              <input
+                ref={fallback}
+                name="ref"
+                aria-label={labels.field}
+                placeholder={labels.placeholder}
+                maxLength={200}
+                required
+              />
+              <button type="submit">{labels.button}</button>
+            </form>
+          )}
+          {ready ? <st-search-input instance={HOME_SEARCH} /> : null}
         </div>
       </div>
       <st-search-results instance={HOME_SEARCH} />

@@ -18,6 +18,18 @@ test("the home search finds a passage, and picking it opens the reader", async (
   await expect(page.getByRole("heading", { level: 1, name: "Genesis 2:18–25" })).toBeVisible();
 });
 
+test("the home page has its search field in the page itself, and it reads a passage without scripts", async ({
+  browser,
+}) => {
+  const context = await browser.newContext({ javaScriptEnabled: false, ignoreHTTPSErrors: true });
+  const page = await context.newPage();
+  await page.goto("/");
+  await page.getByRole("textbox", { name: "Passage or words" }).fill("Genesis 1");
+  await page.getByRole("button", { name: "Search", exact: true }).click();
+  await expect(page).toHaveURL(/\/read\/[^/]+\/genesis\/1$/);
+  await context.close();
+});
+
 test("the home search lists verses with the words, narrowed to the translation chosen", async ({
   page,
 }) => {
