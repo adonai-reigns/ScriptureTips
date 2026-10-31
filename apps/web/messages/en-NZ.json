@@ -115,6 +115,7 @@
     "logo": "Logo by buzzzy at Fiverr.com.",
     "background": "“Clouds And Birds” by Akira / Garcya.us, from FreeVector.com, licensed under CC BY-NC 4.0.",
     "reservedNames": "Reserved usernames from <big>The Big Username Blocklist</big> by Martin Sandström, and from <shouldbee>shouldbee/reserved-usernames</shouldbee>, both under the MIT Licence.",
+    "countries": "The list of countries is from the <cldr>Unicode Common Locale Data Repository</cldr> (CLDR), Copyright © 1991-2024 Unicode, Inc., under the Unicode License v3.",
     "translations": "Each translation is credited with its text.",
     "originalLanguage": "The Hebrew and Greek words, their morphology and the proper names come from <step>STEPBible-Data</step> by Tyndale House Cambridge, licensed under <cc>CC BY 4.0</cc> (STEP Bible, www.STEPBible.org); the descriptions of the names were written by an AI. Strong's Hebrew dictionary and Brown-Driver-Briggs come from the <oshb>Open Scriptures Hebrew Bible Project</oshb> (<cc>CC BY 4.0</cc>). Strong's Greek dictionary (1890, XML by Ulrik Petersen) and Abbott-Smith's Manual Greek Lexicon (1922) are in the public domain."
   },
@@ -139,6 +140,34 @@
     "canon": "Your canon",
     "canonHelp": "Which books you count as scripture. Books outside it are still there, labelled as additional writings. You can change this at any time.",
     "save": "Save",
+    "signOut": "Sign out",
+    "yourName": "About you",
+    "countryPlaceholder": "Start typing a country…",
+    "countryChoose": "Choose a country from the list.",
+    "countryNotListed": "My country isn't listed",
+    "countryFromList": "Choose from the list instead",
+    "countryClaimLabel": "Your country's name",
+    "countryClaimHelp": "Press Save to send it. We'll look at it before it's shown anywhere.",
+    "countryClaimNoted": "We've noted “{claim}” and will look at it. Until then it isn't shown anywhere.",
+    "gender": "Gender",
+    "genderHelp": "How you'd like others to treat you. Female, male, or both if either is fine.",
+    "ageBracket": "Age bracket",
+    "ageHelp": "Which fits you, in your own judgement. It helps others know how to speak to you; it isn't checked.",
+    "country": "Location",
+    "choose": "Choose…",
+    "genderOptions": { "female": "Female", "male": "Male", "both": "Both" },
+    "ageOptions": { "child": "Child", "teen": "Teen", "adult": "Adult", "senior": "Senior" },
+    "privacy": {
+      "for": "Who can see your {field}",
+      "private": "Private",
+      "members": "Members only",
+      "public": "Public"
+    }
+  },
+  "accountMenu": {
+    "profile": "Profile",
+    "compilations": "Compilations",
+    "settings": "Settings",
     "signOut": "Sign out"
   },
   "accountErrors": {
@@ -156,6 +185,8 @@
     "handle-already-chosen": "Your handle is already set.",
     "name-invalid": "Enter a display name of up to 60 characters.",
     "name-reserved": "That name is reserved. Try another.",
+    "country-invalid": "Choose a country from the list.",
+    "country-claim-invalid": "Enter your country's name, up to 100 characters.",
     "unavailable": "Something went wrong. Please try again shortly."
   },
   "canons": {

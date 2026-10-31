@@ -99,6 +99,27 @@
       "when": 1793420950089,
       "tag": "0013_verse-search",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1793439788942,
+      "tag": "0014_country",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1793441032288,
+      "tag": "0015_gender",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1793442669678,
+      "tag": "0016_age_bracket",
+      "breakpoints": true
     }
   ]
 }

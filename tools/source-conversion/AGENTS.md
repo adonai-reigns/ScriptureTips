@@ -53,3 +53,12 @@ Converts `LEB.xml` (the 2020 download, license-evidence/lexham-english-bible) to
 - **Pipeline:** `xml.ts` (a small XML reader) → `usfm.ts` (one book; the element mapping is in its header comment) → `verify.ts` (the words of each USFM book must equal the XML's) → `cli.ts` (files and `conversion-report.txt`). `books.ts` maps LEB book IDs and `<cite>` targets to USFM.
 - **Idioms are spans of a translator's note** (domain-model §2.6). usfm-grammar drops custom `\z` markers, so they travel as `\w …|x-idiom="N"\w*`, closed and reopened with the same number across a verse number or a line. Character markers inside them are written as nested (`\+add`).
 - **Record the output** hashes in `docs/license-evidence/lexham-english-bible/README.md` when you regenerate it.
+
+## Countries (`src/countries/`)
+
+Generates `packages/countries/src/countries.generated.ts` from the pinned Unicode CLDR territory files (docs/license-evidence/unicode-cldr): the territories in `territoryInfo.json` less `ZZ` and the seven exceptionally reserved codes, 250 in all. A grouping among them (checked against `territoryContainment.json`) is an error. The Unicode License v3 notice is carried into the generated file.
+
+```bash
+./toolbox pnpm --filter @scripturetips/source-conversion countries \
+  /source-texts /workspace/packages/countries/src/countries.generated.ts
+```

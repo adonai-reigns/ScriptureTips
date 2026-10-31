@@ -37,6 +37,7 @@ A record of the license and distribution terms for every text ScriptureTips obta
 | [`macula`](macula/) | MACULA Hebrew and Greek linguistic datasets (terms only; files not held) | Ready with exclusions (CC BY 4.0; leave out the UBS-derived fields and the SIL glosses, listed in `SOURCE.md`) |
 | [`open-scriptures-hebrew-bible`](open-scriptures-hebrew-bible/) | Open Scriptures Hebrew Bible: WLC text with lemmas and morphology (Genesis and Ruth so far) | Ready (WLC public domain; markup CC BY 4.0 with a set credit) |
 | [`open-scriptures-hebrew-lexicon`](open-scriptures-hebrew-lexicon/) | OSHB Hebrew Lexicon: Strong's Hebrew dictionary, Brown-Driver-Briggs and the lexical index | Ready (text public domain; files CC BY 4.0, credit the OSHB Project) |
+| [`unicode-cldr`](unicode-cldr/) | Unicode CLDR territory data: the list of country codes (not a text) | Ready (Unicode License v3; keep the notice with the generated list) |
 | [`strongs-greek`](strongs-greek/) | Strong's Greek Dictionary (1890), XML version 1.4 | Ready (public domain; credit as a courtesy) |
 | [`abbott-smith`](abbott-smith/) | Abbott-Smith, A Manual Greek Lexicon of the NT (1922), TEI markup | Ready (public domain; not the Internet Archive PDF) |
 | [`translation-for-translators`](translation-for-translators/) | Translation for Translators (T4T) (terms only; files not held) | Ready (CC BY-SA 4.0, share-alike) |

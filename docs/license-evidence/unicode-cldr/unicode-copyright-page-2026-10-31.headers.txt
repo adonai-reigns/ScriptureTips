@@ -1,0 +1,12 @@
+HTTP 200 https://www.unicode.org/copyright.html
+cf-cache-status: DYNAMIC
+cf-ray: a531b4300eb1c11a-AKL
+content-encoding: br
+content-security-policy: upgrade-insecure-requests;
+content-type: text/html; charset=UTF-8
+date: Sat, 31 Oct 2026 09:41:25 GMT
+last-modified: Mon, 26 Aug 2024 17:31:22 GMT
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=l8UDBpc%2FkZE9FGPow8ZaaCzFCbhBL5aSgFYtMiBlw%2Bxzdlsts2dfI5ym%2BhBEATs4Al%2FBPBOPe0rM6GnnovL2emE3SqJQpJMIuTV0UQLWo7bKz2%2BVKk9iumZr%2FQfgVxBEWw%3D%3D"}]}
+server: cloudflare
+vary: Accept-Encoding

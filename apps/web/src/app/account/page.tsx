@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { AccountForm, SignOutButton } from "../../account/AccountForm.tsx";
+import { AccountForm } from "../../account/AccountForm.tsx";
 import { currentAccount } from "../../account/api.ts";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -18,9 +18,6 @@ export default async function AccountPage() {
       {account.handle === null && <p className="welcome">{t("welcome")}</p>}
       <p>{t("emailPrivate", { email: account.email })}</p>
       <AccountForm account={account} />
-      <p>
-        <SignOutButton />
-      </p>
     </>
   );
 }

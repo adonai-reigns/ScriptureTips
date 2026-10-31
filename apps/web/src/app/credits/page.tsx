@@ -31,6 +31,11 @@ export default async function Credits() {
             ),
           })}
         </li>
+        <li>
+          {t.rich("countries", {
+            cldr: (chunks) => <a href="https://cldr.unicode.org">{chunks}</a>,
+          })}
+        </li>
         <li>{t("translations")}</li>
         <li>
           {t.rich("originalLanguage", {

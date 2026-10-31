@@ -78,18 +78,84 @@ a {
   text-decoration: none;
 }
 
-/* With the account link, pushed to the right side of the header. */
-.compilations-link {
+/* The signed-in menu: the handle, with its drop-down under it at the right. */
+.account-menu {
+  position: relative;
   margin-left: auto;
 }
 
+.account-menu-toggle {
+  font: inherit;
+  font-weight: 600;
+  color: var(--deep);
+  border: 0;
+  cursor: pointer;
+}
+
+.account-menu-panel {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  min-width: 12rem;
+  padding: 0.3rem 0;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 0.5rem;
+  box-shadow: 0 0.4rem 1.2rem rgb(0 30 60 / 0.2);
+}
+
+.account-menu-panel a,
+.account-menu-panel button {
+  display: block;
+  padding: 0.5rem 1rem;
+  font: inherit;
+  color: var(--ink);
+  text-align: start;
+  text-decoration: none;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.account-menu-panel a:hover,
+.account-menu-panel button:hover,
+.account-menu-panel a:focus-visible,
+.account-menu-panel button:focus-visible {
+  background: var(--pale);
+  outline: none;
+}
+
+/* The sign-out button, set apart in the menu's footer. */
+.account-menu-footer {
+  margin-top: 0.3rem;
+  padding-top: 0.3rem;
+  border-top: 1px solid var(--rule);
+}
+
+.account-menu-footer button {
+  width: 100%;
+}
+
+#settings {
+  scroll-margin-top: 1rem;
+}
+
 /*
- * The home page's header is empty (it only takes up space, below): no logo, no Sign in (that's a
- * button at the foot of the page), no account or Compilations links (the book above the title
- * opens the account page).
+ * The home page's header has no logo and no Sign in (that's a button at the foot of the page); a
+ * signed-in person still has their menu at the top right, taken out of the flow so it adds
+ * nothing to the header's height: the panel's place (below) is the same signed in or out.
  */
-body:has(.landing) .site-header > * {
+body:has(.landing) .site-header > :not(.account-menu) {
   display: none;
+}
+
+body:has(.landing) .account-menu {
+  position: absolute;
+  top: 0.75rem;
+  right: 1rem;
 }
 
 .landing-logo {
@@ -858,6 +924,13 @@ main:has(> .compilation) {
     padding: 1.25rem 1rem 2.5rem;
   }
 
+  /* The home page's menu should push the main down, in mobile view */
+  body:has(.landing) .account-menu {
+    position: relative;
+    top: 0;
+    right: 0;
+  }
+
   /* The home page's panel keeps its margins and rounded corners. */
   body:has(.landing) main {
     margin: 0 auto;
@@ -1065,6 +1138,13 @@ main:has(> .compilation) {
   align-self: flex-end;
 }
 
+/* The profile form's Save is centered on a phone (vision §8), at the bottom right elsewhere. */
+@media (max-width: 48rem) {
+  .account-profile button[type="submit"] {
+    align-self: center;
+  }
+}
+
 /* A form's main action when it isn't the submit button (the pre-publishing check). */
 .account-form button.primary-button {
   font: inherit;
@@ -1115,6 +1195,221 @@ main:has(> .compilation) {
 
 .account-form button:disabled {
   opacity: 0.6;
+}
+
+/*
+ * The account page's profile form: stacked fields, each with its label (and info icon) on the left
+ * of a line and who can see it (the chosen option, opening a menu) at the right end. The handle and
+ * display name share the first row on a wide screen, and the canon takes the whole width under them.
+ */
+.account-form.account-profile {
+  max-width: none;
+  gap: 1.25rem;
+}
+
+/* Each field is a card of its own. */
+.account-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+  padding: 0.9rem 1rem 1rem;
+  background: rgb(255 255 255 / 0.6);
+  border: 1px solid var(--rule);
+  border-radius: 0.6rem;
+}
+
+/* The handle and display name: one card, a fieldset named "About you". */
+.account-pair {
+  min-width: 0;
+  margin: 0;
+  padding: 0.5rem 1rem 1rem;
+  background: rgb(255 255 255 / 0.6);
+  border: 1px solid var(--rule);
+  border-radius: 0.6rem;
+}
+
+.account-pair legend {
+  padding: 0 0.4rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.account-pair-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* A thin rule under the name fields, then the optional details. */
+.account-divider {
+  margin: 1rem 0;
+  border: 0;
+  border-top: 1px solid var(--rule);
+}
+
+.account-pair-extra {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.country-field {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
+.country-field input:not([type="hidden"]) {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  font-size: 1rem;
+  padding: 0.5rem 0.6rem;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid #9aa5b1;
+  border-radius: 0.4rem;
+}
+
+.country-field .link-button {
+  font-size: 0.85rem;
+}
+
+.account-form .account-row > select {
+  font: inherit;
+  font-size: 1rem;
+  padding: 0.5rem 0.6rem;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid #9aa5b1;
+  border-radius: 0.4rem;
+}
+
+.account-pair .account-row {
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+}
+
+.account-row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.account-row-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.account-form .account-row > input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.account-form .account-row > input:read-only {
+  background: rgb(0 0 0 / 0.04);
+  color: var(--muted);
+}
+
+.account-row-help {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+/* Who can see a field: the chosen option, with a menu of the three under it. */
+.privacy-menu {
+  position: relative;
+  flex: none;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.privacy-menu-toggle {
+  font: inherit;
+  color: var(--deep);
+  background: none;
+  border: 0;
+  padding: 0.1rem 0;
+  cursor: pointer;
+}
+
+.privacy-menu-panel {
+  position: absolute;
+  top: calc(100% + 0.3rem);
+  right: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  min-width: 9rem;
+  padding: 0.25rem 0;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 0.5rem;
+  box-shadow: 0 0.4rem 1.2rem rgb(0 30 60 / 0.2);
+}
+
+.account-form .privacy-menu-panel button {
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--ink);
+  text-align: start;
+  background: none;
+  border: 0;
+  padding: 0.4rem 0.9rem;
+  cursor: pointer;
+}
+
+.account-form .privacy-menu-panel button:hover,
+.account-form .privacy-menu-panel button:focus-visible {
+  background: var(--pale);
+  outline: none;
+}
+
+.account-form .privacy-menu-panel button[aria-checked="true"] {
+  font-weight: 600;
+  color: var(--deep);
+}
+
+@media (min-width: 48rem) {
+  .account-form.account-profile {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 1.5rem;
+    align-items: start;
+  }
+
+  /* The handle and display name sit side by side in their card. */
+  .account-form.account-profile .account-pair {
+    grid-column: 1 / -1;
+  }
+
+  .account-pair-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 1.5rem;
+  }
+
+  .account-pair-extra {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: 1.5rem;
+  }
+
+  .account-form.account-profile .account-row-wide,
+  .account-form.account-profile .error,
+  .account-form.account-profile button[type="submit"] {
+    grid-column: 1 / -1;
+  }
 }
 
 .link-button {

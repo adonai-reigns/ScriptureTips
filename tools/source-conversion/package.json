@@ -10,7 +10,8 @@
     "jps1917": "node src/jps1917/cli.ts",
     "leb": "node src/leb/cli.ts",
     "tvtms": "node src/tvtms/cli.ts",
-    "reserved-names": "node src/reserved-names/cli.ts"
+    "reserved-names": "node src/reserved-names/cli.ts",
+    "countries": "node src/countries/cli.ts"
   },
   "dependencies": {
     "@scripturetips/passage": "workspace:*"

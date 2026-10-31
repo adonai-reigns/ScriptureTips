@@ -14,6 +14,8 @@ export type AccountError =
   | "handle-already-chosen"
   | "name-invalid"
   | "name-reserved"
+  | "country-invalid"
+  | "country-claim-invalid"
   | "unavailable";
 
 const BY_CODE: Record<string, AccountError> = {
@@ -26,6 +28,7 @@ const BY_CODE: Record<string, AccountError> = {
   "handle-reserved": "handle-reserved",
   "handle-already-chosen": "handle-already-chosen",
   "name-reserved": "name-reserved",
+  "country-invalid": "country-invalid",
 };
 
 /** Reads an error response. `fallback` covers a 400 with no code we know. */
@@ -38,6 +41,10 @@ export async function accountError(res: Response, fallback: AccountError): Promi
   if (known) return known;
   if (res.status === 429) return "rate-limited";
   if (body.code === "invalid-request")
-    return body.issues?.some((i) => i.path?.[0] === "name") ? "name-invalid" : "handle-invalid";
+    return body.issues?.some((i) => i.path?.[0] === "name")
+      ? "name-invalid"
+      : body.issues?.some((i) => i.path?.[0] === "countryNotListed")
+        ? "country-claim-invalid"
+        : "handle-invalid";
   return res.status === 400 ? fallback : "unavailable";
 }

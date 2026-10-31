@@ -9,6 +9,14 @@ export interface Account {
   locale: string;
   canon: CanonId | null;
   trustLevel: number;
+  /** A country code (`@scripturetips/countries`), or null. */
+  country: string | null;
+  /** `female`, `male`, `both`, or null. */
+  gender: string | null;
+  /** An age bracket, or null. */
+  ageBracket: string | null;
+  /** What they wrote when their country wasn't listed, awaiting review; only they see it. */
+  countryClaim: string | null;
 }
 
 const API = process.env["API_URL"] ?? "http://127.0.0.1:3001/api";

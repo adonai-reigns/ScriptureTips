@@ -77,6 +77,10 @@ describe("vision §11: sign-in with a one-time email code", () => {
       locale: "en-NZ",
       canon: null,
       trustLevel: 0,
+      country: null,
+      gender: null,
+      ageBracket: null,
+      countryClaim: null,
     });
   });
 
@@ -181,6 +185,71 @@ describe("vision §3.4: canon profile", () => {
     const unknown = await update(cookie, { canon: "mine" });
     expect(unknown.statusCode).toBe(400);
     expect((await account(cookie)).json()).toMatchObject({ canon: "orthodox" });
+  });
+});
+
+describe("the country", () => {
+  // Sign-in is limited to 20 a window from one address, so these share accounts.
+  it("is chosen from the list of country codes, and can be cleared", async () => {
+    const cookie = await signIn("country@example.com");
+    expect((await update(cookie, { country: "NZ" })).json()).toMatchObject({ country: "NZ" });
+    expect((await update(cookie, { country: "XK" })).json()).toMatchObject({ country: "XK" });
+    // Not a code on the list: not a name, not lowercase, not a grouping, not the unknown region.
+    for (const country of ["New Zealand", "nz", "EU", "ZZ", "NZL", ""]) {
+      const refused = await update(cookie, { country });
+      expect(refused.statusCode, country).toBe(400);
+      expect(refused.json()).toMatchObject({ code: "country-invalid" });
+    }
+    expect((await account(cookie)).json()).toMatchObject({ country: "XK" });
+    expect((await update(cookie, { country: null })).json()).toMatchObject({ country: null });
+
+    // The gender (saved with the other details): three choices, kept when others are saved.
+    expect((await update(cookie, { gender: "female" })).json()).toMatchObject({ gender: "female" });
+    expect((await update(cookie, { name: "Someone" })).json()).toMatchObject({ gender: "female" });
+    expect((await update(cookie, { gender: "both" })).json()).toMatchObject({ gender: "both" });
+    for (const gender of ["other", "Male", ""]) {
+      expect((await update(cookie, { gender })).statusCode, String(gender)).toBe(400);
+    }
+    expect((await account(cookie)).json()).toMatchObject({ gender: "both" });
+    // It can be withdrawn.
+    expect((await update(cookie, { gender: null })).json()).toMatchObject({ gender: null });
+    expect((await account(cookie)).json()).toMatchObject({ gender: null });
+
+    // The age bracket: one of the offered brackets, kept, and can be withdrawn.
+    expect((await update(cookie, { ageBracket: "teen" })).json()).toMatchObject({
+      ageBracket: "teen",
+    });
+    expect((await update(cookie, { name: "Someone" })).json()).toMatchObject({
+      ageBracket: "teen",
+    });
+    for (const ageBracket of ["25to34", "minor", "Adult", ""]) {
+      expect((await update(cookie, { ageBracket })).statusCode, ageBracket).toBe(400);
+    }
+    expect((await update(cookie, { ageBracket: null })).json()).toMatchObject({ ageBracket: null });
+  });
+
+  it("keeps a claim that the country isn't listed, for review, of a sensible length, and private to its owner", async () => {
+    const cookie = await signIn("claim@example.com");
+    await update(cookie, { country: "NZ" });
+    const claimed = await update(cookie, { countryNotListed: "  Atlantis " });
+    expect(claimed.json()).toMatchObject({ country: null, countryClaim: "Atlantis" });
+    // A new claim replaces the old one; choosing a listed country drops it.
+    expect((await update(cookie, { countryNotListed: "Lemuria" })).json()).toMatchObject({
+      countryClaim: "Lemuria",
+    });
+    expect((await account(cookie)).json()).toMatchObject({ countryClaim: "Lemuria" });
+    // A country or a claim, not both, and a claim of a sensible length.
+    const both = await update(cookie, { country: "NZ", countryNotListed: "Atlantis" });
+    expect(both.statusCode).toBe(400);
+    expect((await update(cookie, { countryNotListed: "x" })).statusCode).toBe(400);
+    expect((await update(cookie, { countryNotListed: "x".repeat(101) })).statusCode).toBe(400);
+    // Another account's view never has it.
+    const other = await signIn("other@example.com");
+    expect((await account(other)).json()).toMatchObject({ country: null, countryClaim: null });
+    expect((await update(cookie, { country: "AU" })).json()).toMatchObject({
+      country: "AU",
+      countryClaim: null,
+    });
   });
 });
 

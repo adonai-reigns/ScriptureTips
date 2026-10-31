@@ -481,6 +481,19 @@ Supports offline use (vision §3.15).
 
 - Delivery runs on the job queue (BullMQ). Email goes out over SMTP only (no provider SDK), so the provider is a configuration choice.
 
+### 5.4 Gender on the account
+
+`User.gender` is `female` · `male` · `both`, or empty. It's optional, chosen on the account page, and the person can withdraw it at any time (the API accepts `null`). The account page words it "Gender", with the help text "How you'd like others to treat you". It is stored privately until the privacy selectors are built (vision §10).
+
+- **Purpose.** Interpersonal communication depends on knowing how to address and treat the person on the other side: how to think of them, regard them and behave toward them. The field exists to tell others that. It is not a statistic, a feature gate for private study, or a judgment about anyone's body.
+- **Why "gender" and not "sex".** The field records what the person asks to be treated as, which can differ from their sex at birth, for example after a change of appearance. "Gender" is the word for that. The code uses the same word as the label (`gender`), so the two don't drift apart.
+- **Why three options.** Male and female are classifications of sex, not of behavior or appearance, and changing how one looks or acts doesn't make a person less male or less female. Appearance does influence how naturally others will treat a person as male or female, and this is why the option is available as a free choice. It is impossible that a person is neither, so `neither` is not an option. Both suggests that a person does not particularly prefer to be thought of as one or the other.
+- **No "prefer not to say".** The field starts unchosen. Leaving it unchosen, or choosing "Choose…" again, withdraws it.
+- **Withdrawing is allowed; the consequence is limited interaction.** Nobody is stopped from withdrawing their gender. But it isn't fair to another person to be unsure how to treat someone they're dealing with, so **while the gender is unset, interaction with other members is restricted** (publishing, discussion, comments, messaging, contacts and groups, the same set as the age declaration, vision §5.2). Private study is unaffected. This is **not built yet**: it comes with those features and is checked in the authorization matrix test.
+- **Changing it after communicating (policy to decide before publishing; vision §11, item 8).** A record of interpersonal communication shows how its speaker spoke, and a reader is naturally forced to see it approvingly or disapprovingly. A person talks differently to someone of the same sex than to someone of the other, so a conversation held in a manner suited to one can look unsuitable once the other is believed. If the speaker's gender changes afterwards, the reader's view of the speaker, and of the other party, can change, and may harm the other party: they would most likely have spoken differently had they thought they were addressing the other sex. The policy for changing gender has to protect those people. It is **not built yet**, and nothing here settles it.
+
+Not to be confused with the **age bracket** on the account page (`User.age_bracket`: `child` · `teen` · `adult` · `senior`, chosen by the person as they judge themselves, also optional and withdrawable). Like gender it tells others how to speak to the person: there is an appropriate way to speak to a child that differs from the way to speak to an adult. No finer detail is collected, as there is no use for it. It is **not checked and not used for legal purposes**. The `adult` · `minor` declaration described under the User table above is a different, later thing, asked for when a person first uses a feature that communicates with others. That table also calls it `age_bracket`, which now clashes with the account page's column: rename one of them when the declaration is built.
+
 ## 6. Community health and moderation
 
 | Entity | Purpose |

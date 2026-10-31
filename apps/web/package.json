@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@scripturetips/canon": "workspace:*",
+    "@scripturetips/countries": "workspace:*",
     "@scripturetips/licenses": "workspace:*",
     "@scripturetips/passage": "workspace:*",
     "@scripturetips/reference": "workspace:*",

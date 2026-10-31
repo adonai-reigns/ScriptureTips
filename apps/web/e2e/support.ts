@@ -64,7 +64,7 @@ export async function signUp(page: Page, canon = "Protestant"): Promise<string> 
   await page.getByRole("textbox", { name: "Display name" }).fill("A Reader");
   await page.getByRole("radio", { name: new RegExp(`^${canon}`) }).check();
   await page.getByRole("button", { name: "Save" }).click();
-  await expect(page.getByRole("link", { name: `@${handle}` })).toBeVisible();
+  await expect(page.getByRole("button", { name: `@${handle}` })).toBeVisible();
   return handle;
 }
 

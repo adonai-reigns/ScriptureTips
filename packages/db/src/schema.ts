@@ -19,6 +19,7 @@ import {
   text,
   timestamp,
   unique,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -184,8 +185,36 @@ export const user = pgTable("user", {
   canon: text("canon"),
   /** 0–4 (vision §4): what the account may do beyond private study. */
   trustLevel: integer("trust_level").notNull().default(0),
+  /** The country (`@scripturetips/countries`: ISO 3166-1 alpha-2, and `XK`); null until chosen. */
+  country: text("country"),
+  /** `female` · `male` · `both`; null until chosen, and not cleared once chosen. */
+  gender: text("gender"),
+  /** `child` · `teen` · `adult` · `senior`, as the person judges; null until chosen. Not a legal declaration. */
+  ageBracket: text("age_bracket"),
   ...timestamps,
 });
+
+/**
+ * A person's claim that their country isn't on the list (`@scripturetips/countries`), as they
+ * wrote it. **Never shown to anyone until it has been reviewed.** The review, and appeals against
+ * its outcome, aren't built yet (vision §11, "Countries not on the list"): until then every claim
+ * stays `pending`. One claim per account; a new one replaces the old.
+ */
+export const countryClaim = pgTable(
+  "country_claim",
+  {
+    id: id(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    /** What they wrote. */
+    name: text("name").notNull(),
+    /** `pending` · `accepted` · `declined` (the last two come with the review). */
+    status: text("status").notNull().default("pending"),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex("country_claim_user_idx").on(t.userId)],
+);
 
 export const session = pgTable(
   "session",

@@ -174,3 +174,10 @@ pilcrows
 agapē
 ʼĕlōhîm
 selectionchange
+cldr
+Clipperton
+Cunha
+Eswatini
+Melilla
+Sark
+Türkiye

@@ -823,6 +823,46 @@
       "record": "abbott-smith/abbott-smith-download-record-2026-10-31.json",
       "status": "first recorded here",
       "retrieved": "2026-10-31"
+    },
+    {
+      "path": "unicode-cldr/territoryInfo.json",
+      "url": "https://raw.githubusercontent.com/unicode-org/cldr-json/a4b67247b446fd51b475991017a2481911210c60/cldr-json/cldr-core/supplemental/territoryInfo.json",
+      "bytes": 187760,
+      "sha256": "c8aa7654c87de234118f14ada0e1466eb09467bed4048da7eab3e7e63ffe335d",
+      "last_modified": null,
+      "record": "unicode-cldr/unicode-cldr-download-record-2026-10-31.json",
+      "status": "first recorded here",
+      "retrieved": "2026-10-31"
+    },
+    {
+      "path": "unicode-cldr/territoryContainment.json",
+      "url": "https://raw.githubusercontent.com/unicode-org/cldr-json/a4b67247b446fd51b475991017a2481911210c60/cldr-json/cldr-core/supplemental/territoryContainment.json",
+      "bytes": 11991,
+      "sha256": "9d124223e0005038b3ce0b9c2b80f8f30f221658373768aaa98bc28b3cdd9beb",
+      "last_modified": null,
+      "record": "unicode-cldr/unicode-cldr-download-record-2026-10-31.json",
+      "status": "first recorded here",
+      "retrieved": "2026-10-31"
+    },
+    {
+      "path": "unicode-cldr/LICENSE",
+      "url": "https://raw.githubusercontent.com/unicode-org/cldr-json/a4b67247b446fd51b475991017a2481911210c60/LICENSE",
+      "bytes": 2033,
+      "sha256": "220ba0e1c43b99530d2d5bdb892a99dca0989414f51ab695ecd90163eaa1ec3b",
+      "last_modified": null,
+      "record": "unicode-cldr/unicode-cldr-download-record-2026-10-31.json",
+      "status": "first recorded here",
+      "retrieved": "2026-10-31"
+    },
+    {
+      "path": "unicode-cldr/README.md",
+      "url": "https://raw.githubusercontent.com/unicode-org/cldr-json/a4b67247b446fd51b475991017a2481911210c60/README.md",
+      "bytes": 2473,
+      "sha256": "6d47338086101a7e7675ab292f1ab88c1e3c1a6245b3a63b9a8f7f4fd79c0091",
+      "last_modified": null,
+      "record": "unicode-cldr/unicode-cldr-download-record-2026-10-31.json",
+      "status": "first recorded here",
+      "retrieved": "2026-10-31"
     }
   ]
 }

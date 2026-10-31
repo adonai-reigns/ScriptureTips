@@ -3,6 +3,7 @@ import Image from "next/image";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
+import { AccountMenu } from "../account/AccountMenu.tsx";
 import { currentAccount } from "../account/api.ts";
 import "./globals.css";
 
@@ -28,18 +29,17 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
               <Image src="/brand/logo-48.png" width={48} height={48} alt="" priority />
               <span>{t("name")}</span>
             </a>
-            {account?.handle ? (
-              <a href="/compilations" className="account-link compilations-link">
-                {t("compilations")}
+            {account ? (
+              <AccountMenu
+                label={account.handle ? `@${account.handle}` : ta("yourAccount")}
+                compilations={account.handle !== null}
+              />
+            ) : (
+              // The home page shows its own Sign in button instead (see globals.css).
+              <a href="/sign-in" className="account-link sign-in-link">
+                {ta("signIn")}
               </a>
-            ) : null}
-            <a
-              href={account ? "/account" : "/sign-in"}
-              // Signed out, the home page shows its own Sign in button instead (see globals.css).
-              className={`account-link${account ? "" : " sign-in-link"}`}
-            >
-              {account ? (account.handle ? `@${account.handle}` : ta("yourAccount")) : ta("signIn")}
-            </a>
+            )}
           </header>
           <main>{children}</main>
           <footer className="site-footer">

@@ -214,6 +214,9 @@ importers:
       '@scripturetips/canon':
         specifier: workspace:*
         version: link:../../packages/canon
+      '@scripturetips/countries':
+        specifier: workspace:*
+        version: link:../../packages/countries
       '@scripturetips/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -277,6 +280,9 @@ importers:
       '@scripturetips/canon':
         specifier: workspace:*
         version: link:../../packages/canon
+      '@scripturetips/countries':
+        specifier: workspace:*
+        version: link:../../packages/countries
       '@scripturetips/licenses':
         specifier: workspace:*
         version: link:../../packages/licenses
@@ -323,6 +329,8 @@ importers:
       '@scripturetips/passage':
         specifier: workspace:*
         version: link:../passage
+
+  packages/countries: {}
 
   packages/db:
     dependencies:

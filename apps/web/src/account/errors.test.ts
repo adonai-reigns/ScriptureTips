@@ -14,6 +14,12 @@ describe("accountError", () => {
     [409, { code: "handle-taken" }, "handle-taken"],
     [400, { code: "invalid-request", issues: [{ path: ["handle"] }] }, "handle-invalid"],
     [400, { code: "invalid-request", issues: [{ path: ["name"] }] }, "name-invalid"],
+    [400, { code: "country-invalid" }, "country-invalid"],
+    [
+      400,
+      { code: "invalid-request", issues: [{ path: ["countryNotListed"] }] },
+      "country-claim-invalid",
+    ],
     [400, { code: "VALIDATION_ERROR" }, "invalid-email"],
     [500, {}, "unavailable"],
   ])("reads %i %j as %s", async (status, body, expected) => {

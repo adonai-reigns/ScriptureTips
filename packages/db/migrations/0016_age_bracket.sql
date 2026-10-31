@@ -1,0 +1,1 @@
+ALTER TABLE "user" ADD COLUMN "age_bracket" text;

@@ -17,6 +17,7 @@
     "@nestjs/platform-fastify": "12.2.0",
     "@scripturetips/book": "workspace:*",
     "@scripturetips/canon": "workspace:*",
+    "@scripturetips/countries": "workspace:*",
     "@scripturetips/db": "workspace:*",
     "@scripturetips/licenses": "workspace:*",
     "@scripturetips/passage": "workspace:*",

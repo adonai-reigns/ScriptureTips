@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { and, type Database as Db, inArray, isNull, lemma, sql } from "@scripturetips/db";
+import { and, type Database as Db, isNull, lemma, sql } from "@scripturetips/db";
 import { BOOKS } from "@scripturetips/passage";
 import { english } from "@scripturetips/reference";
 import { editableText } from "../compilations/wording.ts";

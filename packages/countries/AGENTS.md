@@ -1,0 +1,9 @@
+# @scripturetips/countries
+
+The list of countries a person can say they live in, and their names. Pure TypeScript, no I/O, no dependencies.
+
+- **The list** (`COUNTRY_CODES`, generated): **250 codes, the 249 ISO 3166-1 alpha-2 entries and Kosovo's user-assigned `XK`**, from the territory data of the Unicode CLDR (release 49; evidence in [docs/license-evidence/unicode-cldr](../../docs/license-evidence/unicode-cldr/)). Dependent territories (Hong Kong, Greenland, Puerto Rico …) are in, with Taiwan and Palestine, so no one is left out for not being a sovereign state. Left out: `ZZ` (unknown), and the seven codes ISO only reserves "exceptionally" (`AC`, `CP`, `CQ`, `DG`, `EA`, `IC`, `TA`): they aren't ISO entries, and their people belong to a country on the list. The generated file carries the Unicode License v3 notice as the license asks. Regenerate (against new CLDR files, as a new import) with `./toolbox pnpm --filter @scripturetips/source-conversion countries /source-texts /workspace/packages/countries/src/countries.generated.ts`; a test in tools/source-conversion fails if the committed file isn't what the pinned files give.
+- **Store the code, show the name.** `isCountryCode`, `countryName(code, locale)`, `countryOptions(locale)` (alphabetical in that language) and `countryFromText(text, locale)` (a name or a code, any case). Names come from `Intl.DisplayNames` (CLDR built into Node and the browsers), so they follow the interface language and no list of names is kept here. A disputed name (Türkiye, Eswatini, North Macedonia …) is a display detail, never a stored value.
+- **Not on the list:** a person who says their country isn't listed has it recorded as a claim (`country_claim`, apps/api), shown to no one until it's reviewed. The review and appeals aren't built: vision §11, "Countries not on the list".
+
+Run the tests: `./toolbox pnpm --filter @scripturetips/countries test`

@@ -47,7 +47,8 @@ test("domain-model §2.3: build a compilation in layers, read it, and delete it"
   test.setTimeout(150_000);
   const handle = await signUp(page);
 
-  await page.getByRole("link", { name: "Compilations" }).click();
+  await page.getByRole("button", { name: `@${handle}` }).click();
+  await page.getByRole("menuitem", { name: "Compilations" }).click();
   await expect(page.getByText("You haven't made a compilation yet.")).toBeVisible();
   await openNewCompilation(page);
   await page.getByRole("textbox", { name: "Title" }).fill("My Study Bible");
