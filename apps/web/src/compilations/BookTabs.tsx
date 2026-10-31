@@ -161,7 +161,7 @@ export function BookTabs({
               aria-current={b.current ? "page" : undefined}
               {...(menus ? longPress(bookMenu(b)) : {})}
             >
-              {b.name} <strong>{b.abbreviation}</strong>
+              {b.name} {b.abbreviation ? <strong>{b.abbreviation}</strong> : null}
             </Link>
             {menus ? (
               <SourceMenu

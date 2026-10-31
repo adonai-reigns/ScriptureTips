@@ -336,6 +336,14 @@ main {
   border-color: var(--deep);
 }
 
+/* The book being read. */
+.book-tabs [role="tabpanel"] a[aria-current="page"] {
+  color: var(--deep);
+  font-weight: 600;
+  background: var(--pale);
+  border-color: var(--pale);
+}
+
 .book-tabs [role="tabpanel"] a strong {
   font-size: 0.85rem;
   font-weight: 600;
@@ -976,6 +984,107 @@ main:has(> .compilation) {
   margin: 0 0 1rem;
 }
 
+/* The translation, top right of the reader. */
+.reader-translation {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.75rem;
+}
+
+.reader-translation select {
+  max-width: 16rem;
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 0.3rem 0.5rem;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid #9aa5b1;
+  border-radius: 0.4rem;
+}
+
+/* The passage's title is edited in place: a field and a Read button once it's pressed. */
+.passage-context {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: -0.5rem 0 1rem;
+}
+
+.passage-context a {
+  display: inline-block;
+  padding: 0.15rem 0.7rem;
+  font-size: 0.9rem;
+  color: var(--deep);
+  text-decoration: none;
+  background: none;
+  border: 1px solid var(--rule);
+  border-radius: 0.4rem;
+}
+
+.passage-context a:hover,
+.passage-context a:focus-visible {
+  background: var(--pale);
+}
+
+.passage-title-button {
+  font: inherit;
+  color: inherit;
+  text-align: start;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 0.3rem;
+  padding: 0 0.25rem;
+  margin: -1px calc(-0.25rem - 1px);
+  cursor: text;
+}
+
+.passage-title-icon {
+  margin-inline-start: 0.5rem;
+  vertical-align: -0.1em;
+  color: var(--muted);
+}
+
+.passage-title-button:hover .passage-title-icon,
+.passage-title-button:focus-visible .passage-title-icon {
+  color: var(--deep);
+}
+
+.passage-title-button:hover,
+.passage-title-button:focus-visible {
+  border-bottom-style: dashed;
+  border-bottom-color: var(--deep);
+  border-radius: 0;
+}
+
+.passage-title-form {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+}
+
+.passage-title-form input[name="ref"] {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  font-size: 1.2rem;
+  padding: 0.3rem 0.6rem;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid #9aa5b1;
+  border-radius: 0.4rem;
+}
+
+.passage-title-form button {
+  font: inherit;
+  padding: 0.3rem 1rem;
+  color: #fff;
+  background: var(--deep);
+  border: 1px solid var(--deep);
+  border-radius: 0.4rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 .canon-note {
   color: var(--muted);
   font-style: italic;
@@ -1541,6 +1650,15 @@ button.secondary {
   height: var(--reading-head);
   padding: 0.5rem 0;
   margin-bottom: 0.5rem;
+  background: var(--paper);
+}
+
+/* The reader's chapter bar, held at the top of the window while a chapter scrolls. */
+.reader-head {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  padding: 0.5rem 0;
   background: var(--paper);
 }
 

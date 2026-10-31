@@ -5,6 +5,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { passage, type Translation } from "../reader/api.ts";
 import { type ChapterRef, neighbors } from "../reader/books.ts";
+import { ChapterBar } from "../reader/ChapterBar.tsx";
 import { Passage } from "../reader/Passage.tsx";
 import { studyWords } from "../study/api.ts";
 import { StudyLegend } from "../study/StudyLegend.tsx";
@@ -83,7 +84,6 @@ export async function ReadingArea({
   const bookName = english.name(osis, "full", "one");
   const ref = `${bookName} ${chapter}`;
   const { previous, next } = neighbors(order, osis, chapter, chapter);
-  const chapterLabel = (to: ChapterRef) => `${english.name(to.osis, "full", "one")} ${to.chapter}`;
 
   // The comparison columns: those saved with the compilation, or until it has some, three.
   const others = all.filter((x) => x.id !== c.base.id);
@@ -217,79 +217,15 @@ export async function ReadingArea({
             />
           )}
         </div>
-        <header className="reading-bar">
-          {previous ? (
-            <Link
-              scroll={false}
-              className="reading-step"
-              href={readingHref(previous.osis, previous.chapter, mode, read, study)}
-              rel="prev"
-              // Loaded ahead (in a production build), so stepping through chapters is instant.
-              prefetch
-              aria-label={t("previous", { chapter: chapterLabel(previous) })}
-            >
-              ‹
-              <LinkPending />
-            </Link>
-          ) : (
-            <span className="reading-step" aria-hidden="true" />
-          )}
-          {/* A new chapter's title is a new element, so the list it was picked from closes. */}
-          <div className="reading-title" key={`${osis}.${chapter}`}>
-            <h2 id="reading-title">
-              {picker ? (
-                <>
-                  {/* On a phone the name opens the books, as a popover (closed by a tap outside). */}
-                  <span className="book-name">{bookName}</span>
-                  <button type="button" className="book-button" popoverTarget="book-picker">
-                    {bookName}
-                  </button>
-                </>
-              ) : (
-                bookName
-              )}{" "}
-              <button type="button" className="chapter-button" aria-haspopup="true">
-                {chapter}
-              </button>
-            </h2>
-            {picker ? (
-              <nav id="book-picker" popover="auto" className="book-picker" aria-label={t("books")}>
-                {books}
-              </nav>
-            ) : null}
-            {/* Shown while the chapter number is hovered or focused, or the list itself is. */}
-            <nav className="chapter-list" aria-label={t("chapters")}>
-              {chapters.map((n) => (
-                <Link
-                  scroll={false}
-                  prefetch={false}
-                  key={n}
-                  href={readingHref(osis, n, mode, read, study)}
-                  aria-current={n === chapter ? "page" : undefined}
-                >
-                  {n}
-                  <LinkPending />
-                </Link>
-              ))}
-            </nav>
-          </div>
-          {next ? (
-            <Link
-              scroll={false}
-              className="reading-step"
-              href={readingHref(next.osis, next.chapter, mode, read, study)}
-              rel="next"
-              // Loaded ahead (in a production build), so stepping through chapters is instant.
-              prefetch
-              aria-label={t("next", { chapter: chapterLabel(next) })}
-            >
-              ›
-              <LinkPending />
-            </Link>
-          ) : (
-            <span className="reading-step" aria-hidden="true" />
-          )}
-        </header>
+        <ChapterBar
+          osis={osis}
+          chapter={chapter}
+          chapters={chapters}
+          previous={previous}
+          next={next}
+          href={(to, n) => readingHref(to, n, mode, read, study)}
+          books={picker ? books : undefined}
+        />
       </div>
       {body}
     </section>

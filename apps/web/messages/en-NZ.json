@@ -24,6 +24,10 @@
     "additional": "Additional writings: not counted as scripture in the {canon} canon.",
     "varies": "Counted as scripture in some traditions, not in others.",
     "books": "Books",
+    "booksNav": "Books by section",
+    "context": "Show {count} more verses before and after",
+    "wholeChapter": "Read the whole chapter",
+    "changePassage": "Type another passage or range",
     "booksTitle": "Books of the {translation}",
     "section": {
       "ot": "Old Testament",

@@ -4,8 +4,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { currentAccount } from "../../../../account/api.ts";
-import { myCompilation } from "../../../../compilations/api.ts";
-import { books, passage } from "../../../../reader/api.ts";
+import { myCompilation, myCompilations } from "../../../../compilations/api.ts";
+import { books, passage, translations } from "../../../../reader/api.ts";
 import {
   designations,
   Statement,
@@ -18,10 +18,15 @@ import {
   neighbors,
   readingOrder,
 } from "../../../../reader/books.ts";
+import { ChapterBar } from "../../../../reader/ChapterBar.tsx";
 import { creditLines } from "../../../../reader/credits.ts";
 import { Passage } from "../../../../reader/Passage.tsx";
+import { PassageTitle, TranslationPicker } from "../../../../reader/PassageEdit.tsx";
 import { bookSlug, ownsCompilation, readerTarget, referenceFor } from "../../../../reader/paths.ts";
-import { SearchForm } from "../../../../reader/SearchForm.tsx";
+import { ReaderTabs } from "../../../../reader/ReaderTabs.tsx";
+
+/** How many verses each side the context button adds. */
+const CONTEXT = 3;
 
 interface Props {
   params: Promise<{ translation: string; ref: string[] }>;
@@ -79,6 +84,8 @@ export default async function Read(props: Props) {
   const { reference, result } = loaded;
   const t = await getTranslations("errors");
   const tr = await getTranslations("reader");
+  const ts = await getTranslations("search");
+  const [catalog, mine] = await Promise.all([translations().catch(() => []), myCompilations()]);
   if (
     !result.ok &&
     (result.code === "unknown-translation" || result.code === "unknown-compilation")
@@ -87,8 +94,12 @@ export default async function Read(props: Props) {
   // Previous and next chapters, in the reader's canon order, for a single passage.
   const only = result.ok && result.passages.length === 1 ? result.passages[0] : undefined;
   let around: { previous?: ChapterRef; next?: ChapterRef } = {};
+  const available = await books(id).catch(() => null);
+  const reading =
+    result.ok && result.passages[0]
+      ? parseOsisPassage(result.passages[0].entered).start.book
+      : undefined;
   if (only) {
-    const available = await books(id).catch(() => null);
     const { start, end } = parseOsisPassage(only.entered);
     if (available)
       around = neighbors(
@@ -97,6 +108,29 @@ export default async function Read(props: Props) {
         start.chapter,
         end.chapter,
       );
+  }
+  // Part of a chapter can be widened by a few verses each side, for context, until it's the whole.
+  let wider: string | undefined;
+  let chapterPath: string | undefined;
+  if (only && !only.wholeChapters) {
+    const { start, end } = parseOsisPassage(only.entered);
+    if (start.chapter === end.chapter) {
+      const whole = await passage(
+        id,
+        `${english.name(start.book, "full", "one")} ${start.chapter}`,
+      );
+      const numbers = whole.ok ? (whole.passages[0]?.verses ?? []).map((v) => v.to ?? v.verse) : [];
+      const first = Math.min(
+        ...(whole.ok ? (whole.passages[0]?.verses ?? []).map((v) => v.verse) : [1]),
+      );
+      const last = Math.max(...numbers, end.verse);
+      const from = Math.max(first, start.verse - CONTEXT);
+      const to = Math.min(last, end.verse + CONTEXT);
+      chapterPath = `/read/${id}/${bookSlug(start.book)}/${start.chapter}`;
+      if (from < start.verse || to > end.verse) {
+        wider = from === first && to === last ? chapterPath : `${chapterPath}/${from}-${to}`;
+      }
+    }
   }
   const chapterLink = (c: ChapterRef, key: "previous" | "next") => (
     <a
@@ -119,7 +153,50 @@ export default async function Read(props: Props) {
     : undefined;
   return (
     <div className="reader">
-      <SearchForm translation={id} reference={reference} />
+      <TranslationPicker
+        current={id}
+        reference={reference}
+        compilations={mine.map((c) => ({ id: c.id, label: `${c.abbreviation}: ${c.title}` }))}
+        translations={catalog.map((x) => ({ id: x.id, label: `${x.abbreviation}: ${x.name}` }))}
+        labels={{
+          translation: ts("translation"),
+          yours: ts("yourCompilations"),
+          all: ts("translations"),
+        }}
+      />
+      {available ? <ReaderTabs id={id} books={available} canon={canon} current={reading} /> : null}
+      {/* Held at the top of the window while the chapter scrolls, as in the editor. */}
+      {only && available ? (
+        <div className="reader-head">
+          <ChapterBar
+            osis={parseOsisPassage(only.entered).start.book}
+            chapter={parseOsisPassage(only.entered).start.chapter}
+            chapters={
+              available.find((b) => b.osis === parseOsisPassage(only.entered).start.book)
+                ?.chapters ?? []
+            }
+            previous={around.previous}
+            next={around.next}
+            href={(to, n) => `/read/${id}/${bookSlug(to)}/${n}`}
+          />
+        </div>
+      ) : null}
+      <PassageTitle
+        translation={id}
+        title={result.ok ? result.passages.map((p) => p.label).join("; ") : reference}
+        direction={result.ok ? result.translation.direction : "ltr"}
+        labels={{ change: tr("changePassage"), field: ts("reference"), read: ts("go") }}
+      />
+      {chapterPath ? (
+        <p className="passage-context">
+          {wider && wider !== chapterPath ? (
+            <a href={wider} rel="nofollow">
+              {tr("context", { count: CONTEXT })}
+            </a>
+          ) : null}
+          <a href={chapterPath}>{tr("wholeChapter")}</a>
+        </p>
+      ) : null}
       {result.ok ? (
         result.passages.map((p, i) => (
           <Passage
@@ -130,6 +207,7 @@ export default async function Read(props: Props) {
             canon={canon}
             sources={result.sources}
             designationOf={designationOf}
+            showLabel={false}
           />
         ))
       ) : (
@@ -137,7 +215,8 @@ export default async function Read(props: Props) {
           {t.has(result.code) ? t(result.code) : t("unavailable")}
         </p>
       )}
-      {result.ok ? (
+      {/* A single chapter has the bar's arrows; other passages link to the books. */}
+      {result.ok && !only ? (
         <nav className="chapter-nav" aria-label={tr("chapterNav")}>
           <span>{around.previous ? chapterLink(around.previous, "previous") : null}</span>
           <a href={`/read/${id}`}>{tr("books")}</a>

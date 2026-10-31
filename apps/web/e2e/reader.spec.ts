@@ -30,6 +30,57 @@ test("the home search lists verses with the words, narrowed to the translation c
   await expect(results).not.toContainText("LEB");
 });
 
+test("the passage's title is edited in place, and the translation is chosen at the top", async ({
+  page,
+}) => {
+  await page.goto("/read/leb/genesis/2/18-25");
+  // No form fields above the chapter bar any more.
+  await expect(page.getByRole("textbox", { name: "Passage" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Genesis 2:18–25" }).click();
+  const field = page.getByRole("textbox", { name: "Passage" });
+  await expect(field).toBeFocused();
+  // Escape puts the title back.
+  await page.keyboard.press("Escape");
+  await expect(field).toHaveCount(0);
+  // Leaving the field puts the title back; at rest it shows a pencil.
+  await expect(page.locator(".passage-title-icon")).toBeVisible();
+  await page.getByRole("button", { name: "Genesis 2:18–25" }).click();
+  await page.locator("h2, .reading-bar").first().click();
+  await expect(field).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Genesis 2:18–25" })).toBeVisible();
+  await page.getByRole("button", { name: "Genesis 2:18–25" }).click();
+  await field.fill("Psalm 23");
+  await page.getByRole("button", { name: "Read", exact: true }).click();
+  await expect(page).toHaveURL(/\/read\/leb\/psalms\/23$/);
+  // Another translation: the same passage in it.
+  await page.getByRole("combobox", { name: "Translation" }).selectOption("eng-kjv");
+  await expect(page).toHaveURL(/\/read\/eng-kjv\/psalms\/23$/);
+  await page.screenshot(shot("passage-title"));
+});
+
+test("a part of a chapter has a button for the verses around it, until it's the whole chapter", async ({
+  page,
+}) => {
+  await page.goto("/read/leb/genesis/2/18-19");
+  const more = page.getByRole("link", { name: "Show 3 more verses before and after" });
+  await more.click();
+  await expect(page).toHaveURL(/\/read\/leb\/genesis\/2\/15-22$/);
+  await expect(page.locator(".verse", { hasText: "15" })).toBeVisible();
+  // Each step adds three verses each side, until the chapter's start and end are reached.
+  await more.click();
+  await expect(page).toHaveURL(/\/read\/leb\/genesis\/2\/12-25$/);
+  await more.click();
+  await expect(page).toHaveURL(/\/read\/leb\/genesis\/2\/9-25$/);
+  // The whole chapter in one press, from any part of it.
+  await page.goto("/read/leb/genesis/2/18-19");
+  await page.getByRole("link", { name: "Read the whole chapter" }).click();
+  await expect(page).toHaveURL(/\/read\/leb\/genesis\/2$/);
+  await expect(more).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Read the whole chapter" })).toHaveCount(0);
+  await page.goto("/read/leb/genesis/1");
+  await expect(more).toHaveCount(0);
+});
+
 test("LEB Genesis 2: idiom brackets, verse numbers and the translator's notes", async ({
   page,
 }) => {
@@ -93,13 +144,39 @@ test("vision §3.4: the book list, then chapter by chapter", async ({ page }) =>
   await page.goto("/read/eng-web");
   await expect(page.getByRole("heading", { name: "Books of the WEB" })).toBeVisible();
   await expect(page.getByText("Sign in and choose your canon")).toBeVisible();
-  const varies = page.getByRole("region", { name: "In some traditions" });
-  await expect(varies.getByText("Tobit")).toBeVisible();
-  await page.getByText("Genesis", { exact: true }).click();
+  // The books are the editor's tabs: a section at a time (Old Testament first), the books of
+  // the one chosen below. Tobit is in the tab for books the traditions disagree on.
+  const tabs = page.getByRole("tablist", { name: "Books by section" });
+  await expect(tabs.getByRole("tab", { name: "Old Testament" })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+  await tabs.getByRole("tab", { name: "In some traditions" }).click();
+  await expect(page.getByRole("link", { name: /^Tobit/ })).toBeVisible();
+  await tabs.getByRole("tab", { name: "Old Testament" }).click();
   await page.screenshot(shot("books"));
-
-  await page.getByRole("link", { name: "Genesis 1", exact: true }).click();
+  await page.getByRole("link", { name: /^Genesis/ }).click();
   await expect(page).toHaveURL(/\/read\/eng-web\/genesis\/1$/);
+  // The passage page has the same tabs, on the book being read, and the chapter bar over the text.
+  await expect(page.locator(".reading-bar .chapter-button")).toHaveText("1");
+  // The bar stays at the top of the window while the chapter scrolls.
+  await page.mouse.wheel(0, 1500);
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(500);
+  expect((await page.locator(".reading-bar").boundingBox())?.y).toBeLessThan(40);
+  await expect(
+    page.getByRole("tablist", { name: "Books by section" }).getByRole("tab", {
+      name: "Old Testament",
+    }),
+  ).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("link", { name: /^Genesis/ })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  // The book being read is highlighted in the list.
+  await expect(page.getByRole("link", { name: /^Genesis/ })).toHaveCSS(
+    "background-color",
+    "rgb(198, 233, 250)",
+  );
   await page.getByRole("link", { name: "Next: Genesis 2" }).click();
   await expect(page).toHaveURL(/\/genesis\/2$/);
   await expect(page.getByRole("link", { name: "Previous: Genesis 1" })).toBeVisible();
@@ -107,8 +184,6 @@ test("vision §3.4: the book list, then chapter by chapter", async ({ page }) =>
   // Without a canon, the Old Testament runs on into the New.
   await page.goto("/read/eng-web/malachi/4");
   await expect(page.getByRole("link", { name: "Next: Matthew 1" })).toBeVisible();
-  await page.getByRole("link", { name: "Books" }).click();
-  await expect(page).toHaveURL(/\/read\/eng-web$/);
 });
 
 test("the credits page names every asset and data source (branding.md §1)", async ({ page }) => {

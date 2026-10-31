@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { currentAccount } from "../../../account/api.ts";
 import { books, translations } from "../../../reader/api.ts";
-import { BookList } from "../../../reader/BookList.tsx";
+import { ReaderTabs } from "../../../reader/ReaderTabs.tsx";
 
 interface Props {
   params: Promise<{ translation: string }>;
@@ -30,15 +30,14 @@ export default async function Books(props: Props) {
     load(props),
     currentAccount(),
   ]);
+  const t = await getTranslations("reader");
+  const canon = account?.canon ?? null;
   return (
-    <BookList
-      id={translation}
-      abbreviation={summary.abbreviation}
-      name={summary.name}
-      direction={summary.direction}
-      books={found}
-      canon={account?.canon ?? null}
-      signedIn={account !== null}
-    />
+    <div className="reader" dir={summary.direction}>
+      <h1>{t("booksTitle", { translation: summary.abbreviation })}</h1>
+      {canon ? null : <p className="canon-note">{t(account ? "noCanon" : "noCanonSignedOut")}</p>}
+      <ReaderTabs id={translation} books={found} canon={canon} />
+      <p className="translation-credit">{summary.name}</p>
+    </div>
   );
 }
