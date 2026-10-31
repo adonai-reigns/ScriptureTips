@@ -22,17 +22,15 @@ export const MIN_H = 128;
 /** The widest it starts, and the space kept around it. */
 const START_W = 384;
 const GAP = 8;
-/** How much of the header must stay on screen, so there's always something to grab. */
-const HEADER = 48;
-
-/** Keeps a window on screen and within its limits. */
+/** Keeps a window wholly on screen, and within its limits: its corner can always be reached. */
 export function clampBox(box: Box, view: View): Box {
   const room = Math.max(1, view.w - 2 * GAP);
   const w = Math.min(Math.max(box.w, Math.min(MIN_W, room)), room);
-  const h =
-    box.h === null ? null : Math.min(Math.max(box.h, MIN_H), Math.max(MIN_H, view.h - 2 * GAP));
   const x = Math.min(Math.max(box.x, GAP), Math.max(GAP, view.w - w - GAP));
-  const y = Math.min(Math.max(box.y, GAP), Math.max(GAP, view.h - HEADER));
+  // Low enough that at least its smallest height fits below it.
+  const y = Math.min(Math.max(box.y, GAP), Math.max(GAP, view.h - MIN_H - GAP));
+  const h =
+    box.h === null ? null : Math.min(Math.max(box.h, MIN_H), Math.max(MIN_H, view.h - y - GAP));
   return { x, y, w, h };
 }
 

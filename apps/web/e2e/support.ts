@@ -118,3 +118,25 @@ export async function tapAt(page: Page, x: number, y: number): Promise<void> {
   await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
   await cdp.detach();
 }
+
+/** A finger put down at one point, dragged to another and lifted (real touch events). */
+export async function touchDrag(
+  page: Page,
+  from: { x: number; y: number },
+  to: { x: number; y: number },
+): Promise<void> {
+  const cdp = await page.context().newCDPSession(page);
+  const touch = (type: string, at: { x: number; y: number }) =>
+    cdp.send("Input.dispatchTouchEvent", {
+      type,
+      touchPoints: type === "touchEnd" ? [] : [at],
+    });
+  await touch("touchStart", from);
+  for (let i = 1; i <= 8; i++)
+    await touch("touchMove", {
+      x: from.x + ((to.x - from.x) * i) / 8,
+      y: from.y + ((to.y - from.y) * i) / 8,
+    });
+  await touch("touchEnd", to);
+  await cdp.detach();
+}

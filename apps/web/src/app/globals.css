@@ -2324,6 +2324,20 @@ a.reading-step:focus-visible {
 
 /* Adjectives, adverbs, pronouns, prepositions and particles share the look of "other". */
 
+/* The word types off: the words stay marked (they can be selected and studied) but unpainted. */
+html[data-study-types="off"] :is(.compare-grid, .compare-list) .study-word {
+  background: none;
+  box-shadow: none;
+}
+
+html[data-study-types="off"] :is(.compare-grid, .compare-list) .c-study-unit {
+  outline: none;
+}
+
+.study-toggle .spinner {
+  margin-left: 0.4rem;
+}
+
 .c-study-unit {
   outline: 1px dashed rgb(var(--study-unit) / 0.75);
   outline-offset: 1px;
@@ -2436,21 +2450,31 @@ a.reading-step:focus-visible {
   position: absolute;
   inset-inline-end: 0;
   inset-block-end: 0;
-  width: 1.1rem;
-  height: 1.1rem;
+  width: 1.25rem;
+  height: 1.25rem;
   cursor: nwse-resize;
   touch-action: none;
-  background: linear-gradient(
-    135deg,
-    transparent 50%,
-    var(--muted) 50%,
-    var(--muted) 58%,
-    transparent 58%,
-    transparent 70%,
-    var(--muted) 70%,
-    var(--muted) 78%,
-    transparent 78%
-  );
+  background:
+    linear-gradient(
+      135deg,
+      transparent 50%,
+      var(--muted) 50%,
+      var(--muted) 58%,
+      transparent 58%,
+      transparent 70%,
+      var(--muted) 70%,
+      var(--muted) 78%,
+      transparent 78%
+    )
+    no-repeat right bottom / 1.1rem 1.1rem;
+}
+
+/* A finger needs more to land on than the lines drawn: the area to grab is thumb-sized. */
+@media (pointer: coarse) {
+  .study-menu-resize {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
 }
 
 .study-switch {
@@ -2471,7 +2495,7 @@ a.reading-step:focus-visible {
   font-size: 0.85rem;
 }
 
-/* Grey and faded until word types are shown, then they come to color. */
+/* Grey and faded while the word types are off, and in color when they're on. */
 .study-legend .study-word,
 .study-legend .c-study-unit {
   transition:
@@ -2479,10 +2503,17 @@ a.reading-step:focus-visible {
     opacity 0.2s;
 }
 
-.study-menu:not([data-on="true"]) .study-legend .study-word,
-.study-menu:not([data-on="true"]) .study-legend .c-study-unit {
+.study-menu[data-types="off"] .study-legend .study-word,
+.study-menu[data-types="off"] .study-legend .c-study-unit {
   filter: grayscale(1);
   opacity: 0.45;
+}
+
+/* In study mode a phone's verses can be selected too (a long press selects a word, with handles to
+   stretch it), though swiping them is otherwise what a finger does there. */
+.reading[data-study] .compare-list-verse {
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 /* In study mode, a verse's text can be selected, even where it's inside a button (edit mode). */
@@ -2497,9 +2528,10 @@ a.reading-step:focus-visible {
 .study-tip {
   position: fixed;
   z-index: 50;
+  display: flex;
+  flex-direction: column;
   width: min(22.5rem, calc(100vw - 1rem));
   max-height: 70vh;
-  overflow: auto;
   padding: 0.75rem 0.9rem;
   font-size: 0.9rem;
   color: var(--ink);
@@ -2511,6 +2543,54 @@ a.reading-step:focus-visible {
 
 .study-tip p {
   margin: 0;
+}
+
+/* On a touch screen: a bar along the bottom, clear of the phone's own selection menu. */
+.study-tip-bar {
+  inset: auto 0 0 0;
+  width: auto;
+  max-height: none;
+  padding: 0.6rem 0.9rem calc(0.6rem + env(safe-area-inset-bottom));
+  border-width: 1px 0 0;
+  border-radius: 0;
+}
+
+.study-tip-bar {
+  background: var(--deep);
+  border-color: var(--deep);
+}
+
+/* The words explained sit above the buttons, and scroll if there are many. */
+.study-tip-bar .study-tip-body {
+  max-height: 50dvh;
+  margin-bottom: 0.6rem;
+  padding: 0.6rem 0.8rem;
+  color: var(--ink);
+  background: var(--paper);
+  border-radius: 0.4rem;
+}
+
+.study-tip-bar .study-tip-actions {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+/* White buttons on the blue, not as tall as a finger-sized block. */
+.study-tip-bar .study-tip-button {
+  min-height: 2.25rem;
+  margin-top: 0;
+  padding: 0.2rem 0.9rem;
+  color: var(--deep);
+  background: #fff;
+  border-color: #fff;
+}
+
+/* The words scroll if there isn't room; the buttons under them stay. */
+.study-tip-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
 }
 
 .study-tip-text {
@@ -2592,9 +2672,17 @@ a.reading-step:focus-visible {
 }
 
 .study-tip-actions {
+  flex: none;
   display: flex;
   gap: 0.4rem;
   margin-top: 0.6rem;
   padding-top: 0.4rem;
   border-top: 1px solid var(--rule);
+}
+
+/* Words the study mode holds after handing them on (study/selection.ts): they look selected, though
+   the browser's selection, and its handles, have gone. */
+::highlight(study-selection) {
+  background-color: rgb(0 84 165 / 0.28);
+  color: inherit;
 }

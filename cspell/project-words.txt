@@ -173,3 +173,4 @@ pilcrow
 pilcrows
 agapē
 ʼĕlōhîm
+selectionchange

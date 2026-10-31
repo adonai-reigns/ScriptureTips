@@ -6,6 +6,7 @@ import {
   shot,
   signUp,
   tapAt,
+  touchDrag,
 } from "./support.ts";
 
 arriveFromOwnAddress();
@@ -507,7 +508,7 @@ test("vision §3.2: study mode on a phone paints the verses' tagged words, and m
   const before = await boxes();
 
   await page.getByRole("button", { name: "Study", exact: true }).click();
-  await page.getByRole("dialog", { name: "Study" }).getByRole("switch").click();
+  await expect(page.getByRole("dialog", { name: "Study" }).getByRole("switch")).toBeChecked();
   await expect(page).toHaveURL(/mode=compare&study=1/);
   await expect(verses.first().locator('.study-word[data-category="person"]').first()).toContainText(
     "Eve",
@@ -519,4 +520,116 @@ test("vision §3.2: study mode on a phone paints the verses' tagged words, and m
   );
   await toVerses(page);
   await page.screenshot({ ...shot("reading-area-phone-study"), fullPage: false });
+});
+
+test("vision §3.2: on a phone, words can be selected in study mode, and the tooltip opens for a finger's selection", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  await create(page, "Hold Words", "Hold");
+  // Off, a verse is for swiping and can't be selected; in study mode it can (a long press then
+  // selects a word, with handles to stretch the selection).
+  await page.goto("/compilations/hold?book=Gen&chapter=4&mode=compare");
+  await page.waitForLoadState("networkidle");
+  const verse = page.locator(".compare-list-verse").first();
+  await expect(verse).toBeVisible();
+  expect(await verse.evaluate((e) => getComputedStyle(e).userSelect)).toBe("none");
+  await page.goto("/compilations/hold?book=Gen&chapter=4&mode=compare&study=1");
+  await page.waitForLoadState("networkidle");
+  await expect(verse).toBeVisible();
+  expect(await verse.evaluate((e) => getComputedStyle(e).userSelect)).toBe("text");
+
+  // The phone makes the selection (the test's browser can't: it has no touch selection), after a
+  // finger was put down; the tooltip opens once the selection has settled.
+  const eve = verse.locator('.study-word[data-strong="H2332"]').first();
+  // The scripts have taken over the page (the Study button works).
+  await expect(page.getByRole("button", { name: "Study", exact: true })).toBeEnabled();
+  // A finger goes down on the word, as it would to start the selection.
+  await eve.scrollIntoViewIfNeeded();
+  await eve.tap();
+  await eve.evaluate((el) => {
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    const selection = getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+  });
+  // Not a pop-up over the selection (where the phone's own menu is): a bar along the bottom.
+  const tip = page.getByRole("toolbar", { name: "The selected words" });
+  await expect(tip).toBeVisible();
+  const bar = await tip.boundingBox();
+  const size = page.viewportSize();
+  expect(bar && size && Math.abs(bar.y + bar.height - size.height) < 2).toBe(true);
+  // Explain opens what the words are, above the buttons, and closes again.
+  await tip.getByRole("button", { name: "Explain" }).tap();
+  await expect(tip).toContainText("Eve");
+  // The handles would show through the bar: the selection is let go, and the words are held.
+  expect(await page.evaluate(() => getSelection()?.toString())).toBe("");
+  expect(
+    await page.evaluate(() =>
+      [...(CSS.highlights.get("study-selection") ?? [])].map((range) => range.toString()),
+    ),
+  ).toEqual(["Eve"]);
+  await tip.getByRole("button", { name: "Explain" }).tap();
+  await expect(tip).not.toContainText("Eve");
+  // Tapping a button in the tooltip works: it isn't taken for the selection going.
+  await tip.getByRole("button", { name: "Search", exact: true }).tap();
+  await expect(tip).toBeHidden();
+  const study = page.getByRole("dialog", { name: "Study" });
+  await expect(study).toBeVisible();
+  // The browser's selection is let go, so a phone's handles and toolbar don't show over the window;
+  // the words are held, and drawn as a highlight, for what works on them next.
+  expect(await page.evaluate(() => getSelection()?.toString())).toBe("");
+  expect(
+    await page.evaluate(() =>
+      [...(CSS.highlights.get("study-selection") ?? [])].map((range) => range.toString()),
+    ),
+  ).toEqual(["Eve"]);
+  await expect(study.getByRole("combobox", { name: "Search" })).toHaveValue("Eve");
+});
+
+test("vision §3.2: on a phone, the study window stays on screen and its corner can be dragged", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  await create(page, "Size Window", "Sizer");
+  await page.goto("/compilations/sizer?book=Gen&chapter=4&mode=compare");
+  await page.waitForLoadState("networkidle");
+  await page.getByRole("button", { name: "Study", exact: true }).click();
+  const study = page.getByRole("dialog", { name: "Study" });
+  await expect(study).toBeVisible();
+  // The search is loaded once the window has it.
+  await expect(study.getByRole("combobox", { name: "Search" })).toBeVisible();
+  // A search that fills the window with results: it must not run off the bottom of the screen.
+  await page.evaluate(() =>
+    (
+      window as unknown as {
+        ScriptureTipsSearch: { get(n: string): { setQuery(q: string, o: object): unknown } };
+      }
+    ).ScriptureTipsSearch.get("study").setQuery("love", { search: true }),
+  );
+  await expect(study.getByRole("heading", { name: "Verses" })).toBeVisible();
+  const view = page.viewportSize();
+  const before = await study.boundingBox();
+  const handle = study.locator(".study-menu-resize");
+  const grip = await handle.boundingBox();
+  if (!view || !before || !grip) throw new Error("The window isn't on screen.");
+  expect(before.y + before.height).toBeLessThanOrEqual(view.height);
+  expect(grip.y + grip.height).toBeLessThanOrEqual(view.height);
+  expect(grip.x + grip.width).toBeLessThanOrEqual(view.width);
+  // A thumb-sized area to grab.
+  expect(grip.width).toBeGreaterThanOrEqual(40);
+
+  // Drag the corner up and in: the window gets smaller, as the finger moves.
+  const corner = { x: grip.x + grip.width - 12, y: grip.y + grip.height - 12 };
+  await touchDrag(page, corner, { x: corner.x - 70, y: corner.y - 120 });
+  await expect
+    .poll(async () => (await study.boundingBox())?.height ?? 0)
+    .toBeLessThan(before.height - 60);
+  const after = await study.boundingBox();
+  expect(after?.width ?? 0).toBeLessThan(before.width - 40);
+  // And the results scroll inside it.
+  const results = study.locator("st-search-results");
+  expect(await results.evaluate((e) => e.scrollHeight > e.clientHeight)).toBe(true);
+  await page.screenshot({ ...shot("reading-area-phone-study-window"), fullPage: false });
 });

@@ -95,7 +95,7 @@ Each test opens the composer, inserts a link, and checks that the link is at the
 - **Automatic checks in Claude Code:** project hooks run the formatter after edits, and the affected type-check and tests before the agent finishes its turn, so the agent sees failures before handing back.
 - **Seeing the running system:** the agent can start the stack (`./dev up --lan`, so it's on the local network for the owner's tablet too), load a scenario, read structured logs (one file per service) and take screenshots with Playwright.
 - **Small tasks:** work is planned as thin vertical slices (a feature from the database to the UI, with its tests), each small enough to review in one sitting. Package boundaries keep the code an agent needs to read small.
-- **Review by people stays the final step.** Agents never commit; you review and build the change set in your IDE, as now.
+- **Review by people stays the final step.** Agents commit only when told to; you review and build the change set in your IDE, as now.
 
 ## 8. Keeping it healthy
 

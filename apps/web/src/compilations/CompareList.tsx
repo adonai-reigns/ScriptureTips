@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { type KeyboardEvent, type PointerEvent, useRef, useState } from "react";
+import { useStudy } from "../study/StudyProvider.tsx";
+import { selectedText } from "../study/selection.ts";
 import type { CompareView } from "./api.ts";
 import { VerseText, verseLabel } from "./CompareVerse.tsx";
 import { errorCode, useErrorText } from "./errors.ts";
@@ -269,6 +271,7 @@ function SwipeVerse({
   onEdit?: (() => void) | undefined;
   children: React.ReactNode;
 }) {
+  const studying = useStudy() !== null;
   const body = useRef<HTMLDivElement>(null);
   const start = useRef<{ x: number; y: number; id: number } | null>(null);
   const lastTap = useRef(0);
@@ -292,7 +295,8 @@ function SwipeVerse({
     if (!from || from.id !== e.pointerId) return;
     start.current = null;
     const dx = e.clientX - from.x;
-    if (cancelled) return;
+    // In study mode, a press that selected words (a long press, a handle dragged) isn't a swipe or a tap.
+    if (cancelled || (studying && selectedText())) return;
     if (Math.abs(dx) >= SWIPE) return turn(dx < 0 ? 1 : -1);
     // A tap: the second of two quick ones edits.
     if (!onEdit || Math.abs(dx) > TAP || Math.abs(e.clientY - from.y) > TAP) return;

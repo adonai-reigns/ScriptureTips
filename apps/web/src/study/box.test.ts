@@ -25,13 +25,20 @@ describe("the study menu's window", () => {
     expect(startBox({ right: 330, bottom: 80 }, phone)).toMatchObject({ x: 8, w: 344 });
   });
 
-  it("is dragged by the point held, and kept on screen with its header reachable", () => {
+  it("is dragged by the point held, and kept wholly on screen", () => {
     const grab = { x: 20, y: 10 };
     expect(movedBox(box, grab, { x: 320, y: 210 }, view)).toMatchObject({ x: 300, y: 200 });
     expect(movedBox(box, grab, { x: -500, y: -500 }, view)).toMatchObject({ x: 8, y: 8 });
     const far = movedBox(box, grab, { x: 5000, y: 5000 }, view);
     expect(far.x).toBe(1000 - 384 - 8);
-    expect(far.y).toBe(700 - 48);
+    // At least its smallest height fits below it.
+    expect(far.y).toBe(700 - MIN_H - 8);
+  });
+
+  it("is made shorter when it's moved down, so its bottom stays on screen", () => {
+    const tall = { x: 100, y: 100, w: 384, h: 600 };
+    expect(clampBox(tall, view)).toMatchObject({ y: 100, h: 592 });
+    expect(clampBox({ ...tall, y: 400 }, view)).toMatchObject({ y: 400, h: 292 });
   });
 
   it("is resized from its corner, within its smallest size and the window's edges", () => {
@@ -46,9 +53,9 @@ describe("the study menu's window", () => {
   it("is pulled back in when the screen gets smaller", () => {
     expect(clampBox({ x: 900, y: 600, w: 384, h: 500 }, { w: 500, h: 400 })).toEqual({
       x: 108,
-      y: 352,
+      y: 264,
       w: 384,
-      h: 384,
+      h: 128,
     });
   });
 

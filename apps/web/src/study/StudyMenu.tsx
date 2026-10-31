@@ -17,8 +17,11 @@ import { useHydrated } from "../hydrated.ts";
 import { type Box, clampBox, movedBox, readBox, resizedBox, startBox } from "./box.ts";
 import { onOpenStudyMenu } from "./menuBus.ts";
 import { STUDY_SEARCH, StudySearch } from "./StudySearch.tsx";
+import { holdSelection } from "./selection.ts";
 
 const STORED = "study-menu-box";
+/** Whether the colors that show each word's type are on (this browser's choice). */
+const TYPES = "study-word-types";
 
 const viewNow = () => ({ w: window.innerWidth, h: window.innerHeight });
 
@@ -40,12 +43,16 @@ function store(box: Box): void {
 }
 
 /**
- * The Study button and its window. The window floats over the page without blocking it: drag it
- * by its header, resize it from its corner, and it keeps where it was left (this browser's
- * storage). Its footer holds the study mode switch, a checkbox alone, and what the colors mean
- * (`children`) beside it, grey until the switch is on. It stays open until it's closed (its × or Escape), through turning study mode
- * on and off and through changing chapter, so it can be read while selecting text. Study mode
- * is part of the page's address (`href` is the other setting's).
+ * The Study button and its window. The button turns study mode on and off (study mode is part of
+ * the page's address: `href` is the other setting's, and the button is blue while it's on). Turning
+ * it on opens the window, and turning it off closes it. The window's × closes only the window;
+ * the bar's Search opens it again.
+ *
+ * The window floats over the page without blocking it: drag it by its header, resize it from its
+ * corner, and it keeps where it was left (this browser's storage). Its footer holds a checkbox
+ * alone, which shows or hides the word types (the colors on the verses; it doesn't touch study
+ * mode, and is remembered), and what the colors mean (`children`) beside it, grey while they're
+ * hidden. It stays open through changing chapter, so it can be read while selecting text.
  */
 export function StudyMenu({
   on,
@@ -70,6 +77,7 @@ export function StudyMenu({
   const hydrated = useHydrated();
   const [pending, start] = useTransition();
   const [open, setOpen] = useState(false);
+  const [types, setTypes] = useState(true);
   const [box, setBox] = useState<Box | null>(null);
   const heading = useId();
   const button = useRef<HTMLButtonElement>(null);
@@ -98,6 +106,34 @@ export function StudyMenu({
   // Something else on the page can ask for it to be open.
   useEffect(() => onOpenStudyMenu(() => setOpen(true)), []);
 
+  // Study mode turned off (by the button, or the address changing) closes the window.
+  useEffect(() => {
+    if (!on) setOpen(false);
+  }, [on]);
+
+  // The word types: remembered, and applied to the page (the colors are CSS, by this attribute).
+  useEffect(() => {
+    try {
+      if (window.localStorage.getItem(TYPES) === "off") setTypes(false);
+    } catch {
+      // Not remembered; they're on.
+    }
+  }, []);
+  useEffect(() => {
+    document.documentElement.dataset["studyTypes"] = types ? "on" : "off";
+    try {
+      window.localStorage.setItem(TYPES, types ? "on" : "off");
+    } catch {
+      // Not remembered.
+    }
+  }, [types]);
+  useEffect(
+    () => () => {
+      delete document.documentElement.dataset["studyTypes"];
+    },
+    [],
+  );
+
   // First opened: where it was left, or under the button.
   useLayoutEffect(() => {
     if (!open || box) return;
@@ -112,6 +148,9 @@ export function StudyMenu({
 
   useEffect(() => {
     if (!open) return;
+    // Words selected in the page behind the window would show their handles over it (a phone draws
+    // them above everything): they're held instead (drawn as a highlight) and the selection let go.
+    holdSelection();
     switchBox.current?.focus({ preventScroll: true });
     const onEscape = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
@@ -169,9 +208,14 @@ export function StudyMenu({
         aria-haspopup="dialog"
         aria-expanded={open}
         disabled={!hydrated}
-        onClick={() => setOpen(!open)}
+        onClick={() => {
+          // Study mode on (with its window) or off (the window goes with it).
+          setOpen(!on);
+          start(() => router.replace(href, { scroll: false }));
+        }}
       >
         {label}
+        {pending ? <span className="spinner link-pending" aria-hidden="true" /> : null}
       </button>
       {open && box
         ? createPortal(
@@ -180,11 +224,13 @@ export function StudyMenu({
               role="dialog"
               aria-labelledby={heading}
               className="study-menu"
-              data-on={on}
+              data-types={types ? "on" : "off"}
               style={{
                 left: box.x,
                 top: box.y,
                 width: box.w,
+                // Never past the bottom of the screen (the dynamic viewport, on a phone).
+                maxHeight: `calc(100dvh - ${box.y + 8}px)`,
                 ...(box.h === null ? {} : { height: box.h }),
               }}
             >
@@ -214,12 +260,10 @@ export function StudyMenu({
                   className="study-switch"
                   aria-label={switchLabel}
                   title={switchLabel}
-                  aria-checked={on}
-                  checked={on}
-                  disabled={pending}
-                  onChange={() => start(() => router.replace(href, { scroll: false }))}
+                  aria-checked={types}
+                  checked={types}
+                  onChange={() => setTypes(!types)}
                 />
-                {pending ? <span className="spinner link-pending" aria-hidden="true" /> : null}
                 {children}
               </footer>
               {/* biome-ignore lint/a11y/noStaticElementInteractions: the corner handle resizes the window by pointer; it has no keyboard use. */}

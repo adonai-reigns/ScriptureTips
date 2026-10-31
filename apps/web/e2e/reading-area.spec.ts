@@ -485,20 +485,17 @@ test("vision §3.2: study mode paints each tagged word by its kind, and moves no
     );
   const before = await boxes();
 
-  // The Study button opens a menu with the switch.
+  // The Study button turns study mode on, with its window: the button goes blue and stays.
   const toggle = page.getByRole("button", { name: "Study", exact: true });
+  await expect(page.locator(".study-toggle.on")).toHaveCount(0);
   await toggle.click();
   const menu = page.getByRole("dialog", { name: "Study" });
   await expect(menu).toBeVisible();
-  const studySwitch = menu.getByRole("switch", { name: "Show word types" });
-  await expect(studySwitch).not.toBeChecked();
-  await studySwitch.click();
   await expect(page).toHaveURL(/mode=compare&study=1/);
+  await expect(page.locator(".study-toggle.on")).toHaveCount(1);
+  // The footer's checkbox is for the word types (the colors), on to start with.
+  const studySwitch = menu.getByRole("switch", { name: "Show word types" });
   await expect(studySwitch).toBeChecked();
-  // The key beside the switch is in color while word hints are on.
-  const chip = menu.locator(".study-legend .study-word").first();
-  await expect(chip).toHaveCSS("opacity", "1");
-
   // The compilation's own column has its tagged words as pieces, by kind.
   const words = own.first().locator(".study-word");
   await expect(words.first()).toBeVisible();
@@ -558,16 +555,44 @@ test("vision §3.2: study mode paints each tagged word by its kind, and moves no
     page.getByRole("navigation", { name: "Reading mode" }).getByRole("link", { name: "Read" }),
   ).not.toHaveAttribute("href", /study/);
 
-  // Off again, the marks are gone; the menu closes with its ×.
+  // The checkbox shows and hides the word types only: the words stay marked, study mode stays on.
+  await page.goto("/compilations/lexis?book=Gen&chapter=2&mode=compare");
   await page.getByRole("button", { name: "Study", exact: true }).click();
   const again = page.getByRole("dialog", { name: "Study" });
-  await again.getByRole("switch", { name: "Show word types" }).click();
-  await expect(page.locator("td .study-word")).toHaveCount(0);
-  // And the key goes grey and faded.
+  const types = again.getByRole("switch", { name: "Show word types" });
+  const marked = page.locator("td.compare-own .study-word").first();
+  await expect(types).toBeChecked();
+  expect(await marked.evaluate((e) => getComputedStyle(e).backgroundColor)).not.toBe(
+    "rgba(0, 0, 0, 0)",
+  );
+  await types.uncheck();
+  await expect(marked).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await expect(page.locator("td .study-word").first()).toBeVisible();
+  await expect(page).toHaveURL(/study=1/);
+  await expect(page.locator(".study-toggle.on")).toHaveCount(1);
+  // The key goes grey and faded.
   await expect(again.locator(".study-legend .study-word").first()).toHaveCSS("opacity", "0.45");
-  await expect(again).toBeVisible();
-  await again.getByRole("button", { name: "Close" }).click();
-  await expect(again).toBeHidden();
+  // It's remembered: after a reload the word types are still off.
+  await page.goto("/compilations/lexis?book=Gen&chapter=2&mode=compare");
+  await page.getByRole("button", { name: "Study", exact: true }).click();
+  await expect(
+    page.getByRole("dialog", { name: "Study" }).getByRole("switch", { name: "Show word types" }),
+  ).not.toBeChecked();
+  await page
+    .getByRole("dialog", { name: "Study" })
+    .getByRole("switch", { name: "Show word types" })
+    .check();
+  await expect(marked).not.toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+
+  // The window's × closes only the window; study mode stays on until the Study button turns it off.
+  const studyWindow = page.getByRole("dialog", { name: "Study" });
+  await studyWindow.getByRole("button", { name: "Close" }).click();
+  await expect(studyWindow).toBeHidden();
+  await expect(page.locator(".study-toggle.on")).toHaveCount(1);
+  await page.getByRole("button", { name: "Study", exact: true }).click();
+  await expect(page).not.toHaveURL(/study=1/);
+  await expect(page.locator("td .study-word")).toHaveCount(0);
+  await expect(page.locator(".study-toggle.on")).toHaveCount(0);
 });
 
 /** Drags the mouse across a locator's text, as a person selects it. */
@@ -653,7 +678,7 @@ test("vision §3.14: the study window's search finds passages, words and origina
 }) => {
   test.setTimeout(120_000);
   await create(page, "Search Words", "Seek");
-  await page.goto("/compilations/seek?book=Gen&chapter=4&mode=compare&study=1");
+  await page.goto("/compilations/seek?book=Gen&chapter=4&mode=compare");
   await settled(page);
   await page.getByRole("button", { name: "Study", exact: true }).click();
   const study = page.getByRole("dialog", { name: "Study" });
@@ -698,7 +723,7 @@ test("vision §3.14: an integration drives the search through its API and subscr
 }) => {
   test.setTimeout(120_000);
   await create(page, "Drive Search", "Drive");
-  await page.goto("/compilations/drive?book=Gen&chapter=4&mode=compare&study=1");
+  await page.goto("/compilations/drive?book=Gen&chapter=4&mode=compare");
   await settled(page);
   await page.getByRole("button", { name: "Study", exact: true }).click();
   const study = page.getByRole("dialog", { name: "Study" });
@@ -748,12 +773,21 @@ test("vision §3.14: the tooltip's Search for this opens the study window and se
   const own = page.locator("td.compare-own").first();
   await dragAcross(page, own.locator('.study-word[data-strong="H2332"]').first());
   const tip = page.getByRole("dialog", { name: "The selected words" });
-  await tip.getByRole("button", { name: "Search for this" }).click();
+  await tip.getByRole("button", { name: "Search", exact: true }).click();
   await expect(tip).toBeHidden();
   const study = page.getByRole("dialog", { name: "Study" });
   await expect(study).toBeVisible();
   await expect(study.getByRole("combobox", { name: "Search" })).toHaveValue("Eve");
   await expect(study.getByRole("button", { name: /H2332/ }).first()).toContainText("Eve");
+  expect(await page.evaluate(() => getSelection()?.toString())).toBe("");
+  // The words stay held (drawn as a highlight), until the text is pressed again.
+  const held = () =>
+    page.evaluate(() =>
+      [...(CSS.highlights.get("study-selection") ?? [])].map((range) => range.toString()),
+    );
+  expect(await held()).toEqual(["Eve"]);
+  await own.click({ position: { x: 3, y: 3 } });
+  expect(await held()).toEqual([]);
   await expect(study.getByRole("heading", { name: "Verses" })).toBeVisible();
 });
 
@@ -762,7 +796,7 @@ test("vision §3.14: several searches on one page keep their own scope, and thei
 }) => {
   test.setTimeout(120_000);
   await create(page, "Many Searches", "Many");
-  await page.goto("/compilations/many?book=Gen&chapter=4&mode=compare&study=1");
+  await page.goto("/compilations/many?book=Gen&chapter=4&mode=compare");
   await settled(page);
   await page.getByRole("button", { name: "Study", exact: true }).click();
   await expect(page.getByRole("dialog", { name: "Study" }).getByRole("combobox")).toBeVisible();
