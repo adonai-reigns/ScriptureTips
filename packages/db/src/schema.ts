@@ -36,6 +36,9 @@ export const int4range = customType<{
   },
 });
 
+/** PostgreSQL full-text search's document type, kept up to date by the database itself. */
+export const tsvector = customType<{ data: string }>({ dataType: () => "tsvector" });
+
 const id = () => uuid("id").primaryKey().default(sql`uuidv7()`);
 
 export const translation = pgTable("translation", {
@@ -114,10 +117,18 @@ export const verseText = pgTable(
     canonicalRange: int4range("canonical_range"),
     headings: jsonb("headings").notNull(),
     content: jsonb("content").notNull(),
+    /**
+     * The verse's words as plain text (no notes or headings), for search: written by the import,
+     * and by `tools/scripture-import`'s `index` for text loaded before it existed.
+     */
+    plain: text("plain"),
+    /** `plain` for full-text search (English stemming: "forgiving" finds "forgiven"). */
+    search: tsvector("search").generatedAlwaysAs(sql`to_tsvector('english', coalesce(plain, ''))`),
   },
   (t) => [
     unique().on(t.translationId, t.book, t.chapter, t.verse),
     index().using("gist", t.canonicalRange),
+    index("verse_text_search_idx").using("gin", t.search),
     check("verse_bridge", sql`${t.toVerse} IS NULL OR ${t.toVerse} > ${t.verse}`),
   ],
 );

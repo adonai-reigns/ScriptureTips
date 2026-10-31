@@ -162,3 +162,14 @@ Libro
 Treg
 Ulrik
 Individualised
+niqqud
+cantillation
+websearch
+tsquery
+tsvector
+activedescendant
+exportparts
+pilcrow
+pilcrows
+agapē
+ʼĕlōhîm

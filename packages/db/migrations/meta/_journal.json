@@ -92,6 +92,13 @@
       "when": 1793406685968,
       "tag": "0012_original-language",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793420950089,
+      "tag": "0013_verse-search",
+      "breakpoints": true
     }
   ]
 }

@@ -8,7 +8,8 @@
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
     "import": "node src/cli.ts",
-    "load": "node src/load-cli.ts"
+    "load": "node src/load-cli.ts",
+    "index": "node src/index-cli.ts"
   },
   "dependencies": {
     "@scripturetips/db": "workspace:*",

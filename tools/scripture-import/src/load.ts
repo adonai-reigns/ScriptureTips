@@ -15,6 +15,7 @@ import {
 import { parseOsisRef, toOrdinal } from "@scripturetips/passage";
 import { eq } from "drizzle-orm";
 import type { Heading, Inline, NoteNode } from "./book.ts";
+import { plainText } from "./plain.ts";
 import type { CanonicalVerse, ImportedTranslation } from "./translation.ts";
 
 export interface LoadResult {
@@ -143,6 +144,7 @@ export async function loadTranslation(db: Database, t: ImportedTranslation): Pro
             canonicalRange: canonicalRange(verse.canonical),
             headings,
             content,
+            plain: plainText(content),
           })),
         )
         .returning({ id: verseText.id });
