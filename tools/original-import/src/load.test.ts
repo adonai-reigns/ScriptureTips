@@ -12,7 +12,7 @@ import { testDatabase } from "@scripturetips/db/test-support";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { alignTranslation } from "./align.ts";
-import { loadOriginal, type OriginalInputs } from "./load.ts";
+import { loadOriginal, nameKindOf, type OriginalInputs } from "./load.ts";
 import { parseTagnt, parseTahot } from "./words.ts";
 
 let db: Database;
@@ -101,6 +101,7 @@ const inputs = (over: Partial<OriginalInputs> = {}): OriginalInputs => ({
       partOfSpeech: "n-pr-m",
       body: {},
     },
+    { language: "heb", strong: "H0068", headword: "אֶבֶן", partOfSpeech: "n-f", body: {} },
   ],
   strongsGreek: [{ language: "grc", strong: "G1722", headword: "ἐν", body: { definition: "in" } }],
   bdb: [{ id: "a.ab.ab", headword: "אֱלֹהִים", text: "God", definitions: ["God"] }],
@@ -115,6 +116,13 @@ const inputs = (over: Partial<OriginalInputs> = {}): OriginalInputs => ({
       name: "LORD",
       kind: "other",
       strongs: ["H0430G"],
+      details: {},
+    },
+    {
+      tipnrId: "Stone@Gen.28.18-Gen",
+      name: "Stone",
+      kind: "place",
+      strongs: ["H0068"],
       details: {},
     },
     {
@@ -154,7 +162,14 @@ describe("loadOriginal", () => {
       .select({ key: lemma.key, body: lexiconEntry.body })
       .from(lexiconEntry)
       .innerJoin(lemma, eq(lemma.id, lexiconEntry.lemmaId));
-    expect(entries.map((e) => e.key).sort()).toEqual(["G1722", "G1722", "H0085", "H0430", "H0430"]);
+    expect(entries.map((e) => e.key).sort()).toEqual([
+      "G1722",
+      "G1722",
+      "H0068",
+      "H0085",
+      "H0430",
+      "H0430",
+    ]);
   });
 
   it("places each word in the canonical scheme, and links names to their individual", async () => {
@@ -166,9 +181,19 @@ describe("loadOriginal", () => {
     const names = await db.select().from(properName);
     const god = tokens.find((t) => t.position === 3);
     expect(names.find((n) => n.id === god?.properNameId)?.tipnrId).toBe("LORD@Gen.1.1-Heb");
-    // A lemma with exactly one name takes it, and its kind.
+    // A common word isn't a name because a name is tagged with its number ("God" is H0430G,
+    // and a place called "Stone" uses the number of the common word "stone", H0068).
     const [elohim] = await db.select().from(lemma).where(eq(lemma.key, "H0430G"));
-    expect(elohim?.nameKind).toBe("other");
+    expect(elohim?.nameKind).toBeNull();
+    expect(elohim?.properNameId).toBeNull();
+    const [stone] = await db.select().from(lemma).where(eq(lemma.key, "H0068"));
+    expect(stone?.nameKind).toBeNull();
+    // A proper noun with exactly one name takes it, and its kind.
+    const [abraham] = await db.select().from(lemma).where(eq(lemma.key, "H0085"));
+    expect(abraham?.nameKind).toBe("person");
+    expect(names.find((n) => n.id === abraham?.properNameId)?.tipnrId).toBe(
+      "Abraham@Gen.11.26-1Pe",
+    );
   });
 
   it("replaces everything on a second load, leaving nothing stale", async () => {
@@ -257,5 +282,17 @@ describe("alignTranslation", () => {
     // Aligning again replaces the rows.
     await alignTranslation(db, "kjv-test");
     expect(await db.select().from(translationAlignment)).toHaveLength(5);
+  });
+});
+
+describe("nameKindOf", () => {
+  it("reads a person or a place from Strong's part of speech, and neither where it is both", () => {
+    expect(nameKindOf("n-pr-m")).toBe("person");
+    expect(nameKindOf("n-pr-f")).toBe("person");
+    expect(nameKindOf("n-pr-loc")).toBe("place");
+    expect(nameKindOf("n-pr-m n-pr-loc")).toBeUndefined();
+    expect(nameKindOf("n-pr")).toBeUndefined();
+    expect(nameKindOf("n-m")).toBeUndefined();
+    expect(nameKindOf(undefined)).toBeUndefined();
   });
 });

@@ -48,12 +48,17 @@ function* chunks<T>(list: readonly T[], size = CHUNK): Generator<T[]> {
 
 type LemmaRow = typeof lemma.$inferInsert;
 
-/** Strong's Hebrew parts of speech that name a person or a place (`n-pr-m`, `n-pr-loc`). */
-function nameKindOf(pos: string | undefined): "person" | "place" | undefined {
+/**
+ * Strong's Hebrew parts of speech that name a person (`n-pr-m`, `n-pr-f`) or a place
+ * (`n-pr-loc`). An entry that is both (Eden, a place and a man) is neither: just a name.
+ */
+export function nameKindOf(pos: string | undefined): "person" | "place" | undefined {
   if (!pos) return undefined;
-  if (pos.startsWith("n-pr-loc")) return "place";
-  if (/^n-pr-[mf]/.test(pos)) return "person";
-  return undefined;
+  const place = pos.includes("n-pr-loc");
+  const person = /n-pr-[mf]/.test(pos);
+  if (place && person) return undefined;
+  if (place) return "place";
+  return person ? "person" : undefined;
 }
 
 export async function loadOriginal(db: Database, input: OriginalInputs): Promise<LoadReport> {
@@ -209,7 +214,12 @@ export async function loadOriginal(db: Database, input: OriginalInputs): Promise
     const byNumber = new Map<string, ProperNameRecord[]>();
     for (const n of input.names)
       for (const s of n.strongs) byNumber.set(s, [...(byNumber.get(s) ?? []), n]);
+    // TIPNR lists a name under every number it is tagged with, including common words (a place
+    // called "Man"); only a lemma that is itself a proper noun takes a name or its kind.
+    const isProper = (row: LemmaRow) =>
+      row.nameKind != null || /^(n-pr|proper noun)/.test(row.partOfSpeech ?? "");
     const withName = (row: LemmaRow): LemmaRow => {
+      if (!isProper(row)) return row;
       const matching = byNumber.get(row.key) ?? [];
       const only = matching.length === 1 ? matching[0] : undefined;
       const kinds = new Set(matching.map((n) => n.kind));
