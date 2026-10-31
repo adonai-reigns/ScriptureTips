@@ -2398,6 +2398,23 @@ a.reading-step:focus-visible {
 }
 
 .study-menu-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  padding: 0.6rem 0.9rem;
+}
+
+/* The search in the window: the field stays put, and the results scroll under it. */
+.study-search {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 0.6rem;
+  min-height: 0;
+}
+
+.study-search st-search-results {
   flex: 1;
   min-height: 0;
   overflow: auto;
@@ -2575,6 +2592,8 @@ a.reading-step:focus-visible {
 }
 
 .study-tip-actions {
+  display: flex;
+  gap: 0.4rem;
   margin-top: 0.6rem;
   padding-top: 0.4rem;
   border-top: 1px solid var(--rule);

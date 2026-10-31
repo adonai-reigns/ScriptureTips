@@ -16,6 +16,7 @@
     "@scripturetips/licenses": "workspace:*",
     "@scripturetips/passage": "workspace:*",
     "@scripturetips/reference": "workspace:*",
+    "@scripturetips/search": "workspace:*",
     "altcha": "3.3.0",
     "next": "16.4.3",
     "next-intl": "4.14.9",

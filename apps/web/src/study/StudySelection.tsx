@@ -1,9 +1,12 @@
 "use client";
 
+import { getSearch } from "@scripturetips/search";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { openStudyMenu } from "./menuBus.ts";
 import { useStudy } from "./StudyProvider.tsx";
+import { STUDY_SEARCH } from "./StudySearch.tsx";
 import { noteDismissal } from "./selection.ts";
 
 /** apps/api `StudyLemma`: a word in full. */
@@ -157,7 +160,21 @@ export function StudySelection() {
       {picked.strongs.length > MOST ? (
         <p className="study-tip-empty">{t("tip.more", { count: picked.strongs.length - MOST })}</p>
       ) : null}
-      <CopyButton text={picked.text} />
+      <div className="study-tip-actions">
+        <button
+          type="button"
+          className="study-tip-button"
+          onClick={() => {
+            // The window opens, and gets the words and searches them.
+            openStudyMenu();
+            void getSearch(STUDY_SEARCH).setQuery(picked.text.slice(0, 200), { search: true });
+            setPicked(null);
+          }}
+        >
+          {t("tip.search")}
+        </button>
+        <CopyButton text={picked.text} />
+      </div>
     </div>,
     document.body,
   );
@@ -215,16 +232,14 @@ function CopyButton({ text }: { text: string }) {
   const t = useTranslations("study");
   const [copied, setCopied] = useState(false);
   return (
-    <div className="study-tip-actions">
-      <button
-        type="button"
-        className="study-tip-button"
-        onClick={() => {
-          void navigator.clipboard?.writeText(text).then(() => setCopied(true));
-        }}
-      >
-        {copied ? t("tip.copied") : t("tip.copy")}
-      </button>
-    </div>
+    <button
+      type="button"
+      className="study-tip-button"
+      onClick={() => {
+        void navigator.clipboard?.writeText(text).then(() => setCopied(true));
+      }}
+    >
+      {copied ? t("tip.copied") : t("tip.copy")}
+    </button>
   );
 }

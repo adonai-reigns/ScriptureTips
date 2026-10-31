@@ -1,5 +1,6 @@
 "use client";
 
+import { getSearch } from "@scripturetips/search";
 import { useRouter } from "next/navigation";
 import {
   type PointerEvent,
@@ -14,6 +15,8 @@ import {
 import { createPortal } from "react-dom";
 import { useHydrated } from "../hydrated.ts";
 import { type Box, clampBox, movedBox, readBox, resizedBox, startBox } from "./box.ts";
+import { onOpenStudyMenu } from "./menuBus.ts";
+import { STUDY_SEARCH, StudySearch } from "./StudySearch.tsx";
 
 const STORED = "study-menu-box";
 
@@ -50,6 +53,7 @@ export function StudyMenu({
   label,
   switchLabel,
   closeLabel,
+  searchTranslations,
   children,
 }: {
   on: boolean;
@@ -58,6 +62,8 @@ export function StudyMenu({
   label: string;
   switchLabel: string;
   closeLabel: string;
+  /** The translations the window's search covers (catalog IDs): those in view. */
+  searchTranslations: readonly string[];
   children?: ReactNode;
 }) {
   const router = useRouter();
@@ -75,6 +81,22 @@ export function StudyMenu({
     | { kind: "size"; from: { x: number; y: number; w: number; h: number } }
     | null
   >(null);
+
+  // The window's search: this instance's scope is set while the window can be opened, so a query
+  // sent from elsewhere (the tooltip) is searched in it before the window is even open.
+  const translations = searchTranslations.join(",");
+  useEffect(() => {
+    getSearch(STUDY_SEARCH, {
+      scope: {
+        kinds: ["reference", "text", "original"],
+        translations: translations ? translations.split(",") : [],
+        limit: 10,
+      },
+    });
+  }, [translations]);
+
+  // Something else on the page can ask for it to be open.
+  useEffect(() => onOpenStudyMenu(() => setOpen(true)), []);
 
   // First opened: where it was left, or under the button.
   useLayoutEffect(() => {
@@ -181,8 +203,9 @@ export function StudyMenu({
                   ×
                 </button>
               </header>
-              {/* Room for what the window will hold; the footer stays at the bottom as it grows. */}
-              <div className="study-menu-body" />
+              <div className="study-menu-body">
+                <StudySearch />
+              </div>
               <footer className="study-menu-footer">
                 <input
                   ref={switchBox}

@@ -81,6 +81,7 @@
       "more": "and {count} more",
       "used": "Used {count, plural, one {# time} other {# times}} in the original text",
       "dictionary": "Dictionary",
+      "search": "Search for this",
       "copy": "Copy",
       "copied": "Copied"
     },

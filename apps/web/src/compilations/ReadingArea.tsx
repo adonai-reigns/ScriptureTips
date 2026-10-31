@@ -184,6 +184,7 @@ export async function ReadingArea({
               label={t("studyToggle")}
               switchLabel={t("studySwitch")}
               closeLabel={t("studyClose")}
+              searchTranslations={[...new Set([c.base.id, ...columnIds])]}
             >
               {/* What the colors mean, beside the switch: grey until word types are shown. */}
               <StudyLegend />

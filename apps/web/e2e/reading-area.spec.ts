@@ -647,3 +647,163 @@ test("vision §3.2: selecting words in study mode opens a tooltip with what they
   await verse.getByRole("button").first().click();
   await expect(page.getByRole("textbox", { name: /^The wording of/ })).toBeVisible();
 });
+
+test("vision §3.14: the study window's search finds passages, words and original-language words", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  await create(page, "Search Words", "Seek");
+  await page.goto("/compilations/seek?book=Gen&chapter=4&mode=compare&study=1");
+  await settled(page);
+  await page.getByRole("button", { name: "Study", exact: true }).click();
+  const study = page.getByRole("dialog", { name: "Study" });
+  const field = study.getByRole("combobox", { name: "Search" });
+  await expect(field).toBeVisible();
+
+  // Words: the verses that have them (and their other forms), the matched words flagged.
+  await field.fill("forgave");
+  await field.press("Enter");
+  const verses = study.getByRole("heading", { name: "Verses" });
+  await expect(verses).toBeVisible();
+  await expect(study.locator("mark").first()).toHaveText(/forgave/i);
+  await expect(study.getByRole("button", { name: /Luke 7:42/ }).first()).toBeVisible();
+
+  // A reference goes straight to the passage.
+  await field.fill("jn 3:16");
+  await field.press("Enter");
+  await expect(study.getByRole("heading", { name: "Passages" })).toBeVisible();
+  await expect(study.getByRole("button", { name: /John 3:16/ }).first()).toContainText(
+    "For God so loved the world",
+  );
+
+  // A Strong's number, and a gloss, find the original-language word.
+  await field.fill("H430");
+  await field.press("Enter");
+  const words = study.getByRole("heading", { name: "Hebrew and Greek words" });
+  await expect(words).toBeVisible();
+  await expect(study.getByRole("button", { name: /H0430/ }).first()).toContainText("God");
+  await field.fill("mercy");
+  await field.press("Enter");
+  await expect(study.getByRole("button", { name: /G1656/ }).first()).toContainText("mercy");
+  await page.screenshot(shot("reading-area-study-search"));
+
+  // Picking a result marks it, and does nothing more for now.
+  const first = study.getByRole("button", { name: /G1656/ }).first();
+  await first.click();
+  await expect(first).toHaveAttribute("aria-current", "true");
+});
+
+test("vision §3.14: an integration drives the search through its API and subscribes to its events", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  await create(page, "Drive Search", "Drive");
+  await page.goto("/compilations/drive?book=Gen&chapter=4&mode=compare&study=1");
+  await settled(page);
+  await page.getByRole("button", { name: "Study", exact: true }).click();
+  const study = page.getByRole("dialog", { name: "Study" });
+  await expect(study.getByRole("combobox", { name: "Search" })).toBeVisible();
+
+  // Subscribe, set the words, and search: the field shows them, and the events arrive.
+  await page.evaluate(() => {
+    const w = window as unknown as {
+      ScriptureTipsSearch: { get(name: string): Record<string, (...a: unknown[]) => unknown> };
+      seen: string[];
+    };
+    const engine = w.ScriptureTipsSearch.get("study");
+    w.seen = [];
+    engine["onType"]?.((e: unknown) =>
+      w.seen.push(`type ${(e as { query: string; source: string }).source}`),
+    );
+    engine["onResults"]?.((e: unknown) =>
+      w.seen.push(`results ${(e as { results: unknown[] }).results.length > 0}`),
+    );
+    engine["onResultsSelect"]?.((e: unknown) =>
+      w.seen.push(`select ${(e as { result: { id: string } }).result.id}`),
+    );
+    engine["setQuery"]?.("H430");
+  });
+  await expect(study.getByRole("combobox", { name: "Search" })).toHaveValue("H430");
+  await page.evaluate(() =>
+    (
+      window as unknown as {
+        ScriptureTipsSearch: { get(n: string): { doSearch(): Promise<unknown> } };
+      }
+    ).ScriptureTipsSearch.get("study").doSearch(),
+  );
+  await expect(study.getByRole("button", { name: /H0430/ }).first()).toBeVisible();
+  await study.getByRole("button", { name: /H0430/ }).first().click();
+  const seen = await page.evaluate(() => (window as unknown as { seen: string[] }).seen);
+  expect(seen).toEqual(["type api", "results true", "select original:H0430"]);
+});
+
+test("vision §3.14: the tooltip's Search for this opens the study window and searches the words", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  await create(page, "Tip Search", "Tipper");
+  await page.goto("/compilations/tipper?book=Gen&chapter=4&mode=compare&study=1");
+  await settled(page);
+  // The window is closed: select a word, and ask the tooltip to search for it.
+  const own = page.locator("td.compare-own").first();
+  await dragAcross(page, own.locator('.study-word[data-strong="H2332"]').first());
+  const tip = page.getByRole("dialog", { name: "The selected words" });
+  await tip.getByRole("button", { name: "Search for this" }).click();
+  await expect(tip).toBeHidden();
+  const study = page.getByRole("dialog", { name: "Study" });
+  await expect(study).toBeVisible();
+  await expect(study.getByRole("combobox", { name: "Search" })).toHaveValue("Eve");
+  await expect(study.getByRole("button", { name: /H2332/ }).first()).toContainText("Eve");
+  await expect(study.getByRole("heading", { name: "Verses" })).toBeVisible();
+});
+
+test("vision §3.14: several searches on one page keep their own scope, and their parts share state", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  await create(page, "Many Searches", "Many");
+  await page.goto("/compilations/many?book=Gen&chapter=4&mode=compare&study=1");
+  await settled(page);
+  await page.getByRole("button", { name: "Study", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "Study" }).getByRole("combobox")).toBeVisible();
+
+  // A big field in one place, its results in another, one search (as a home page might have);
+  // and a second, composite widget searching only the original language.
+  await page.evaluate(() => {
+    const top = document.createElement("div");
+    top.id = "top";
+    top.innerHTML =
+      '<st-search-input instance="main" size="large" kinds="text" translations="eng-kjv"></st-search-input>';
+    const side = document.createElement("div");
+    side.id = "side";
+    side.innerHTML = '<st-search-results instance="main"></st-search-results>';
+    const words = document.createElement("div");
+    words.id = "words";
+    words.innerHTML = '<st-search instance="words" kinds="original"></st-search>';
+    document.body.append(top, side, words);
+  });
+  const main = page.locator("#top").getByRole("combobox", { name: "Search" });
+  await main.fill("forgave");
+  await main.press("Enter");
+  // The results appear in the other element, only verses, only the KJV.
+  const side = page.locator("#side");
+  await expect(side.getByRole("heading", { name: "Verses" })).toBeVisible();
+  await expect(side.getByRole("heading", { name: "Hebrew and Greek words" })).toHaveCount(0);
+  await expect(side.getByRole("button").first()).toContainText("KJV");
+  for (const abbreviation of await side.getByRole("button").locator(".source").allTextContents())
+    expect(abbreviation).toBe("KJV");
+
+  // The other widget has its own scope and its own results.
+  const words = page.locator("#words").getByRole("combobox", { name: "Search" });
+  await words.fill("mercy");
+  await words.press("Enter");
+  const mine = page.locator("#words");
+  await expect(mine.getByRole("heading", { name: "Hebrew and Greek words" })).toBeVisible();
+  await expect(mine.getByRole("heading", { name: "Verses" })).toHaveCount(0);
+  // Neither touched the other, nor the study window's.
+  await expect(main).toHaveValue("forgave");
+  await expect(side.getByRole("heading", { name: "Verses" })).toBeVisible();
+  await expect(
+    page.getByRole("dialog", { name: "Study" }).getByRole("combobox", { name: "Search" }),
+  ).toHaveValue("");
+});
