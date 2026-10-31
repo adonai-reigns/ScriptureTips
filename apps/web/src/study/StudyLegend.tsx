@@ -33,7 +33,6 @@ export async function StudyLegend() {
           </span>
         </span>
       </li>
-      <li className="study-legend-note">{t("only")}</li>
     </ul>
   );
 }

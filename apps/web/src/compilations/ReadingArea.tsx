@@ -8,9 +8,9 @@ import { type ChapterRef, neighbors } from "../reader/books.ts";
 import { Passage } from "../reader/Passage.tsx";
 import { studyWords } from "../study/api.ts";
 import { StudyLegend } from "../study/StudyLegend.tsx";
+import { StudyMenu } from "../study/StudyMenu.tsx";
 import { StudyProvider } from "../study/StudyProvider.tsx";
 import { StudySelection } from "../study/StudySelection.tsx";
-import { StudyToggle } from "../study/StudyToggle.tsx";
 import { strongsIn } from "../study/units.ts";
 import { type Compilation, compareView } from "./api.ts";
 import { CompareChoice } from "./CompareChoice.tsx";
@@ -178,15 +178,16 @@ export async function ReadingArea({
             ))}
           </nav>
           {mode !== "read" ? (
-            <div className="study-tools">
-              <StudyToggle
-                on={study}
-                href={readingHref(osis, chapter, mode, read, !study)}
-                label={t("studyToggle")}
-              />
-              {/* What the colors mean: over the page, so it doesn't push anything. */}
-              {study ? <StudyLegend /> : null}
-            </div>
+            <StudyMenu
+              on={study}
+              href={readingHref(osis, chapter, mode, read, !study)}
+              label={t("studyToggle")}
+              switchLabel={t("studySwitch")}
+              closeLabel={t("studyClose")}
+            >
+              {/* What the colors mean, beside the switch: grey until word types are shown. */}
+              <StudyLegend />
+            </StudyMenu>
           ) : null}
           {mode === "read" ? (
             <ReadChoice

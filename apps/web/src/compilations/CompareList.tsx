@@ -250,7 +250,7 @@ export function CompareList({
 
 /** How long the old wording takes to fade out, and the new one to fade in (ms). */
 const FADE_OUT = 120;
-const FADE_IN = 180;
+const FADE_IN = 380;
 
 /**
  * One verse swiped sideways: let go past `SWIPE`, it turns to the next translation (swiped

@@ -467,7 +467,7 @@ test("vision §3.2: study mode paints each tagged word by its kind, and moves no
   await settled(page);
   const own = page.locator("td.compare-own");
   await expect(own.first()).toContainText("Adam knew Eve his wife");
-  await expect(page.locator(".study-word")).toHaveCount(0);
+  await expect(page.locator("td .study-word")).toHaveCount(0);
 
   // Where everything is, before.
   const boxes = () =>
@@ -485,11 +485,19 @@ test("vision §3.2: study mode paints each tagged word by its kind, and moves no
     );
   const before = await boxes();
 
+  // The Study button opens a menu with the switch.
   const toggle = page.getByRole("button", { name: "Study", exact: true });
-  await expect(toggle).toHaveAttribute("aria-pressed", "false");
   await toggle.click();
+  const menu = page.getByRole("dialog", { name: "Study" });
+  await expect(menu).toBeVisible();
+  const studySwitch = menu.getByRole("switch", { name: "Show word types" });
+  await expect(studySwitch).not.toBeChecked();
+  await studySwitch.click();
   await expect(page).toHaveURL(/mode=compare&study=1/);
-  await expect(toggle).toHaveAttribute("aria-pressed", "true");
+  await expect(studySwitch).toBeChecked();
+  // The key beside the switch is in color while word hints are on.
+  const chip = menu.locator(".study-legend .study-word").first();
+  await expect(chip).toHaveCSS("opacity", "1");
 
   // The compilation's own column has its tagged words as pieces, by kind.
   const words = own.first().locator(".study-word");
@@ -504,9 +512,18 @@ test("vision §3.2: study mode paints each tagged word by its kind, and moves no
     "title",
     /יָדַע · H3045/,
   );
-  // What the colors mean opens over the page from the button.
-  await toggle.hover();
-  await expect(page.getByRole("list", { name: /^What the .{6,7} mean$/ })).toBeVisible();
+  // What the colors mean is in the menu, which stays open: its words flow along in a row.
+  const legend = menu.getByRole("list", { name: /^What the .{6,7} mean$/ });
+  await expect(legend).toBeVisible();
+  const chips = legend.getByRole("listitem");
+  const [first, second] = [await chips.nth(0).boundingBox(), await chips.nth(1).boundingBox()];
+  if (!first || !second) throw new Error("The legend isn't on screen.");
+  expect(Math.abs(first.y - second.y)).toBeLessThan(3);
+  expect(second.x).toBeGreaterThan(first.x);
+  // It stays open until it's closed: moving away or clicking elsewhere doesn't close it.
+  await page.mouse.move(5, 400);
+  await page.mouse.click(5, 400);
+  await expect(menu).toBeVisible();
   // Only the KJV family's words are marked: the ASV's tags don't line up with the original.
   const asv = page.locator("td").filter({ hasText: "the man knew Eve" }).first();
   await expect(asv).toBeVisible();
@@ -541,9 +558,16 @@ test("vision §3.2: study mode paints each tagged word by its kind, and moves no
     page.getByRole("navigation", { name: "Reading mode" }).getByRole("link", { name: "Read" }),
   ).not.toHaveAttribute("href", /study/);
 
-  // Off again, the marks are gone.
+  // Off again, the marks are gone; the menu closes with its ×.
   await page.getByRole("button", { name: "Study", exact: true }).click();
-  await expect(page.locator(".study-word")).toHaveCount(0);
+  const again = page.getByRole("dialog", { name: "Study" });
+  await again.getByRole("switch", { name: "Show word types" }).click();
+  await expect(page.locator("td .study-word")).toHaveCount(0);
+  // And the key goes grey and faded.
+  await expect(again.locator(".study-legend .study-word").first()).toHaveCSS("opacity", "0.45");
+  await expect(again).toBeVisible();
+  await again.getByRole("button", { name: "Close" }).click();
+  await expect(again).toBeHidden();
 });
 
 /** Drags the mouse across a locator's text, as a person selects it. */

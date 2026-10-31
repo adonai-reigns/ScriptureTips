@@ -2335,45 +2335,6 @@ a.reading-step:focus-visible {
   flex: none;
 }
 
-/* What the colors mean: opens over the page from the Study button, so it moves nothing. */
-.study-legend {
-  display: none;
-  position: absolute;
-  inset-inline-end: 0;
-  top: calc(100% + 0.35rem);
-  z-index: 30;
-  flex-direction: column;
-  gap: 0.4rem;
-  margin: 0;
-  padding: 0.65rem 0.8rem;
-  list-style: none;
-  font-size: 0.85rem;
-  white-space: nowrap;
-  background: var(--paper);
-  border: 1px solid var(--rule);
-  border-radius: 0.4rem;
-  box-shadow: 0 0.5rem 1.25rem rgb(0 30 60 / 0.18);
-}
-
-.study-legend-note {
-  width: 13rem;
-  white-space: normal;
-  color: var(--muted);
-}
-
-/* Over the button, or when it's reached by keyboard; a click's focus doesn't keep it open. */
-.study-tools:hover .study-legend,
-.study-tools:has(:focus-visible) .study-legend {
-  display: flex;
-}
-
-/* A touch screen has no hover: a tap on the button opens it, and a tap elsewhere closes it. */
-@media (hover: none) {
-  .study-tools:focus-within .study-legend {
-    display: flex;
-  }
-}
-
 .study-toggle {
   flex: none;
   display: flex;
@@ -2397,6 +2358,114 @@ a.reading-step:focus-visible {
 .study-toggle:disabled {
   opacity: 0.6;
   cursor: default;
+}
+
+/* The Study window: over the page, so it moves nothing, dragged by its header, resized from its
+   corner (study/StudyMenu.tsx gives its place and size), and open until closed. */
+.study-menu {
+  position: fixed;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 1rem);
+  overflow: hidden;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 0.5rem;
+  box-shadow: 0 0.5rem 1.25rem rgb(0 30 60 / 0.18);
+}
+
+.study-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex: none;
+  padding: 0.4rem 0.5rem 0.4rem 0.9rem;
+  border-bottom: 1px solid var(--rule);
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.study-menu-header:active {
+  cursor: grabbing;
+}
+
+.study-menu-header h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.study-menu-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* The footer: the switch alone, then what the colors mean along the same row. */
+.study-menu-footer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  flex: none;
+  gap: 0.4rem 0.75rem;
+  padding: 0.6rem 1.4rem 0.7rem 0.9rem;
+  border-top: 1px solid var(--rule);
+}
+
+/* The corner handle: two short diagonal lines. */
+.study-menu-resize {
+  position: absolute;
+  inset-inline-end: 0;
+  inset-block-end: 0;
+  width: 1.1rem;
+  height: 1.1rem;
+  cursor: nwse-resize;
+  touch-action: none;
+  background: linear-gradient(
+    135deg,
+    transparent 50%,
+    var(--muted) 50%,
+    var(--muted) 58%,
+    transparent 58%,
+    transparent 70%,
+    var(--muted) 70%,
+    var(--muted) 78%,
+    transparent 78%
+  );
+}
+
+.study-switch {
+  flex: none;
+  margin: 0;
+  cursor: pointer;
+}
+
+/* What the colors mean: the words flow along and wrap. */
+.study-legend {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.85rem;
+}
+
+/* Grey and faded until word types are shown, then they come to color. */
+.study-legend .study-word,
+.study-legend .c-study-unit {
+  transition:
+    filter 0.2s,
+    opacity 0.2s;
+}
+
+.study-menu:not([data-on="true"]) .study-legend .study-word,
+.study-menu:not([data-on="true"]) .study-legend .c-study-unit {
+  filter: grayscale(1);
+  opacity: 0.45;
 }
 
 /* In study mode, a verse's text can be selected, even where it's inside a button (edit mode). */

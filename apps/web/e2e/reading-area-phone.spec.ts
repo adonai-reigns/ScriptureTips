@@ -490,7 +490,7 @@ test("vision §3.2: study mode on a phone paints the verses' tagged words, and m
   await page.waitForLoadState("networkidle");
   const verses = page.locator(".compare-list-verse");
   await expect(verses.first()).toContainText("Adam knew Eve");
-  await expect(page.locator(".study-word")).toHaveCount(0);
+  await expect(page.locator(".compare-list .study-word")).toHaveCount(0);
   const boxes = () =>
     page.evaluate(() =>
       [...document.querySelectorAll(".compare-list-verse")].slice(0, 8).map((e) => {
@@ -507,6 +507,7 @@ test("vision §3.2: study mode on a phone paints the verses' tagged words, and m
   const before = await boxes();
 
   await page.getByRole("button", { name: "Study", exact: true }).click();
+  await page.getByRole("dialog", { name: "Study" }).getByRole("switch").click();
   await expect(page).toHaveURL(/mode=compare&study=1/);
   await expect(verses.first().locator('.study-word[data-category="person"]').first()).toContainText(
     "Eve",

@@ -84,7 +84,6 @@
       "copy": "Copy",
       "copied": "Copied"
     },
-    "only": "Marked in the KJV, whose Strong's numbers line up with the original words.",
     "category": {
       "person": "Person",
       "place": "Place",
@@ -416,6 +415,8 @@
     "editVerse": "Change the wording:",
     "abbreviationHeading": "Your compilation's abbreviation",
     "studyToggle": "Study",
+    "studySwitch": "Show word types",
+    "studyClose": "Close",
     "readChoice": "Translation to read",
     "readChoiceNamed": "Translation to read: reading the {source}",
     "readChoiceHeading": "Read",
