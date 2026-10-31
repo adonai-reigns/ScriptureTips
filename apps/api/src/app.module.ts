@@ -10,6 +10,8 @@ import { BUILD_SETTINGS, PdfBuildsService } from "./pdf-builds/pdf-builds.servic
 import type { BuildSettings } from "./pdf-builds/settings.ts";
 import { PublicationsController } from "./publications/publications.controller.ts";
 import { PublicationsService } from "./publications/publications.service.ts";
+import { StudyController } from "./study/study.controller.ts";
+import { StudyService } from "./study/study.service.ts";
 import { TranslationsController } from "./translations/translations.controller.ts";
 import { TranslationsService } from "./translations/translations.service.ts";
 
@@ -19,6 +21,7 @@ import { TranslationsService } from "./translations/translations.service.ts";
     CompilationsController,
     PublicationsController,
     PdfBuildsController,
+    StudyController,
   ],
   providers: [
     TranslationsService,
@@ -26,6 +29,7 @@ import { TranslationsService } from "./translations/translations.service.ts";
     AuthorshipService,
     PublicationsService,
     PdfBuildsService,
+    StudyService,
   ],
 })
 export class AppModule implements OnApplicationShutdown {

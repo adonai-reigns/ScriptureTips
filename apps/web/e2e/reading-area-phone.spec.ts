@@ -480,3 +480,42 @@ test("vision §3.1: on a phone, quick turns of a verse each count", async ({ pag
   });
   await expect(verse.locator(".compare-list-source")).toHaveText("DRA");
 });
+
+test("vision §3.2: study mode on a phone paints the verses' tagged words, and moves nothing", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  await create(page, "Study Phone", "Lexis");
+  await page.goto("/compilations/lexis?book=Gen&chapter=4&mode=compare");
+  await page.waitForLoadState("networkidle");
+  const verses = page.locator(".compare-list-verse");
+  await expect(verses.first()).toContainText("Adam knew Eve");
+  await expect(page.locator(".study-word")).toHaveCount(0);
+  const boxes = () =>
+    page.evaluate(() =>
+      [...document.querySelectorAll(".compare-list-verse")].slice(0, 8).map((e) => {
+        const r = e.getBoundingClientRect();
+        // Where it is on the page, not in the window: the click may scroll.
+        return [
+          Math.round(r.x + window.scrollX),
+          Math.round(r.y + window.scrollY),
+          Math.round(r.width),
+          Math.round(r.height),
+        ];
+      }),
+    );
+  const before = await boxes();
+
+  await page.getByRole("button", { name: "Study", exact: true }).click();
+  await expect(page).toHaveURL(/mode=compare&study=1/);
+  await expect(verses.first().locator('.study-word[data-category="person"]').first()).toContainText(
+    "Eve",
+  );
+  expect(await boxes()).toEqual(before);
+  // Nothing runs off the right edge with the button there.
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  );
+  await toVerses(page);
+  await page.screenshot({ ...shot("reading-area-phone-study"), fullPage: false });
+});

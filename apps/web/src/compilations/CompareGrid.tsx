@@ -455,12 +455,20 @@ export function CompareGrid({
                         onClick={() => setEditing(row)}
                       >
                         <span className="visually-hidden">{t("editVerse")} </span>
-                        <VerseText verse={r.verse} number={verseLabel(r.verse)} />
+                        <VerseText
+                          verse={r.verse}
+                          number={verseLabel(r.verse)}
+                          source={r.verse.source}
+                        />
                         {tag ? <small className="compare-tag"> {tag}</small> : null}
                       </button>
                     ) : (
                       <>
-                        <VerseText verse={r.verse} number={verseLabel(r.verse)} />
+                        <VerseText
+                          verse={r.verse}
+                          number={verseLabel(r.verse)}
+                          source={r.verse.source}
+                        />
                         {tag ? <small className="compare-tag"> {tag}</small> : null}
                       </>
                     )}
@@ -471,6 +479,7 @@ export function CompareGrid({
                       <VerseText
                         key={`${v.chapter}.${v.verse}`}
                         verse={v}
+                        source={column.id}
                         number={
                           v.chapter === r.verse.chapter
                             ? verseLabel(v)

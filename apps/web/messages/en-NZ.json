@@ -70,6 +70,27 @@
     "invalid-request": "Enter a passage to read.",
     "unavailable": "Scripture text isn't available right now. Please try again shortly."
   },
+  "study": {
+    "toggle": "Study",
+    "legend": "What the colours mean",
+    "together1": "Go",
+    "together2": "together",
+    "only": "Marked in the KJV, whose Strong's numbers line up with the original words.",
+    "category": {
+      "person": "Person",
+      "place": "Place",
+      "name": "Other name",
+      "conjunction": "Conjunction",
+      "verb": "Verb",
+      "noun": "Noun",
+      "other": "Other words",
+      "adjective": "Adjective",
+      "adverb": "Adverb",
+      "pronoun": "Pronoun",
+      "preposition": "Preposition",
+      "particle": "Particle"
+    }
+  },
   "credits": {
     "title": "Credits",
     "intro": "ScriptureTips is free software, made possible by the generosity of others.",
@@ -385,6 +406,7 @@
     "compareChoice": "Translations to compare with",
     "editVerse": "Change the wording:",
     "abbreviationHeading": "Your compilation's abbreviation",
+    "studyToggle": "Study",
     "readChoice": "Translation to read",
     "readChoiceNamed": "Translation to read: reading the {source}",
     "readChoiceHeading": "Read",

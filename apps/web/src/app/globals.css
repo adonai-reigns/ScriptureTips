@@ -2271,3 +2271,130 @@ a.reading-step:focus-visible {
     box-shadow: 0 6px 18px rgb(0 0 0 / 15%);
   }
 }
+
+/*
+ * Study mode (compare and edit): each word tagged with a Strong's number is a piece of its own,
+ * painted by what kind of word it is, and a run of words that are one piece of the original
+ * language has a dashed outline. Only paint (a background, an inset edge, an outline): none of it
+ * takes space, so turning study mode on never moves the text.
+ */
+:root {
+  --study-person: 214 69 133;
+  --study-place: 27 160 112;
+  --study-name: 130 90 210;
+  --study-conjunction: 232 130 30;
+  --study-verb: 38 120 214;
+  --study-noun: 92 104 120;
+  --study-other: 150 158 168;
+  --study-unit: 29 35 42;
+}
+
+.study-word {
+  --study: var(--study-other);
+  background: rgb(var(--study) / 0.16);
+  box-shadow: inset 0 0 0 1px rgb(var(--study) / 0.45);
+  border-radius: 2px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.study-word[data-category="person"] {
+  --study: var(--study-person);
+}
+
+.study-word[data-category="place"] {
+  --study: var(--study-place);
+}
+
+.study-word[data-category="name"] {
+  --study: var(--study-name);
+}
+
+.study-word[data-category="conjunction"] {
+  --study: var(--study-conjunction);
+}
+
+.study-word[data-category="verb"] {
+  --study: var(--study-verb);
+}
+
+.study-word[data-category="noun"] {
+  --study: var(--study-noun);
+}
+
+/* Adjectives, adverbs, pronouns, prepositions and particles share the look of "other". */
+
+.c-study-unit {
+  outline: 1px dashed rgb(var(--study-unit) / 0.75);
+  outline-offset: 1px;
+  border-radius: 3px;
+}
+
+.study-tools {
+  position: relative;
+  flex: none;
+}
+
+/* What the colors mean: opens over the page from the Study button, so it moves nothing. */
+.study-legend {
+  display: none;
+  position: absolute;
+  inset-inline-end: 0;
+  top: calc(100% + 0.35rem);
+  z-index: 30;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0.65rem 0.8rem;
+  list-style: none;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 0.4rem;
+  box-shadow: 0 0.5rem 1.25rem rgb(0 30 60 / 0.18);
+}
+
+.study-legend-note {
+  width: 13rem;
+  white-space: normal;
+  color: var(--muted);
+}
+
+/* Over the button, or when it's reached by keyboard; a click's focus doesn't keep it open. */
+.study-tools:hover .study-legend,
+.study-tools:has(:focus-visible) .study-legend {
+  display: flex;
+}
+
+/* A touch screen has no hover: a tap on the button opens it, and a tap elsewhere closes it. */
+@media (hover: none) {
+  .study-tools:focus-within .study-legend {
+    display: flex;
+  }
+}
+
+.study-toggle {
+  flex: none;
+  display: flex;
+  align-items: center;
+  height: 2.25rem;
+  padding: 0 0.9rem;
+  font: inherit;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.study-toggle.on {
+  color: #fff;
+  background: var(--deep);
+  border-color: var(--deep);
+}
+
+.study-toggle:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

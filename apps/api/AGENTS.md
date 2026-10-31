@@ -25,4 +25,6 @@ The API: NestJS on Fastify, under `/api`. So far it serves translations and pass
 - **Running it:** `./dev up` starts it with the database, Valkey, Mailpit, Garage and the PDF worker, rebuilding and restarting on every change, at http://127.0.0.1:3001/api. Logs: `./dev logs api`.
 - **Tests:** integration tests through Fastify's `inject` on a test database (packages/db test support).
 
+- **Study mode** (`src/study/`): `POST /api/study/words` takes Strong's numbers (`{ strongs: ["H0430", …] }`, up to 5,000) and gives each lemma's category (`person`, `place`, `name`, `noun`, `verb`, `adjective`, `adverb`, `pronoun`, `preposition`, `conjunction`, `particle`, `other`: `categoryOf`, from the part of speech and whether it's a proper name), its dictionary form and gloss. Reference data, the same for everyone; numbers with no lemma are left out.
+
 Run the tests: `./toolbox pnpm --filter @scripturetips/api test`

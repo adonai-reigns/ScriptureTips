@@ -6,6 +6,11 @@ import { getTranslations } from "next-intl/server";
 import { passage, type Translation } from "../reader/api.ts";
 import { type ChapterRef, neighbors } from "../reader/books.ts";
 import { Passage } from "../reader/Passage.tsx";
+import { studyWords } from "../study/api.ts";
+import { StudyLegend } from "../study/StudyLegend.tsx";
+import { StudyProvider } from "../study/StudyProvider.tsx";
+import { StudyToggle } from "../study/StudyToggle.tsx";
+import { strongsIn } from "../study/units.ts";
 import { type Compilation, compareView } from "./api.ts";
 import { CompareChoice } from "./CompareChoice.tsx";
 import { CompareGrid } from "./CompareGrid.tsx";
@@ -24,12 +29,15 @@ export const readingHref = (
   chapter: number,
   mode: ReadingMode,
   read?: string | null,
+  study?: boolean,
 ): string =>
   `?${new URLSearchParams({
     book: osis,
     chapter: String(chapter),
     mode,
     ...(mode === "read" && read ? { read } : {}),
+    // Study mode is for comparing and editing.
+    ...(mode !== "read" && study ? { study: "1" } : {}),
   })}`;
 
 /**
@@ -49,6 +57,7 @@ export async function ReadingArea({
   all,
   books,
   read,
+  study = false,
 }: {
   c: Compilation;
   osis: string;
@@ -65,6 +74,8 @@ export async function ReadingArea({
   books?: React.ReactNode;
   /** In read mode, the translation read instead of the compilation (catalog ID), if any. */
   read?: string | null;
+  /** In compare and edit, study mode is on: words with Strong's numbers are drawn as pieces. */
+  study?: boolean;
 }) {
   const picker = mode !== "read" && books;
   const t = await getTranslations("reading");
@@ -104,7 +115,16 @@ export async function ReadingArea({
     );
   } else {
     const view = await compareView(c.slug, ref, columnIds);
-    body = view ? (
+    // What each tagged word is, for study mode: one request for the whole chapter.
+    const words =
+      study && view
+        ? await studyWords([
+            ...strongsIn(
+              view.rows.flatMap((r) => [r.verse, ...r.compare.flat()].flatMap((v) => v.content)),
+            ),
+          ])
+        : null;
+    const grid = view ? (
       <CompareGrid
         key={`${osis}.${chapter}`}
         slug={c.slug}
@@ -121,8 +141,13 @@ export async function ReadingArea({
           .filter((x) => canCompile(x.license))
           .map((x) => ({ id: x.id, label: `${x.abbreviation}: ${x.name}` }))}
       />
-    ) : (
+    ) : null;
+    body = !grid ? (
       <p className="error">{t("unavailable")}</p>
+    ) : words ? (
+      <StudyProvider words={words}>{grid}</StudyProvider>
+    ) : (
+      grid
     );
   }
 
@@ -136,7 +161,7 @@ export async function ReadingArea({
               <Link
                 scroll={false}
                 key={m}
-                href={readingHref(osis, chapter, m)}
+                href={readingHref(osis, chapter, m, null, study)}
                 aria-current={m === mode ? "page" : undefined}
               >
                 {t(`mode.${m}`)}
@@ -144,6 +169,17 @@ export async function ReadingArea({
               </Link>
             ))}
           </nav>
+          {mode !== "read" ? (
+            <div className="study-tools">
+              <StudyToggle
+                on={study}
+                href={readingHref(osis, chapter, mode, read, !study)}
+                label={t("studyToggle")}
+              />
+              {/* What the colors mean: over the page, so it doesn't push anything. */}
+              {study ? <StudyLegend /> : null}
+            </div>
+          ) : null}
           {mode === "read" ? (
             <ReadChoice
               current={read ?? c.id}
@@ -176,7 +212,7 @@ export async function ReadingArea({
             <Link
               scroll={false}
               className="reading-step"
-              href={readingHref(previous.osis, previous.chapter, mode, read)}
+              href={readingHref(previous.osis, previous.chapter, mode, read, study)}
               rel="prev"
               // Loaded ahead (in a production build), so stepping through chapters is instant.
               prefetch
@@ -218,7 +254,7 @@ export async function ReadingArea({
                   scroll={false}
                   prefetch={false}
                   key={n}
-                  href={readingHref(osis, n, mode, read)}
+                  href={readingHref(osis, n, mode, read, study)}
                   aria-current={n === chapter ? "page" : undefined}
                 >
                   {n}
@@ -231,7 +267,7 @@ export async function ReadingArea({
             <Link
               scroll={false}
               className="reading-step"
-              href={readingHref(next.osis, next.chapter, mode, read)}
+              href={readingHref(next.osis, next.chapter, mode, read, study)}
               rel="next"
               // Loaded ahead (in a production build), so stepping through chapters is instant.
               prefetch

@@ -457,3 +457,91 @@ test("vision §3.1: in edit mode, a click on the compilation's verse changes its
   await page.goto("/compilations/place?book=Gen&chapter=1&mode=compare");
   await expect(own.first().getByRole("button")).toHaveCount(0);
 });
+
+test("vision §3.2: study mode paints each tagged word by its kind, and moves nothing", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  await create(page, "Study Words", "Lexis");
+  await page.goto("/compilations/lexis?book=Gen&chapter=4&mode=compare");
+  await settled(page);
+  const own = page.locator("td.compare-own");
+  await expect(own.first()).toContainText("Adam knew Eve his wife");
+  await expect(page.locator(".study-word")).toHaveCount(0);
+
+  // Where everything is, before.
+  const boxes = () =>
+    page.evaluate(() =>
+      [...document.querySelectorAll("td.compare-own, .compare-grid")].map((e) => {
+        const r = e.getBoundingClientRect();
+        // Where it is on the page, not in the window: the click may scroll.
+        return [
+          Math.round(r.x + window.scrollX),
+          Math.round(r.y + window.scrollY),
+          Math.round(r.width),
+          Math.round(r.height),
+        ];
+      }),
+    );
+  const before = await boxes();
+
+  const toggle = page.getByRole("button", { name: "Study", exact: true });
+  await expect(toggle).toHaveAttribute("aria-pressed", "false");
+  await toggle.click();
+  await expect(page).toHaveURL(/mode=compare&study=1/);
+  await expect(toggle).toHaveAttribute("aria-pressed", "true");
+
+  // The compilation's own column has its tagged words as pieces, by kind.
+  const words = own.first().locator(".study-word");
+  await expect(words.first()).toBeVisible();
+  await expect(own.first().locator('.study-word[data-category="person"]').first()).toContainText(
+    "Eve",
+  );
+  await expect(own.first().locator('.study-word[data-category="verb"]').first()).toBeVisible();
+  await expect(page.locator('.study-word[data-category="conjunction"]').first()).toBeVisible();
+  // A word carries what it is: its number, and the word in the original language.
+  await expect(own.first().locator('.study-word[data-strong="H3045"]').first()).toHaveAttribute(
+    "title",
+    /יָדַע · H3045/,
+  );
+  // What the colors mean opens over the page from the button.
+  await toggle.hover();
+  await expect(page.getByRole("list", { name: /^What the .{6,7} mean$/ })).toBeVisible();
+  // Only the KJV family's words are marked: the ASV's tags don't line up with the original.
+  const asv = page.locator("td").filter({ hasText: "the man knew Eve" }).first();
+  await expect(asv).toBeVisible();
+  await expect(asv.locator(".study-word")).toHaveCount(0);
+
+  // Only paint: no text, row or column moved.
+  expect(await boxes()).toEqual(before);
+  // The colors are backgrounds, not the text's.
+  const verb = own.first().locator('.study-word[data-category="verb"]').first();
+  expect(await verb.evaluate((e) => getComputedStyle(e).backgroundColor)).not.toBe(
+    "rgba(0, 0, 0, 0)",
+  );
+  expect(await verb.evaluate((e) => getComputedStyle(e).color)).toBe(
+    await own.first().evaluate((e) => getComputedStyle(e).color),
+  );
+  await page.screenshot(shot("reading-area-study"));
+
+  // Words that are one piece of the Hebrew ("freely eat") share a dashed outline.
+  await page.goto("/compilations/lexis?book=Gen&chapter=2&mode=compare&study=1");
+  const unit = page.locator("td.compare-own .c-study-unit").first();
+  await expect(unit).toContainText("freely eat");
+  expect(await unit.evaluate((e) => getComputedStyle(e).outlineStyle)).toBe("dashed");
+  // The chapter links and the modes keep study mode.
+  await expect(page.getByRole("link", { name: "Next: Genesis 3" })).toHaveAttribute(
+    "href",
+    /study=1/,
+  );
+  await expect(
+    page.getByRole("navigation", { name: "Reading mode" }).getByRole("link", { name: "Edit" }),
+  ).toHaveAttribute("href", /mode=edit&study=1/);
+  await expect(
+    page.getByRole("navigation", { name: "Reading mode" }).getByRole("link", { name: "Read" }),
+  ).not.toHaveAttribute("href", /study/);
+
+  // Off again, the marks are gone.
+  await page.getByRole("button", { name: "Study", exact: true }).click();
+  await expect(page.locator(".study-word")).toHaveCount(0);
+});

@@ -5,6 +5,8 @@
  */
 
 import type { ReactNode } from "react";
+import type { StudyWords } from "../study/types.ts";
+import { groupUnits, tagOf } from "../study/units.ts";
 import type { Shown } from "./layout.ts";
 
 /** Lower corner brackets (U+2E24, U+2E25): the LEB's marks around an idiomatic phrase. */
@@ -29,8 +31,24 @@ const ELEMENTS: Readonly<Record<string, "em" | "strong" | "sup">> = {
 /** Word-level markup (Strong's numbers, lemmas) has no look of its own. */
 const PLAIN = new Set(["w", "wh", "wg", "wa", "ft", "xt"]);
 
-export function ShownText({ nodes }: { nodes: readonly Shown[] }): ReactNode {
-  return nodes.map((n, i) => {
+/**
+ * `study`: study mode's words (the compilation editor's compare and edit modes): each word
+ * tagged with a Strong's number it knows is drawn as a piece of its own, and runs of words with
+ * one number as one piece. Both are painted only (a background, an outline), so the text doesn't
+ * move.
+ */
+export function ShownText({
+  nodes,
+  study,
+  grouped = false,
+}: {
+  nodes: readonly Shown[];
+  study?: StudyWords | null | undefined;
+  /** The nodes are already one study unit's: they aren't grouped again. */
+  grouped?: boolean;
+}): ReactNode {
+  const shown = study && !grouped ? groupUnits(nodes) : nodes;
+  return shown.map((n, i) => {
     const key = `${i}`;
     if (typeof n === "string") return n;
     if (n.type === "designation")
@@ -53,21 +71,41 @@ export function ShownText({ nodes }: { nodes: readonly Shown[] }): ReactNode {
       return (
         <span key={key} className="idiom">
           {IDIOM_OPEN}
-          <ShownText nodes={n.content} />
+          <ShownText nodes={n.content} study={study} />
           {IDIOM_CLOSE}
         </span>
       );
-    if (PLAIN.has(n.marker)) return <ShownText key={key} nodes={n.content} />;
+    if (n.marker === "study-unit")
+      return (
+        <span key={key} className="c-study-unit">
+          <ShownText nodes={n.content} study={study} grouped />
+        </span>
+      );
+    const tag = study ? tagOf(n) : undefined;
+    const word = tag && study ? study[tag] : undefined;
+    if (tag && word)
+      return (
+        <span
+          key={key}
+          className="study-word"
+          data-category={word.category}
+          data-strong={tag}
+          title={[word.headword, tag, word.gloss].filter(Boolean).join(" \u00b7 ")}
+        >
+          <ShownText nodes={n.content} study={study} />
+        </span>
+      );
+    if (PLAIN.has(n.marker)) return <ShownText key={key} nodes={n.content} study={study} />;
     const Element = ELEMENTS[n.marker];
     if (Element)
       return (
         <Element key={key}>
-          <ShownText nodes={n.content} />
+          <ShownText nodes={n.content} study={study} />
         </Element>
       );
     return (
       <span key={key} className={`c-${n.marker}`}>
-        <ShownText nodes={n.content} />
+        <ShownText nodes={n.content} study={study} />
       </span>
     );
   });

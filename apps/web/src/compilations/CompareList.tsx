@@ -202,6 +202,7 @@ export function CompareList({
                   <VerseText
                     key={`${v.chapter}.${v.verse}`}
                     verse={v}
+                    source={column?.id ?? v.source}
                     number={
                       v.chapter === r.verse.chapter
                         ? verseLabel(v)
