@@ -237,6 +237,8 @@ The tools exist to lead the user back to the original text. Every source text, d
 | **Variant** | canonical ref, readings (source text + tokens), note | Differences between manuscript traditions. Explains `omitted` and `added` versification cases (§2.1). |
 | **LetterForm** | letter, Paleo-Hebrew glyph, name, Unicode code points | The 22 Hebrew letters and their ancient forms: facts only. Pictograph **meanings** are interpretation and live in research libraries (§3.5), shown with whose research they come from. |
 
+**Built (tools/original-import):** `source_text`, `lexicon`, `lexicon_entry`, `lemma`, `token`, `translation_alignment` and a `proper_name` table (TIPNR). A lemma has a base row per Strong's number, with STEPBible's extended lemmas under it; a token carries the root as its lemma and the prefixes and suffixes as `affixes`; a Hebrew name token also points to its individual. `Variant` and `LetterForm` are not built. Sources and exclusions: [sources.md](sources.md) §5, §6.
+
 **Candidate open data** (each license must be confirmed before use):
 
 | Data | Candidates |

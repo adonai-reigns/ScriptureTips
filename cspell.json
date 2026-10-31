@@ -14,7 +14,7 @@
     }
   ],
   "dictionaries": ["project-words", "scripture-words"],
-  "ignoreRegExpList": ["/[\\u0590-\\u05FF]+/g"],
+  "ignoreRegExpList": ["/[\\u0590-\\u05FF]+/g", "/[\\u0370-\\u03FF\\u1F00-\\u1FFF]+/g"],
   "ignorePaths": [
     "node_modules",
     "pnpm-lock.yaml",

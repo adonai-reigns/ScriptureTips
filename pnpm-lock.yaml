@@ -359,6 +359,21 @@ importers:
         specifier: workspace:*
         version: link:../passage
 
+  tools/original-import:
+    dependencies:
+      '@scripturetips/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@scripturetips/passage':
+        specifier: workspace:*
+        version: link:../../packages/passage
+      '@scripturetips/versification':
+        specifier: workspace:*
+        version: link:../../packages/versification
+      drizzle-orm:
+        specifier: 0.45.3
+        version: 0.45.3(kysely@0.29.7)(postgres@3.4.9)
+
   tools/pdf-trial:
     dependencies:
       '@scripturetips/reference':
