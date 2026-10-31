@@ -76,7 +76,8 @@
     "logo": "Logo by buzzzy at Fiverr.com.",
     "background": "“Clouds And Birds” by Akira / Garcya.us, from FreeVector.com, licensed under CC BY-NC 4.0.",
     "reservedNames": "Reserved usernames from <big>The Big Username Blocklist</big> by Martin Sandström, and from <shouldbee>shouldbee/reserved-usernames</shouldbee>, both under the MIT Licence.",
-    "translations": "Each translation is credited with its text."
+    "translations": "Each translation is credited with its text.",
+    "originalLanguage": "The Hebrew and Greek words, their morphology and the proper names come from <step>STEPBible-Data</step> by Tyndale House Cambridge, licensed under <cc>CC BY 4.0</cc> (STEP Bible, www.STEPBible.org); the descriptions of the names were written by an AI. Strong's Hebrew dictionary and Brown-Driver-Briggs come from the <oshb>Open Scriptures Hebrew Bible Project</oshb> (<cc>CC BY 4.0</cc>). Strong's Greek dictionary (1890, XML by Ulrik Petersen) and Abbott-Smith's Manual Greek Lexicon (1922) are in the public domain."
   },
   "account": {
     "signIn": "Sign in",

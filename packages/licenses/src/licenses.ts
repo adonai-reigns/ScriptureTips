@@ -104,6 +104,50 @@ const list: readonly License[] = [
       { type: "notes_excluded" },
     ],
   },
+  // The original-language datasets (domain-model §2.4), loaded into the database by
+  // tools/original-import. Not translations, but each names its license the same way.
+  // License-evidence/stepbible-data/SOURCE.md: CC BY 4.0, credit "STEP Bible" linked to
+  // www.STEPBible.org, and a note of any changes we make.
+  {
+    key: "stepbible-data",
+    name: "STEPBible-Data (CC BY 4.0)",
+    url: "https://creativecommons.org/licenses/by/4.0/",
+    rules: [
+      {
+        type: "attribution",
+        designation: "STEP Bible",
+        statement:
+          "Hebrew and Greek words, morphology and proper names from STEPBible-Data by Tyndale House Cambridge, licensed under CC BY 4.0. STEP Bible: www.STEPBible.org. The descriptions of names were written by an AI. Changes made to the data are recorded.",
+        links: [
+          { text: "STEP Bible", url: "https://www.STEPBible.org" },
+          { text: "www.STEPBible.org", url: "https://www.STEPBible.org" },
+          { text: "CC BY 4.0", url: "https://creativecommons.org/licenses/by/4.0/" },
+        ],
+      },
+    ],
+  },
+  // License-evidence/open-scriptures-hebrew-lexicon/SOURCE.md: CC BY 4.0 on the files (the
+  // dictionaries' own text is public domain); credit the Open Scriptures Hebrew Bible Project.
+  {
+    key: "oshb-lexicon",
+    name: "OSHB Hebrew Lexicon (CC BY 4.0)",
+    url: "https://creativecommons.org/licenses/by/4.0/",
+    rules: [
+      {
+        type: "attribution",
+        designation: "OSHB",
+        statement:
+          "Strong's Hebrew dictionary and Brown-Driver-Briggs from the Open Scriptures Hebrew Bible Project, licensed under CC BY 4.0. The dictionaries' own text is in the public domain.",
+        links: [
+          {
+            text: "Open Scriptures Hebrew Bible Project",
+            url: "https://github.com/openscriptures/HebrewLexicon",
+          },
+          { text: "CC BY 4.0", url: "https://creativecommons.org/licenses/by/4.0/" },
+        ],
+      },
+    ],
+  },
 ];
 
 export const LICENSES: ReadonlyMap<string, License> = new Map(list.map((l) => [l.key, l]));

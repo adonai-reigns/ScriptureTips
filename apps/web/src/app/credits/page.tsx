@@ -32,6 +32,15 @@ export default async function Credits() {
           })}
         </li>
         <li>{t("translations")}</li>
+        <li>
+          {t.rich("originalLanguage", {
+            step: (chunks) => <a href="https://www.STEPBible.org">{chunks}</a>,
+            oshb: (chunks) => (
+              <a href="https://github.com/openscriptures/HebrewLexicon">{chunks}</a>
+            ),
+            cc: (chunks) => <a href="https://creativecommons.org/licenses/by/4.0/">{chunks}</a>,
+          })}
+        </li>
       </ul>
     </section>
   );

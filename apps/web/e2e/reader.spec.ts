@@ -103,5 +103,14 @@ test("the credits page names every asset and data source (branding.md §1)", asy
   await expect(main.getByRole("heading", { name: "Credits" })).toBeVisible();
   await expect(main.getByRole("link", { name: "The Big Username Blocklist" })).toBeVisible();
   await expect(main.getByRole("link", { name: "shouldbee/reserved-usernames" })).toBeVisible();
+  // The original-language data's credit, as its CC BY licenses require.
+  await expect(main.getByRole("link", { name: "STEPBible-Data" })).toHaveAttribute(
+    "href",
+    "https://www.STEPBible.org",
+  );
+  await expect(main.getByText("descriptions of the names were written by an AI")).toBeVisible();
+  await expect(
+    main.getByRole("link", { name: "Open Scriptures Hebrew Bible Project" }),
+  ).toBeVisible();
   await page.screenshot(shot("credits"));
 });

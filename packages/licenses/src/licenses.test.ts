@@ -13,9 +13,25 @@ import {
 
 describe("domain-model §7: license rules", () => {
   it("know every license the loaded translations use", () => {
-    for (const key of ["public-domain", "cc0-1.0", "leb", "net-bible"]) {
+    for (const key of [
+      "public-domain",
+      "cc0-1.0",
+      "leb",
+      "net-bible",
+      "stepbible-data",
+      "oshb-lexicon",
+    ]) {
       expect(licenseFor(key), key).toBeDefined();
     }
+  });
+
+  it("require the original-language datasets to be credited (CC BY)", () => {
+    expect(attributionFor("stepbible-data")?.links.map((l) => l.url)).toContain(
+      "https://www.STEPBible.org",
+    );
+    expect(attributionFor("oshb-lexicon")?.statement).toContain(
+      "Open Scriptures Hebrew Bible Project",
+    );
   });
 
   it("let open texts be a base and be modified", () => {
