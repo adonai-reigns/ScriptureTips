@@ -841,3 +841,44 @@ test("vision §3.14: several searches on one page keep their own scope, and thei
     page.getByRole("dialog", { name: "Study" }).getByRole("combobox", { name: "Search" }),
   ).toHaveValue("");
 });
+
+test("vision §3.1: stepping to another chapter starts it at its first verse, in every mode", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  await create(page, "Chapter Steps", "Step");
+  for (const mode of ["read", "compare", "edit"]) {
+    await page.goto(`/compilations/step?book=Ps&chapter=119&mode=${mode}`);
+    await expect(reading(page).getByRole("heading", { name: /^Psalms? 119$/u })).toBeVisible();
+    await settled(page);
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    expect(await page.evaluate(() => window.scrollY), mode).toBeGreaterThan(500);
+    await page.getByRole("link", { name: /^Next: Psalms? 120$/u }).click();
+    await expect(reading(page).getByRole("heading", { name: /^Psalms? 120$/u })).toBeVisible();
+    // The chapter's text starts right under the sticky head, not at the foot of the last one.
+    await expect
+      .poll(
+        async () => {
+          const head = await page.locator(".reading-head").boundingBox();
+          const body = await page.locator(".reading-head + *").boundingBox();
+          return !!head && !!body && Math.abs(body.y - (head.y + head.height)) < 40;
+        },
+        { message: mode },
+      )
+      .toBe(true);
+    // And back.
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await page.getByRole("link", { name: /^Previous: Psalms? 119$/u }).click();
+    await expect(reading(page).getByRole("heading", { name: /^Psalms? 119$/u })).toBeVisible();
+    await expect
+      .poll(
+        async () => {
+          const head = await page.locator(".reading-head").boundingBox();
+          const body = await page.locator(".reading-head + *").boundingBox();
+          return !!head && !!body && Math.abs(body.y - (head.y + head.height)) < 40;
+        },
+        { message: mode },
+      )
+      .toBe(true);
+  }
+});

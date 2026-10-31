@@ -1,9 +1,10 @@
 import { english } from "@scripturetips/reference";
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 import { LinkPending } from "../compilations/LinkPending.tsx";
 import type { ChapterRef } from "./books.ts";
+import { ChapterStart } from "./ChapterStart.tsx";
+import { StepLink } from "./StepLink.tsx";
 
 /**
  * The blue bar over a chapter: the book's name and the chapter number (hover it for the book's
@@ -35,8 +36,10 @@ export async function ChapterBar({
   const chapterLabel = (to: ChapterRef) => `${english.name(to.osis, "full", "one")} ${to.chapter}`;
   return (
     <header className="reading-bar">
+      {/* Mounts with each new chapter: after a step, the text scrolls back up to its first verse. */}
+      <ChapterStart key={`start-${osis}.${chapter}`} />
       {previous ? (
-        <Link
+        <StepLink
           scroll={false}
           className="reading-step"
           href={href(previous.osis, previous.chapter)}
@@ -47,7 +50,7 @@ export async function ChapterBar({
         >
           ‹
           <LinkPending />
-        </Link>
+        </StepLink>
       ) : (
         <span className="reading-step" aria-hidden="true" />
       )}
@@ -77,7 +80,7 @@ export async function ChapterBar({
         {/* Shown while the chapter number is hovered or focused, or the list itself is. */}
         <nav className="chapter-list" aria-label={t("chapters")}>
           {chapters.map((n) => (
-            <Link
+            <StepLink
               scroll={false}
               prefetch={false}
               key={n}
@@ -86,12 +89,12 @@ export async function ChapterBar({
             >
               {n}
               <LinkPending />
-            </Link>
+            </StepLink>
           ))}
         </nav>
       </div>
       {next ? (
-        <Link
+        <StepLink
           scroll={false}
           className="reading-step"
           href={href(next.osis, next.chapter)}
@@ -101,7 +104,7 @@ export async function ChapterBar({
         >
           ›
           <LinkPending />
-        </Link>
+        </StepLink>
       ) : (
         <span className="reading-step" aria-hidden="true" />
       )}

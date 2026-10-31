@@ -238,3 +238,27 @@ test("the credits page names every asset and data source (branding.md §1)", asy
   ).toBeVisible();
   await page.screenshot(shot("credits"));
 });
+
+test("stepping to the next or previous chapter starts it at its first verse", async ({ page }) => {
+  await page.goto("/read/leb/john/4");
+  // Script-driven links, and the step is noted by script.
+  await page.waitForLoadState("networkidle");
+  const scrollDown = () => page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  /** The first verse is in the window, just under the sticky head. */
+  const atFirstVerse = async () => {
+    const head = await page.locator(".reader-head").boundingBox();
+    const verse = await page.locator(".verse").first().boundingBox();
+    const height = page.viewportSize()?.height ?? 600;
+    return !!head && !!verse && verse.y >= head.y + head.height - 2 && verse.y < height;
+  };
+  await scrollDown();
+  expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(300);
+  await page.getByRole("link", { name: "Next: John 5" }).click();
+  await expect(page).toHaveURL(/\/read\/leb\/john\/5$/);
+  await expect.poll(atFirstVerse).toBe(true);
+  // The same going back.
+  await scrollDown();
+  await page.getByRole("link", { name: "Previous: John 4" }).click();
+  await expect(page).toHaveURL(/\/read\/leb\/john\/4$/);
+  await expect.poll(atFirstVerse).toBe(true);
+});
