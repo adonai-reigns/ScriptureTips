@@ -1,4 +1,5 @@
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
+import { translation } from "@scripturetips/db";
 import { testDatabase } from "@scripturetips/db/test-support";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createApp } from "../app.ts";
@@ -13,7 +14,21 @@ let sent: ReturnType<typeof testAccounts>["sent"];
 
 beforeAll(async () => {
   let url: string;
-  ({ url, drop } = await testDatabase());
+  let db: Awaited<ReturnType<typeof testDatabase>>["db"];
+  ({ db, url, drop } = await testDatabase());
+  const text = { language: "en", direction: "ltr", scheme: "kjv" } as const;
+  await db.insert(translation).values([
+    {
+      catalogId: "kjv",
+      abbreviation: "KJV",
+      name: "King James",
+      licenseKey: "public-domain",
+      ...text,
+    },
+    { catalogId: "leb", abbreviation: "LEB", name: "Lexham", licenseKey: "leb", ...text },
+    // A license the module doesn't know can't be a base.
+    { catalogId: "odd", abbreviation: "ODD", name: "Odd", licenseKey: "unknown", ...text },
+  ]);
   const accounts = testAccounts();
   sent = accounts.sent;
   app = await createApp({
@@ -81,6 +96,9 @@ describe("vision §11: sign-in with a one-time email code", () => {
       gender: null,
       ageBracket: null,
       countryClaim: null,
+      favoriteTranslations: ["leb", "engnet", "enggnv", "eng-kjv", "engylt"],
+      otherTranslations: [],
+      favoritesOnly: false,
     });
   });
 
@@ -226,6 +244,42 @@ describe("the country", () => {
       expect((await update(cookie, { ageBracket })).statusCode, ageBracket).toBe(400);
     }
     expect((await update(cookie, { ageBracket: null })).json()).toMatchObject({ ageBracket: null });
+
+    // Favorite translations: in order, with the rest and the favorites-only choice.
+    expect((await account(cookie)).json()).toMatchObject({
+      favoriteTranslations: ["leb", "engnet", "enggnv", "eng-kjv", "engylt"],
+      otherTranslations: [],
+      favoritesOnly: false,
+    });
+    const set = await update(cookie, {
+      favoriteTranslations: ["leb"],
+      otherTranslations: ["kjv"],
+      favoritesOnly: true,
+    });
+    expect(set.json()).toMatchObject({
+      favoriteTranslations: ["leb"],
+      otherTranslations: ["kjv"],
+      favoritesOnly: true,
+    });
+    // Kept when something else is saved.
+    expect((await update(cookie, { name: "Someone" })).json()).toMatchObject({
+      favoriteTranslations: ["leb"],
+      favoritesOnly: true,
+    });
+    // Unknown, repeated, not-a-base translations, or one in both groups, are refused.
+    for (const payload of [
+      { favoriteTranslations: ["nope"] },
+      { favoriteTranslations: ["kjv", "kjv"] },
+      { otherTranslations: ["odd"] },
+      { favoriteTranslations: ["leb"], otherTranslations: ["leb"] },
+    ]) {
+      const refused = await update(cookie, payload);
+      expect(refused.statusCode, JSON.stringify(payload)).toBe(400);
+      expect(refused.json()).toMatchObject({ code: "translations-invalid" });
+    }
+    expect(
+      (await update(cookie, { favoriteTranslations: [], favoritesOnly: false })).json(),
+    ).toMatchObject({ favoriteTranslations: [], favoritesOnly: false });
   });
 
   it("keeps a claim that the country isn't listed, for review, of a sensible length, and private to its owner", async () => {

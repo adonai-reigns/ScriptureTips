@@ -2,11 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useHydrated } from "../hydrated.ts";
-
-export interface TranslationOption {
-  readonly id: string;
-  readonly label: string;
-}
+import { useMoreTranslations } from "../translations/MoreTranslations.tsx";
+import type { TranslationOption } from "../translations/menu.ts";
 
 /**
  * The reader's translation, as a select at the top of the page. Choosing another opens the same
@@ -26,6 +23,7 @@ export function TranslationPicker({
   labels: { translation: string; yours: string; all: string };
 }) {
   const hydrated = useHydrated();
+  const list = useMoreTranslations(translations, [current]);
   return (
     <form className="reader-translation" action="/read" method="get">
       <input type="hidden" name="ref" value={reference} />
@@ -35,7 +33,10 @@ export function TranslationPicker({
           name="t"
           value={current}
           disabled={!hydrated}
-          onChange={(e) => e.currentTarget.form?.requestSubmit()}
+          onChange={(e) => {
+            if (list.intercept(e.currentTarget.value)) return;
+            e.currentTarget.form?.requestSubmit();
+          }}
         >
           {compilations.length > 0 ? (
             <optgroup label={labels.yours}>
@@ -47,11 +48,12 @@ export function TranslationPicker({
             </optgroup>
           ) : null}
           <optgroup label={labels.all}>
-            {translations.map((tr) => (
+            {list.shown.map((tr) => (
               <option key={tr.id} value={tr.id}>
                 {tr.label}
               </option>
             ))}
+            {list.moreOption}
           </optgroup>
         </select>
       </label>

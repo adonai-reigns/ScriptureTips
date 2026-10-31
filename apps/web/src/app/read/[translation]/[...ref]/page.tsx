@@ -24,6 +24,7 @@ import { Passage } from "../../../../reader/Passage.tsx";
 import { PassageTitle, TranslationPicker } from "../../../../reader/PassageEdit.tsx";
 import { bookSlug, ownsCompilation, readerTarget, referenceFor } from "../../../../reader/paths.ts";
 import { ReaderTabs } from "../../../../reader/ReaderTabs.tsx";
+import { translationOptions } from "../../../../translations/menu.ts";
 
 /** How many verses each side the context button adds. */
 const CONTEXT = 3;
@@ -157,7 +158,7 @@ export default async function Read(props: Props) {
         current={id}
         reference={reference}
         compilations={mine.map((c) => ({ id: c.id, label: `${c.abbreviation}: ${c.title}` }))}
-        translations={catalog.map((x) => ({ id: x.id, label: `${x.abbreviation}: ${x.name}` }))}
+        translations={translationOptions(catalog, account, [id])}
         labels={{
           translation: ts("translation"),
           yours: ts("yourCompilations"),

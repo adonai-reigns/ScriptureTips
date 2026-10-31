@@ -191,6 +191,18 @@ export const user = pgTable("user", {
   gender: text("gender"),
   /** `child` · `teen` · `adult` · `senior`, as the person judges; null until chosen. Not a legal declaration. */
   ageBracket: text("age_bracket"),
+  /**
+   * Translation catalog IDs (public ones that can be a base) the person favors, in their order.
+   * A new account starts with LEB, NET, GNV, KJV and YLT; an ID that isn't loaded is ignored by menus.
+   */
+  favoriteTranslations: text("favorite_translations")
+    .array()
+    .notNull()
+    .default(sql`'{leb,engnet,enggnv,eng-kjv,engylt}'`),
+  /** The order they gave the rest; any not listed (new ones) follow, by name. */
+  otherTranslations: text("other_translations").array().notNull().default(sql`'{}'`),
+  /** Menus list only the favorites (when there are any). */
+  favoritesOnly: boolean("favorites_only").notNull().default(false),
   ...timestamps,
 });
 

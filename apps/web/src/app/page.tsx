@@ -4,6 +4,7 @@ import { currentAccount } from "../account/api.ts";
 import { myCompilations } from "../compilations/api.ts";
 import { translations } from "../reader/api.ts";
 import { HomeSearch } from "../reader/HomeSearch.tsx";
+import { defaultTranslation, translationOptions } from "../translations/menu.ts";
 
 interface Props {
   searchParams: Promise<{ t?: string; error?: string }>;
@@ -35,9 +36,9 @@ export default async function Home({ searchParams }: Props) {
         </div>
       </div>
       <HomeSearch
-        initial={translation ?? "leb"}
+        initial={translation ?? defaultTranslation(catalog, account, "leb")}
         compilations={mine.map((c) => ({ id: c.id, label: `${c.abbreviation}: ${c.title}` }))}
-        translations={catalog.map((tr) => ({ id: tr.id, label: `${tr.abbreviation}: ${tr.name}` }))}
+        translations={translationOptions(catalog, account, translation ? [translation] : [])}
         labels={{
           translation: s("translation"),
           field: s("homeField"),

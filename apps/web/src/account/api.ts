@@ -17,6 +17,12 @@ export interface Account {
   ageBracket: string | null;
   /** What they wrote when their country wasn't listed, awaiting review; only they see it. */
   countryClaim: string | null;
+  /** Translation catalog IDs, in the order they favor them (see `menuTranslations`). */
+  favoriteTranslations: string[];
+  /** The order they gave the rest. */
+  otherTranslations: string[];
+  /** Menus list only the favorites. */
+  favoritesOnly: boolean;
 }
 
 const API = process.env["API_URL"] ?? "http://127.0.0.1:3001/api";

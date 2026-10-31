@@ -15,6 +15,8 @@ import {
 import type { Verse } from "../reader/api.ts";
 import { useStudy } from "../study/StudyProvider.tsx";
 import { ignoresClick } from "../study/selection.ts";
+import { useMoreTranslations } from "../translations/MoreTranslations.tsx";
+import type { TranslationOption } from "../translations/menu.ts";
 import type { CompareView } from "./api.ts";
 import { CompareList } from "./CompareList.tsx";
 import { VerseText, verseLabel } from "./CompareVerse.tsx";
@@ -67,7 +69,7 @@ export function CompareGrid({
   /** The translation in each comparison column (catalog IDs), as shown. */
   columnIds: string[];
   /** Every translation a column can show. */
-  options: { id: string; label: string }[];
+  options: TranslationOption[];
   /** Abbreviations by catalog ID, to say where each of the compilation's verses comes from. */
   sourceNames: Record<string, string>;
 }) {
@@ -88,6 +90,7 @@ export function CompareGrid({
   // and loaded.
   const [adding, setAdding] = useState<{ index: number; id: string } | null>(null);
   const placeholder = busy || reloading ? adding : null;
+  const list = useMoreTranslations(options, [...columnIds, changing?.id ?? "", adding?.id ?? ""]);
   const shownColumns = view.columns.length + (placeholder ? 1 : 0);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -250,7 +253,9 @@ export function CompareGrid({
 
   /** A new column after `index`, showing the first translation not shown yet. */
   const addColumn = (index: number) => {
-    const more = options.find((o) => !columnIds.includes(o.id));
+    const more =
+      list.shown.find((o) => !columnIds.includes(o.id)) ??
+      options.find((o) => !columnIds.includes(o.id));
     if (!more) return;
     setChanging(null);
     setAdding({ index, id: more.id });
@@ -364,13 +369,16 @@ export function CompareGrid({
                       <select
                         value={loading?.index === i ? loading.id : column.id}
                         disabled={working}
-                        onChange={(e) => chooseColumn(i, e.target.value)}
+                        onChange={(e) => {
+                          if (!list.intercept(e.target.value)) chooseColumn(i, e.target.value);
+                        }}
                       >
-                        {options.map((o) => (
+                        {list.shown.map((o) => (
                           <option key={o.id} value={o.id}>
                             {o.label}
                           </option>
                         ))}
+                        {list.moreOption}
                       </select>
                     </label>
                     <button
@@ -410,7 +418,7 @@ export function CompareGrid({
                       <label>
                         <span className="visually-hidden">{t("columnLabel", { n: i + 2 })}</span>
                         <select value={placeholder.id} disabled>
-                          {options.map((o) => (
+                          {list.shown.map((o) => (
                             <option key={o.id} value={o.id}>
                               {o.label}
                             </option>

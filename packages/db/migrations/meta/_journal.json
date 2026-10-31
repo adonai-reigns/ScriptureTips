@@ -120,6 +120,20 @@
       "when": 1793442669678,
       "tag": "0016_age_bracket",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1793478066763,
+      "tag": "0017_favorite-translations",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1793481248483,
+      "tag": "0018_favorite-defaults",
+      "breakpoints": true
     }
   ]
 }

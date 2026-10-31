@@ -1255,6 +1255,113 @@ main:has(> .compilation) {
   gap: 1rem;
 }
 
+/* The favorite translations: two sortable groups side by side on a wide screen. */
+.favorite-translations > .account-row-help {
+  margin: 0.25rem 0 0.75rem;
+}
+
+.favorite-groups {
+  display: grid;
+  gap: 1rem;
+}
+
+.favorite-group h3 {
+  margin: 0 0 0.4rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.favorite-group ul {
+  list-style: none;
+  margin: 0;
+  padding: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-height: 3rem;
+  border: 1px dashed var(--rule);
+  border-radius: 0.5rem;
+}
+
+.favorite-group.over ul {
+  border-color: var(--deep);
+}
+
+.favorite-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.5rem;
+  background: #fff;
+  border: 1px solid var(--rule);
+  border-radius: 0.4rem;
+}
+
+.favorite-row.dragging {
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.2);
+}
+
+.favorite-name {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.favorite-handle,
+.favorite-star {
+  flex: none;
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  font: inherit;
+  color: var(--deep);
+  background: none;
+  border: 0;
+  border-radius: 0.3rem;
+  cursor: pointer;
+}
+
+.favorite-handle {
+  cursor: grab;
+  /* So a finger drags the row instead of scrolling the page. */
+  touch-action: none;
+}
+
+.favorite-star.on {
+  color: #b7791f;
+}
+
+.favorite-empty {
+  padding: 0.4rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.account-form .favorites-only {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.favorites-only input {
+  margin-top: 0.3rem;
+  accent-color: var(--deep);
+}
+
+.favorites-only small {
+  display: block;
+  color: var(--muted);
+}
+
+@media (min-width: 48rem) {
+  .favorite-groups {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 .country-field {
   display: flex;
   flex-direction: column;
@@ -2320,6 +2427,8 @@ a.reading-step:focus-visible {
 }
 
 .compare-choice input {
+  /* Not squeezed by a long label that wraps. */
+  flex: none;
   width: 1.1rem;
   height: 1.1rem;
   margin: 0;

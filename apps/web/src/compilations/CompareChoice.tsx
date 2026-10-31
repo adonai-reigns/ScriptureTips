@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { type CSSProperties, useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
+import { useMoreTranslations } from "../translations/MoreTranslations.tsx";
+import type { TranslationOption } from "../translations/menu.ts";
 import { MAX_COLUMNS } from "./CompareGrid.tsx";
 import { errorCode, useErrorText } from "./errors.ts";
 import { InPlaceField } from "./forms.tsx";
@@ -26,13 +28,15 @@ export function CompareChoice({
   slug: string;
   /** The translations compared with now, in order (catalog IDs). */
   chosen: string[];
-  options: { id: string; label: string }[];
+  options: TranslationOption[];
 }) {
   const t = useTranslations("reading");
+  const tSearch = useTranslations("search");
   const errorText = useErrorText();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [ids, setIds] = useState(chosen);
+  const list = useMoreTranslations(options, ids);
   const [saving, setSaving] = useState(false);
   const [reloading, startReload] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -116,7 +120,7 @@ export function CompareChoice({
                 {t("compareChoiceHeading", { max: MAX_COLUMNS })}
                 {busy ? <span className="spinner" aria-hidden="true" /> : null}
               </p>
-              {options.map((o) => {
+              {list.shown.map((o) => {
                 const on = ids.includes(o.id);
                 return (
                   <label key={o.id}>
@@ -131,6 +135,11 @@ export function CompareChoice({
                   </label>
                 );
               })}
+              {list.hidden ? (
+                <button type="button" className="link-button" onClick={list.showAll}>
+                  {tSearch("showAll")}
+                </button>
+              ) : null}
               {error ? (
                 <p role="alert" className="error">
                   {errorText(error)}

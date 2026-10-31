@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { type CSSProperties, useCallback, useRef, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
+import { useMoreTranslations } from "../translations/MoreTranslations.tsx";
 import { usePopupClose } from "./popup.ts";
 
 /**
@@ -19,9 +20,11 @@ export function ReadChoice({
   /** The one being read: the compilation's, or a translation's (catalog ID). */
   current: string;
   /** The compilation first, then the translations, each with where it's read. */
-  options: { id: string; abbreviation: string; label: string; href: string }[];
+  options: { id: string; abbreviation: string; label: string; href: string; more?: true }[];
 }) {
   const t = useTranslations("reading");
+  const tSearch = useTranslations("search");
+  const list = useMoreTranslations(options, [current]);
   const router = useRouter();
   const [loading, startLoading] = useTransition();
   const [open, setOpen] = useState(false);
@@ -70,7 +73,7 @@ export function ReadChoice({
               aria-label={t("readChoiceHeading")}
             >
               <p className="book-menu-heading">{t("readChoiceHeading")}</p>
-              {options.map((o) => (
+              {list.shown.map((o) => (
                 <Link
                   key={o.id}
                   role="menuitemradio"
@@ -88,6 +91,11 @@ export function ReadChoice({
                   {o.label}
                 </Link>
               ))}
+              {list.hidden ? (
+                <button type="button" className="link-button" onClick={list.showAll}>
+                  {tSearch("showAll")}
+                </button>
+              ) : null}
             </div>,
             document.body,
           )

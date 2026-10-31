@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useEffect, useId, useRef } from "react";
+import { useMoreTranslations } from "../translations/MoreTranslations.tsx";
 import { useErrorText } from "./errors.ts";
 import { type BookSourceChoice, type SourceMenuSpec, useSourceChange } from "./SourceMenu.tsx";
 
@@ -36,7 +37,9 @@ function Dialog({
   onClose: () => void;
 }) {
   const t = useTranslations("bookTabs");
+  const tSearch = useTranslations("search");
   const errorText = useErrorText();
+  const list = useMoreTranslations(sources, menu.current ? [menu.current] : []);
   const dialog = useRef<HTMLDialogElement>(null);
   const heading = useId();
   // Only a tap that starts on the backdrop closes it, not the end of the press that opened it.
@@ -77,7 +80,7 @@ function Dialog({
           </button>
         </header>
         <ul className="source-dialog-list">
-          {sources.map((s) => (
+          {list.shown.map((s) => (
             <li key={s.id}>
               <button
                 type="button"
@@ -91,6 +94,11 @@ function Dialog({
             </li>
           ))}
         </ul>
+        {list.hidden ? (
+          <button type="button" className="link-button" onClick={list.showAll}>
+            {tSearch("showAll")}
+          </button>
+        ) : null}
         {error ? (
           <p role="alert" className="error">
             {errorText(error)}

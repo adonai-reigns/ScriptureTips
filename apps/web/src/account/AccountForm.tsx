@@ -7,9 +7,17 @@ import { useHydrated } from "../hydrated.ts";
 import type { Account } from "./api.ts";
 import { CountryField } from "./CountryField.tsx";
 import { type AccountError, accountError } from "./errors.ts";
+import { FavoriteTranslations } from "./FavoriteTranslations.tsx";
 
 /** The handle (chosen once, for now), display name and canon profile. */
-export function AccountForm({ account }: { account: Account }) {
+export function AccountForm({
+  account,
+  translations,
+}: {
+  account: Account;
+  /** The public translations (those that can be a base), favorites first, then the rest. */
+  translations: { id: string; label: string }[];
+}) {
   const t = useTranslations("account");
   const te = useTranslations("accountErrors");
   const tc = useTranslations("canons");
@@ -27,6 +35,9 @@ export function AccountForm({ account }: { account: Account }) {
       gender: String(form.get("gender") ?? "") || null,
       ageBracket: String(form.get("ageBracket") ?? "") || null,
       ...(form.get("canon") ? { canon: String(form.get("canon")) } : {}),
+      favoriteTranslations: form.getAll("favorite").map(String),
+      otherTranslations: form.getAll("other").map(String),
+      favoritesOnly: form.has("favoritesOnly"),
       // The country (a code, or none), or what they wrote when theirs isn't on the list.
       ...(form.has("countryNotListed")
         ? { countryNotListed: String(form.get("countryNotListed") ?? "") }
@@ -144,33 +155,39 @@ export function AccountForm({ account }: { account: Account }) {
         </div>
       </fieldset>
 
-      <div className="account-row account-row-wide" id="settings">
-        <div className="account-row-head">
-          <div className="account-row-label">
-            <span id="canon-label">{t("canon")}</span>
+      <fieldset className="account-pair" id="settings" aria-describedby="canon-help">
+        <legend>{t("canon")}</legend>
+        <div className="account-row">
+          <div className="account-row-head">
+            <small id="canon-help" className="account-row-help">
+              {t("canonHelp")}
+            </small>
+            <PrivacyMenu field="canon" label={t("canon")} value="private" />
           </div>
-          <PrivacyMenu field="canon" label={t("canon")} value="private" />
+          <div className="choices">
+            {CANON_IDS.map((id) => (
+              <label key={id} className="choice">
+                <input
+                  type="radio"
+                  name="canon"
+                  value={id}
+                  required
+                  defaultChecked={account.canon === id}
+                />
+                <span>
+                  <strong>{tc(id)}</strong> <small>{tc(`${id}Help`)}</small>
+                </span>
+              </label>
+            ))}
+          </div>
         </div>
-        <small id="canon-help" className="account-row-help">
-          {t("canonHelp")}
-        </small>
-        <fieldset className="choices" aria-labelledby="canon-label" aria-describedby="canon-help">
-          {CANON_IDS.map((id) => (
-            <label key={id} className="choice">
-              <input
-                type="radio"
-                name="canon"
-                value={id}
-                required
-                defaultChecked={account.canon === id}
-              />
-              <span>
-                <strong>{tc(id)}</strong> <small>{tc(`${id}Help`)}</small>
-              </span>
-            </label>
-          ))}
-        </fieldset>
-      </div>
+      </fieldset>
+
+      <FavoriteTranslations
+        options={translations}
+        favorites={account.favoriteTranslations}
+        favoritesOnly={account.favoritesOnly}
+      />
 
       {error && (
         <p role="alert" className="error">

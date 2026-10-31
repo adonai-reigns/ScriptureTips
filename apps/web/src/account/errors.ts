@@ -16,6 +16,7 @@ export type AccountError =
   | "name-reserved"
   | "country-invalid"
   | "country-claim-invalid"
+  | "translations-invalid"
   | "unavailable";
 
 const BY_CODE: Record<string, AccountError> = {
@@ -29,6 +30,7 @@ const BY_CODE: Record<string, AccountError> = {
   "handle-already-chosen": "handle-already-chosen",
   "name-reserved": "name-reserved",
   "country-invalid": "country-invalid",
+  "translations-invalid": "translations-invalid",
 };
 
 /** Reads an error response. `fallback` covers a 400 with no code we know. */

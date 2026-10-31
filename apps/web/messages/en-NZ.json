@@ -15,7 +15,8 @@
     "homeGo": "Search",
     "homeInitial": "John 3:16",
     "yourCompilations": "Your compilations",
-    "translations": "Translations"
+    "translations": "Translations",
+    "showAll": "Show all translations…"
   },
   "reader": {
     "notes": "Translator's notes",
@@ -138,6 +139,17 @@
     "name": "Display name",
     "nameHelp": "How your name is shown to others. Any language or script.",
     "canon": "Your canon",
+    "listTitle": "Favourite translations",
+    "listHelp": "Put the translations you read most first. Drag a translation by its handle (or use the keyboard: Space, then the arrow keys) to reorder it, or to move it between the groups, or press its star.",
+    "groupTop": "Favourites",
+    "groupRest": "Other translations",
+    "emptyTop": "Drag a translation here, or press its star.",
+    "emptyRest": "Every translation is a favourite.",
+    "rowMove": "Move {name}",
+    "rowAdd": "Make {name} a favourite",
+    "rowRemove": "Remove {name} from your favourites",
+    "onlyTop": "Show only favourites in menus",
+    "onlyTopHelp": "Other translations are left out of the menus, though you can still ask to see them all. It takes effect once you have a favourite.",
     "canonHelp": "Which books you count as scripture. Books outside it are still there, labelled as additional writings. You can change this at any time.",
     "save": "Save",
     "signOut": "Sign out",
@@ -187,6 +199,7 @@
     "name-reserved": "That name is reserved. Try another.",
     "country-invalid": "Choose a country from the list.",
     "country-claim-invalid": "Enter your country's name, up to 100 characters.",
+    "translations-invalid": "Choose from the translations listed.",
     "unavailable": "Something went wrong. Please try again shortly."
   },
   "canons": {

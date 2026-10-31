@@ -11,7 +11,8 @@ import {
 } from "@nestjs/common";
 import { CANON_IDS } from "@scripturetips/canon";
 import { isCountryCode } from "@scripturetips/countries";
-import { countryClaim, eq, user } from "@scripturetips/db";
+import { countryClaim, eq, translation, user } from "@scripturetips/db";
+import { canBeBase } from "@scripturetips/licenses";
 import { z } from "zod";
 import { DATABASE, type Database, isUniqueViolation } from "../database.ts";
 import { ZodPipe } from "../zod-pipe.ts";
@@ -30,6 +31,8 @@ export const Handle = z
   .refine((h) => !h.includes("--"));
 
 const AGE_BRACKETS = ["child", "teen", "adult", "senior"] as const;
+
+const CatalogIds = z.array(z.string().regex(/^[A-Za-z0-9_-]{1,40}$/)).max(200);
 
 const AccountUpdate = z
   .object({
@@ -53,6 +56,11 @@ const AccountUpdate = z
      * no one until it has been (the review isn't built yet).
      */
     countryNotListed: z.string().trim().min(2).max(100).optional(),
+    /** Favorite translations (catalog IDs), in order; each must be one that can be a base. */
+    favoriteTranslations: CatalogIds.optional(),
+    /** The order of the rest (the ones not favored), as far as the person has set it. */
+    otherTranslations: CatalogIds.optional(),
+    favoritesOnly: z.boolean().optional(),
   })
   .strict();
 
@@ -71,6 +79,9 @@ export interface AccountView {
   ageBracket: string | null;
   /** What they wrote when their country wasn't listed, until it's reviewed; only they see it. */
   countryClaim: string | null;
+  favoriteTranslations: string[];
+  otherTranslations: string[];
+  favoritesOnly: boolean;
 }
 
 const view = (u: User, claim: string | null): AccountView => ({
@@ -84,6 +95,9 @@ const view = (u: User, claim: string | null): AccountView => ({
   gender: u.gender,
   ageBracket: u.ageBracket,
   countryClaim: claim,
+  favoriteTranslations: u.favoriteTranslations,
+  otherTranslations: u.otherTranslations,
+  favoritesOnly: u.favoritesOnly,
 });
 
 /** The signed-in user's account. Errors come back as codes; the UI words them. */
@@ -127,6 +141,15 @@ export class AccountController {
       throw new BadRequestException({ code: "country-invalid" });
     if (body.country != null && body.countryNotListed !== undefined)
       throw new BadRequestException({ code: "country-invalid" });
+    for (const ids of [body.favoriteTranslations, body.otherTranslations]) {
+      if (ids && !(await this.areBases(ids)))
+        throw new BadRequestException({ code: "translations-invalid" });
+    }
+    if (
+      body.favoriteTranslations &&
+      body.otherTranslations?.some((id) => body.favoriteTranslations?.includes(id))
+    )
+      throw new BadRequestException({ code: "translations-invalid" });
     try {
       const [updated] = await this.db
         .update(user)
@@ -136,6 +159,13 @@ export class AccountController {
           ...(body.canon !== undefined ? { canon: body.canon } : {}),
           ...(body.gender !== undefined ? { gender: body.gender } : {}),
           ...(body.ageBracket !== undefined ? { ageBracket: body.ageBracket } : {}),
+          ...(body.favoriteTranslations !== undefined
+            ? { favoriteTranslations: body.favoriteTranslations }
+            : {}),
+          ...(body.otherTranslations !== undefined
+            ? { otherTranslations: body.otherTranslations }
+            : {}),
+          ...(body.favoritesOnly !== undefined ? { favoritesOnly: body.favoritesOnly } : {}),
           // Saying the country isn't listed clears the one set; choosing one drops the claim.
           ...(body.country !== undefined ? { country: body.country } : {}),
           ...(body.countryNotListed !== undefined ? { country: null } : {}),
@@ -160,6 +190,16 @@ export class AccountController {
       if (isUniqueViolation(e)) throw new ConflictException({ code: "handle-taken" });
       throw e;
     }
+  }
+
+  /** True when every ID is a loaded translation that can be a base, with none repeated. */
+  private async areBases(ids: string[]): Promise<boolean> {
+    if (new Set(ids).size !== ids.length) return false;
+    const rows = await this.db
+      .select({ id: translation.catalogId, license: translation.licenseKey })
+      .from(translation);
+    const bases = new Set(rows.filter((r) => canBeBase(r.license)).map((r) => r.id));
+    return ids.every((id) => bases.has(id));
   }
 
   /** What the person wrote when their country wasn't listed, while it's waiting for review. */

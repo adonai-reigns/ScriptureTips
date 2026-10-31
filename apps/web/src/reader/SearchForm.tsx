@@ -1,5 +1,7 @@
 import { getTranslations } from "next-intl/server";
+import { currentAccount } from "../account/api.ts";
 import { myCompilations } from "../compilations/api.ts";
+import { defaultTranslation, translationOptions } from "../translations/menu.ts";
 import { translations } from "./api.ts";
 
 /**
@@ -14,12 +16,19 @@ export async function SearchForm({
   reference?: string;
 }) {
   const t = await getTranslations("search");
-  const [list, mine] = await Promise.all([translations().catch(() => []), myCompilations()]);
+  const [catalog, mine, account] = await Promise.all([
+    translations().catch(() => []),
+    myCompilations(),
+    currentAccount(),
+  ]);
+  const start = translation ?? defaultTranslation(catalog, account, "leb");
+  // This form works without scripts, so it has no "show all": only favorites, and what's chosen.
+  const list = translationOptions(catalog, account, [start]).filter((tr) => !tr.more);
   return (
     <form className="search" action="/read" method="get">
       <label>
         <span>{t("translation")}</span>
-        <select name="t" defaultValue={translation ?? "leb"}>
+        <select name="t" defaultValue={start}>
           {mine.length > 0 ? (
             <optgroup label={t("yourCompilations")}>
               {mine.map((c) => (
@@ -32,7 +41,7 @@ export async function SearchForm({
           <optgroup label={t("translations")}>
             {list.map((tr) => (
               <option key={tr.id} value={tr.id}>
-                {tr.abbreviation}: {tr.name}
+                {tr.label}
               </option>
             ))}
           </optgroup>

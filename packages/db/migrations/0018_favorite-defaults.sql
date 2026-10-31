@@ -1,0 +1,1 @@
+ALTER TABLE "user" ALTER COLUMN "favorite_translations" SET DEFAULT '{leb,engnet,enggnv,eng-kjv,engylt}';

@@ -4,13 +4,12 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useMoreTranslations } from "../translations/MoreTranslations.tsx";
+import type { TranslationOption } from "../translations/menu.ts";
 import { errorCode, useErrorText } from "./errors.ts";
 
 /** A translation a book or chapter can be taken from. */
-export interface BookSourceChoice {
-  id: string;
-  label: string;
-}
+export type BookSourceChoice = TranslationOption;
 
 /** A translation menu's content: what it changes, and how it asks first. */
 export interface SourceMenuSpec {
@@ -76,7 +75,9 @@ export function SourceMenu({
   sources: BookSourceChoice[];
 }) {
   const t = useTranslations("bookTabs");
+  const tSearch = useTranslations("search");
   const errorText = useErrorText();
+  const list = useMoreTranslations(sources, current ? [current] : []);
   const [open, setOpen] = useState(false);
   // Where the open menu sits, against the window: it stays out of the book columns, which would
   // otherwise re-balance around it.
@@ -183,7 +184,7 @@ export function SourceMenu({
               aria-label={heading}
             >
               <p className="book-menu-heading">{heading}</p>
-              {sources.map((s) => (
+              {list.shown.map((s) => (
                 <button
                   key={s.id}
                   type="button"
@@ -195,6 +196,11 @@ export function SourceMenu({
                   {s.id === current ? <small> {t("current")}</small> : null}
                 </button>
               ))}
+              {list.hidden ? (
+                <button type="button" className="link-button" onClick={list.showAll}>
+                  {tSearch("showAll")}
+                </button>
+              ) : null}
               {error ? (
                 <p role="alert" className="error">
                   {errorText(error)}

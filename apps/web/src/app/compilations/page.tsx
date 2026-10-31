@@ -9,6 +9,7 @@ import { CompositionChart } from "../../compilations/Composition.tsx";
 import { NewCompilationForm } from "../../compilations/forms.tsx";
 import { ModalButton } from "../../compilations/ModalButton.tsx";
 import { translations } from "../../reader/api.ts";
+import { translationOptions } from "../../translations/menu.ts";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getTranslations("compilations"))("title") };
@@ -60,9 +61,10 @@ export default async function Compilations() {
       <div className="list-add">
         <ModalButton label={t("newButton")} title={t("new")} closeLabel={t("close")}>
           <NewCompilationForm
-            bases={all
-              .filter((tr) => canBeBase(tr.license))
-              .map((tr) => ({ id: tr.id, label: `${tr.abbreviation}: ${tr.name}` }))}
+            bases={translationOptions(
+              all.filter((tr) => canBeBase(tr.license)),
+              account,
+            )}
           />
         </ModalButton>
       </div>

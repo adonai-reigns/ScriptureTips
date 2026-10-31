@@ -17,6 +17,7 @@ import { PdfBuilds } from "../../../pdf-builds/PdfBuilds.tsx";
 import { myPublication, publicationPath } from "../../../publications/api.ts";
 import { books, translations } from "../../../reader/api.ts";
 import { arrangeBooks, readingOrder } from "../../../reader/books.ts";
+import { translationOptions } from "../../../translations/menu.ts";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -74,7 +75,7 @@ export default async function CompilationEditor({ params, searchParams }: Props)
     ...c.rules.map((r) => `r${r.id}:${r.source.id}`),
     ...c.verses.map((v) => `v${v.id}:${v.origin}:${v.source?.id ?? ""}`),
   ].join(",");
-  const sources = compilable.map((s) => ({ id: s.id, label: `${s.abbreviation}: ${s.name}` }));
+  const sources = translationOptions(compilable, account);
   const tabs = sections.map((section) => ({
     id: section.id,
     label: tr(`section.${section.id}`),
@@ -179,6 +180,7 @@ export default async function CompilationEditor({ params, searchParams }: Props)
           mode={mode}
           canon={account.canon}
           all={all}
+          preferences={account}
           read={read}
           study={study}
           books={

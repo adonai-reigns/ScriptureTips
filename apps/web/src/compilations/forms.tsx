@@ -6,6 +6,8 @@ import { type FormEvent, useRef, useState } from "react";
 import { useHydrated } from "../hydrated.ts";
 import type { PublishCheck } from "../publications/api.ts";
 import { PublishChecks } from "../publications/PublishChecks.tsx";
+import { useMoreTranslations } from "../translations/MoreTranslations.tsx";
+import type { TranslationOption } from "../translations/menu.ts";
 import type { NoteEdit } from "./api.ts";
 import { errorCode, useErrorText } from "./errors.ts";
 
@@ -54,9 +56,11 @@ function ErrorText({ code }: { code: string | null }) {
   ) : null;
 }
 
-export function NewCompilationForm({ bases }: { bases: Choice[] }) {
+export function NewCompilationForm({ bases }: { bases: TranslationOption[] }) {
   const t = useTranslations("compilations");
   const { error, busy, hydrated, run } = useSubmit();
+  const [base, setBase] = useState("");
+  const list = useMoreTranslations(bases, [base]);
   const submit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
@@ -85,13 +89,21 @@ export function NewCompilationForm({ bases }: { bases: Choice[] }) {
       </label>
       <label>
         <span>{t("base")}</span>
-        <select name="base" required defaultValue="">
+        <select
+          name="base"
+          required
+          value={base}
+          onChange={(e) => {
+            if (!list.intercept(e.target.value)) setBase(e.target.value);
+          }}
+        >
           <option value="" disabled />
-          {bases.map((b) => (
+          {list.shown.map((b) => (
             <option key={b.id} value={b.id}>
               {b.label}
             </option>
           ))}
+          {list.moreOption}
         </select>
         <small>{t("baseHelp")}</small>
       </label>

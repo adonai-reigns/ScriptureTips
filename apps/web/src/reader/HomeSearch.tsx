@@ -3,14 +3,13 @@
 import { getSearch } from "@scripturetips/search";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
+import { useMoreTranslations } from "../translations/MoreTranslations.tsx";
+import type { TranslationOption } from "../translations/menu.ts";
 
 /** The home page's search: its own instance of the core search, which an integration can address. */
 export const HOME_SEARCH = "home";
 
-export interface HomeOption {
-  readonly id: string;
-  readonly label: string;
-}
+export type HomeOption = TranslationOption;
 
 /**
  * The home page's search: a translation, and the core search field (a passage, words or a
@@ -42,6 +41,7 @@ export function HomeSearch({
   const id = useId();
   const [translation, setTranslation] = useState(initial);
   const catalog = translations.some((t) => t.id === translation);
+  const list = useMoreTranslations(translations, [translation]);
 
   // Why there are two fields: <st-search-input> is a web component, so it only exists once the
   // page's scripts have loaded, and the field would pop in late. A plain field, written into the
@@ -108,7 +108,9 @@ export function HomeSearch({
             name="t"
             form={`${id}-fallback`}
             value={translation}
-            onChange={(e) => setTranslation(e.target.value)}
+            onChange={(e) => {
+              if (!list.intercept(e.target.value)) setTranslation(e.target.value);
+            }}
           >
             {compilations.length > 0 ? (
               <optgroup label={labels.yours}>
@@ -120,11 +122,12 @@ export function HomeSearch({
               </optgroup>
             ) : null}
             <optgroup label={labels.all}>
-              {translations.map((tr) => (
+              {list.shown.map((tr) => (
                 <option key={tr.id} value={tr.id}>
                   {tr.label}
                 </option>
               ))}
+              {list.moreOption}
             </optgroup>
           </select>
         </label>

@@ -13,6 +13,7 @@ import { StudyMenu } from "../study/StudyMenu.tsx";
 import { StudyProvider } from "../study/StudyProvider.tsx";
 import { StudySelection } from "../study/StudySelection.tsx";
 import { strongsIn } from "../study/units.ts";
+import { type MenuPreferences, translationOptions } from "../translations/menu.ts";
 import { type Compilation, compareView } from "./api.ts";
 import { CompareChoice } from "./CompareChoice.tsx";
 import { CompareGrid } from "./CompareGrid.tsx";
@@ -57,6 +58,7 @@ export async function ReadingArea({
   mode,
   canon,
   all,
+  preferences = null,
   books,
   read,
   study = false,
@@ -72,6 +74,8 @@ export async function ReadingArea({
   canon: CanonId | null;
   /** Every translation, for the comparison columns. */
   all: Translation[];
+  /** The viewer's favorite translations, for the order and "only favorites" in menus. */
+  preferences?: MenuPreferences | null;
   /** The book tabs, opened from the book's name on a phone while comparing or editing. */
   books?: React.ReactNode;
   /** In read mode, the translation read instead of the compilation (catalog ID), if any. */
@@ -93,7 +97,8 @@ export async function ReadingArea({
     if (!columnIds.includes(x.id)) columnIds.push(x.id);
   }
 
-  const options = others.map((x) => ({ id: x.id, label: `${x.abbreviation}: ${x.name}` }));
+  const options = translationOptions(others, preferences, columnIds);
+  const abbreviations = new Map(all.map((x) => [x.id, x.abbreviation]));
   let body: React.ReactNode;
   if (mode === "read") {
     const result = await passage(read ?? c.id, ref);
@@ -138,9 +143,10 @@ export async function ReadingArea({
         options={options}
         sourceNames={Object.fromEntries(all.map((x) => [x.id, x.abbreviation]))}
         chapterOsis={`${osis}.${chapter}`}
-        sources={all
-          .filter((x) => canCompile(x.license))
-          .map((x) => ({ id: x.id, label: `${x.abbreviation}: ${x.name}` }))}
+        sources={translationOptions(
+          all.filter((x) => canCompile(x.license)),
+          preferences,
+        )}
       />
     ) : null;
     body = !grid ? (
@@ -200,11 +206,10 @@ export async function ReadingArea({
                   label: `${c.abbreviation}: ${c.title}`,
                   href: readingHref(osis, chapter, "read"),
                 },
-                ...all.map((x) => ({
-                  id: x.id,
-                  abbreviation: x.abbreviation,
-                  label: `${x.abbreviation}: ${x.name}`,
-                  href: readingHref(osis, chapter, "read", x.id),
+                ...translationOptions(all, preferences, read ? [read] : []).map((o) => ({
+                  ...o,
+                  abbreviation: abbreviations.get(o.id) ?? o.id,
+                  href: readingHref(osis, chapter, "read", o.id),
                 })),
               ]}
             />
