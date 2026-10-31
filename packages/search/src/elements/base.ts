@@ -17,6 +17,7 @@ export abstract class SearchElement extends LitElement {
     kinds: { type: String },
     translations: { type: String },
     limit: { type: Number },
+    previewLength: { type: Number, attribute: "preview-length" },
     endpoint: { type: String },
   };
 
@@ -24,6 +25,7 @@ export abstract class SearchElement extends LitElement {
   declare kinds: string | undefined;
   declare translations: string | undefined;
   declare limit: number | undefined;
+  declare previewLength: number | undefined;
   declare endpoint: string | undefined;
 
   /** The instance this element draws; set while it's connected. */
@@ -48,7 +50,9 @@ export abstract class SearchElement extends LitElement {
   protected override willUpdate(changed: PropertyValues): void {
     if (!this.isConnected) return;
     if (changed.has("instance") && this.engine?.name !== this.instance) this.attach();
-    else if (["kinds", "translations", "limit", "endpoint"].some((k) => changed.has(k)))
+    else if (
+      ["kinds", "translations", "limit", "previewLength", "endpoint"].some((k) => changed.has(k))
+    )
       this.applyScope();
   }
 
@@ -79,10 +83,17 @@ export abstract class SearchElement extends LitElement {
   /** The instance's scope from this element's attributes, where it sets any. */
   private applyScope(): void {
     if (!this.engine) return;
-    const scope: { kinds?: string[]; translations?: string[]; limit?: number } = {};
+    const scope: {
+      kinds?: string[];
+      translations?: string[];
+      limit?: number;
+      previewLength?: number;
+    } = {};
     if (this.kinds) scope.kinds = words(this.kinds);
     if (this.translations) scope.translations = words(this.translations);
     if (this.limit !== undefined && !Number.isNaN(this.limit)) scope.limit = this.limit;
+    if (this.previewLength !== undefined && !Number.isNaN(this.previewLength))
+      scope.previewLength = this.previewLength;
     const options: { -readonly [K in keyof SearchOptions]: SearchOptions[K] } = {};
     if (Object.keys(scope).length > 0) options.scope = scope;
     if (this.endpoint) options.endpoint = this.endpoint;

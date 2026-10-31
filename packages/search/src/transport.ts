@@ -7,6 +7,7 @@ export function queryString(query: string, scope: SearchScope): string {
   if (scope.translations && scope.translations.length > 0)
     params.set("translations", scope.translations.join(","));
   if (scope.limit !== undefined) params.set("limit", String(scope.limit));
+  if (scope.previewLength !== undefined) params.set("previewLength", String(scope.previewLength));
   return params.toString();
 }
 

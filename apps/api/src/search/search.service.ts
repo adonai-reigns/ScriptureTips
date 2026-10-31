@@ -25,6 +25,8 @@ export interface SearchParams {
   readonly translations: readonly string[] | null;
   /** The most results of each kind. */
   readonly limit: number;
+  /** How many characters of a passage a reference result's preview shows. */
+  readonly previewLength: number;
 }
 
 /** A passage the query names ("jn 3 16"), in the first translation searched. */
@@ -115,7 +117,11 @@ export class SearchService {
   }
 
   /** The passage the query names, if it names one, in the first translation searched. */
-  private async reference({ q, translations }: SearchParams): Promise<ReferenceResult[]> {
+  private async reference({
+    q,
+    translations,
+    previewLength,
+  }: SearchParams): Promise<ReferenceResult[]> {
     const id = translations?.[0] ?? (await this.translations.list())[0]?.id;
     if (!id) return [];
     const found = await this.translations.passage(id, q);
@@ -128,7 +134,7 @@ export class SearchService {
       translation: { id, abbreviation: found.translation.abbreviation },
       preview: clip(
         editableText((p.verses[0]?.content ?? []) as never).replace(/\u00b6\s*/g, ""),
-        160,
+        previewLength,
       ),
     }));
   }

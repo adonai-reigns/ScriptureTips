@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { shot } from "./support.ts";
+import { shot, signUp } from "./support.ts";
 
 test("the landing page offers translations and a passage box", async ({ page }) => {
   await page.goto("/");
@@ -30,10 +30,33 @@ test("the home page has its search field in the page itself, and it reads a pass
   await context.close();
 });
 
+test("signed in, the home page has no header links; the book opens the account page", async ({
+  page,
+}) => {
+  test.setTimeout(60_000);
+  await signUp(page);
+  await page.goto("/");
+  const header = page.locator(".site-header");
+  await expect(header.getByRole("link")).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Sign in" })).toHaveCount(0);
+  await page.getByRole("link", { name: "Your account" }).click();
+  await expect(page).toHaveURL(/\/account$/);
+});
+
+test("the home search opens with John 3:16 in the field, already searched", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("combobox", { name: "Passage or words" })).toHaveValue("John 3:16");
+  await expect(page.locator("st-search-results")).toContainText("John 3:16");
+  // The verse shows whole, not cut after a few lines (the search is asked for a longer preview).
+  await expect(page.locator("st-search-results")).toContainText("will have eternal life");
+});
+
 test("the home search lists verses with the words, narrowed to the translation chosen", async ({
   page,
 }) => {
   await page.goto("/");
+  // The search component has taken over from the stand-in field, and its scope follows the choice.
+  await expect(page.getByRole("combobox", { name: "Passage or words" })).toBeVisible();
   await page.getByRole("combobox", { name: "Translation" }).selectOption("eng-kjv");
   await page.getByRole("combobox", { name: "Passage or words" }).fill("Cain");
   await page.getByRole("button", { name: "Search", exact: true }).click();

@@ -37,6 +37,18 @@ body::before {
   background: var(--sky-legacy) url("/brand/clouds-and-birds.svg") no-repeat 15% 100% / cover;
 }
 
+/*
+ * On a tall, narrow screen `cover` scales the picture to the screen's height, and the picture's top
+ * is plain grey sky, which shows above the page's panel. Scaled up from the bottom edge instead,
+ * its grey top is cropped away and the clouds (and a bird) reach up behind the header.
+ */
+@media (max-aspect-ratio: 1 / 1) {
+  body::before {
+    background-size: auto 145%;
+    background-position: 0% 100%;
+  }
+}
+
 a {
   color: var(--deep);
 }
@@ -69,6 +81,70 @@ a {
 /* With the account link, pushed to the right side of the header. */
 .compilations-link {
   margin-left: auto;
+}
+
+/*
+ * The home page's header is empty (it only takes up space, below): no logo, no Sign in (that's a
+ * button at the foot of the page), no account or Compilations links (the book above the title
+ * opens the account page).
+ */
+body:has(.landing) .site-header > * {
+  display: none;
+}
+
+.landing-logo {
+  display: inline-block;
+  cursor: default;
+  border-radius: 0.5rem;
+}
+
+body:has(.landing) .site-header {
+  justify-content: flex-end;
+}
+
+/*
+ * The home page's panel sits at the golden ratio of the window: the space the panel leaves over is
+ * shared between the header above it (38.2%) and the footer below (61.8%), so the panel's top is
+ * about a third of the way down, and it's pushed down no further than the page has room for.
+ */
+body:has(.landing) {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+body:has(.landing) .site-header {
+  flex: 38.2 1 auto;
+  align-items: flex-start;
+}
+
+body:has(.landing) main {
+  flex: none;
+  /* A margin each side, so the artwork shows around the panel on a phone too. */
+  width: calc(100% - 2rem);
+  box-sizing: border-box;
+}
+
+body:has(.landing) .site-footer {
+  flex: 61.8 1 auto;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.landing-signin {
+  margin: 2rem 0 0;
+  text-align: center;
+}
+
+.landing-signin a {
+  display: inline-block;
+  padding: 0.6rem 2rem;
+  font-weight: 600;
+  color: #fff;
+  text-decoration: none;
+  background: var(--deep);
+  border-radius: 0.4rem;
 }
 
 .brand {
@@ -781,6 +857,60 @@ main:has(> .compilation) {
     border-radius: 0;
     padding: 1.25rem 1rem 2.5rem;
   }
+
+  /* The home page's panel keeps its margins and rounded corners. */
+  body:has(.landing) main {
+    margin: 0 auto;
+    border-radius: 0.75rem;
+  }
+
+  /* On a phone the form is stacked and centered: the translation, then the field with its button
+     under it (on a wider screen they're in one row). */
+  .home-search .search {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .home-search .search label {
+    align-items: center;
+  }
+
+  .home-search .search-ref {
+    flex: none;
+    width: 100%;
+  }
+
+  /* The Search button goes centered under the field (the stand-in field's, and the
+     component's own, through its parts), and a rule sets Sign in apart from the form. */
+  .home-search .search .home-fallback {
+    flex-wrap: wrap;
+    justify-content: center;
+    /* The button's space above matches its space below (down to the rule over Sign in). */
+    row-gap: 1.5rem;
+  }
+
+  .home-search .search .home-fallback input,
+  .home-search st-search-input::part(input) {
+    flex: 1 0 100%;
+  }
+
+  .home-search .search .home-fallback button,
+  .home-search st-search-input::part(button) {
+    padding: 0.5rem 2.5rem;
+  }
+
+  .home-search st-search-input::part(form) {
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 1.5rem;
+  }
+
+  .landing-signin {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--rule);
+  }
 }
 
 /* Landing */
@@ -849,6 +979,12 @@ main:has(> .compilation) {
 /* The home page's search: the translation and the field in a row, the results under them. */
 .home-search .search {
   margin-bottom: 1rem;
+}
+
+/* The search component's field is the panel's cream by default; on the home page it's white, like
+   the translation select and the stand-in field. */
+.home-search st-search-input {
+  --st-search-background: #fff;
 }
 
 /* Stands in for the search field until its script has loaded: the same look. */

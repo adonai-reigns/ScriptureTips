@@ -33,7 +33,11 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                 {t("compilations")}
               </a>
             ) : null}
-            <a href={account ? "/account" : "/sign-in"} className="account-link">
+            <a
+              href={account ? "/account" : "/sign-in"}
+              // Signed out, the home page shows its own Sign in button instead (see globals.css).
+              className={`account-link${account ? "" : " sign-in-link"}`}
+            >
               {account ? (account.handle ? `@${account.handle}` : ta("yourAccount")) : ta("signIn")}
             </a>
           </header>

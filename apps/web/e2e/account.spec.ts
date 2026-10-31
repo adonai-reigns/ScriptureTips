@@ -44,9 +44,9 @@ test("vision §11: sign in with an emailed code, choose a handle and canon, sign
   await page.goto("/read/eng-web/john/1");
   await expect(page.locator(".canon-note")).toHaveCount(0);
   await page.goto("/read/eng-web");
-  await expect(
-    page.getByRole("region", { name: "Additional writings" }).getByText("Tobit", { exact: true }),
-  ).toBeVisible();
+  // The books are tabs by section: Tobit is under Additional writings in the Protestant canon.
+  await page.getByRole("tab", { name: "Additional writings" }).click();
+  await expect(page.getByRole("link", { name: /^Tobit/ })).toBeVisible();
   await page.goto("/read/eng-web/malachi/4");
   await expect(page.getByRole("link", { name: "Next: Matthew 1" })).toBeVisible();
 
@@ -55,7 +55,8 @@ test("vision §11: sign in with an emailed code, choose a handle and canon, sign
   await page.waitForLoadState("networkidle");
 
   await page.getByRole("button", { name: "Sign out" }).click();
-  await expect(page.getByRole("link", { name: "Sign in" })).toBeVisible();
+  // Back at the home page, whose own Sign in button is in the main content.
+  await expect(page.getByRole("main").getByRole("link", { name: "Sign in" })).toBeVisible();
 });
 
 test("a wrong code is answered in words", async ({ page }) => {

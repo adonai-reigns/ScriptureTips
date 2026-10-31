@@ -197,6 +197,15 @@ describe("vision §3.14: reference lookup", () => {
     expect(body.results[0].preview).toContain("For God so loved the world");
   });
 
+  it("cuts the preview at the length asked for, at a word, and shows more when allowed", async () => {
+    const short = await find("q=jn%203:16&kinds=reference&translations=kjv&previewLength=30");
+    expect(short.body.results[0].preview).toBe("For God so loved the world,…");
+    const whole = await find("q=jn%203:16&kinds=reference&translations=kjv&previewLength=500");
+    expect(whole.body.results[0].preview).toBe(
+      "For God so loved the world, that he gave his only begotten Son",
+    );
+  });
+
   it("finds nothing in a query that isn't a reference", async () => {
     expect((await find("q=so%20loved&kinds=reference")).body.results).toEqual([]);
   });

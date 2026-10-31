@@ -11,7 +11,7 @@ import "@scripturetips/search/elements"; // registers <st-search-input>, <st-sea
 
 A search is a named **instance** (`SearchEngine`, `getSearch(name)`): its query, scope, state and events. Any number can be on a page, each with its own scope (the official site's translations and notes; a user's notes alone with no scripture). They live in a registry on `globalThis`, so a page script and the elements share one even from separate bundles, and the elements add `ScriptureTipsSearch` to the page (`ScriptureTipsSearch.get("main")`).
 
-- **Scope** (`SearchScope`): `kinds` (`reference`, `text`, `original`; others are named in the answer's `unavailable` until the server searches them), `translations` (catalog IDs), `limit`. Set with `configureSearch(name, { scope })` or the elements' attributes.
+- **Scope** (`SearchScope`): `kinds` (`reference`, `text`, `original`; others are named in the answer's `unavailable` until the server searches them), `translations` (catalog IDs), `limit`, `previewLength` (how many characters of a passage a reference result's preview shows before it's cut at a word and ended with "…"; 160 if left out). Set with `configureSearch(name, { scope })` or the elements' attributes.
 - **Driving it:** `setQuery(text, { search?: true })` sets the words (events `type` with `source: "api"`), `doSearch(text?)` searches, `suggest()`, `select(id)`, `clear()`, `configure()`.
 - **Subscribing:** `onType`, `onSuggest`, `onSearch`, `onResults`, `onResultsSelect`, `onError` (each returns its unsubscribe), `on(name, fn)`, and `subscribe(fn)` for every change of state. A subscriber that throws doesn't stop the others.
 - **Stale answers** are ignored and in-flight requests aborted when a newer search starts. Typing asks for suggestions once it pauses (`debounceMs`).
@@ -24,7 +24,7 @@ They bind to an instance by the `instance` attribute ("default" without one), so
 - `<st-search-input>`: the field, with suggestions (a combobox with a listbox: arrows, Enter, Escape). `size="large"`, `placeholder`, `hide-button`.
 - `<st-search-results>`: the results as a list grouped by kind, and the status. Picking one calls `select`. Content in `slot="idle"` shows before a search.
 - `<st-search>`: both together.
-- All take `instance`, `kinds`, `translations`, `limit`, `endpoint`. They re-dispatch the engine's events as DOM events (`st-type`, `st-suggest`, `st-search`, `st-results`, `st-select`, `st-error`; bubbling, composed) for plain markup.
+- All take `instance`, `kinds`, `translations`, `limit`, `preview-length`, `endpoint`. They re-dispatch the engine's events as DOM events (`st-type`, `st-suggest`, `st-search`, `st-results`, `st-select`, `st-error`; bubbling, composed) for plain markup.
 - Theming: CSS custom properties (`--st-search-accent`, `--st-search-ink`, `--st-search-muted`, `--st-search-rule`, `--st-search-background`, `--st-search-hit`, `--st-search-radius`; they fall back to the app's `--deep`, `--ink`, `--muted`, `--rule`, `--paper`) and `part`s (`input`, `button`, `result`, `snippet`, `hit` …; `<st-search>` exports them).
 - Words are in `Strings` (en-NZ); replace any per instance with `configure({ strings })`.
 

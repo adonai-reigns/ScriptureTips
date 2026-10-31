@@ -31,6 +31,8 @@ export function HomeSearch({
     translation: string;
     field: string;
     placeholder: string;
+    /** What the field starts with (and the first search is for). */
+    initial: string;
     button: string;
     yours: string;
     all: string;
@@ -54,7 +56,10 @@ export function HomeSearch({
       .then(() => {
         const typed = fallback.current?.value ?? "";
         const focused = document.activeElement === fallback.current;
-        if (typed) getSearch(HOME_SEARCH).setQuery(typed);
+        // The page opens with its example already searched, so the results show what to expect;
+        // anything else typed before the component was ready is kept, and left for the visitor.
+        if (typed)
+          getSearch(HOME_SEARCH).setQuery(typed, typed === labels.initial ? { search: true } : {});
         setReady(true);
         if (focused)
           requestAnimationFrame(() =>
@@ -64,7 +69,7 @@ export function HomeSearch({
               ?.focus(),
           );
       });
-  }, []);
+  }, [labels.initial]);
 
   // The search's scope follows the translation.
   useEffect(() => {
@@ -73,6 +78,8 @@ export function HomeSearch({
         kinds: ["reference", "text", "original"],
         translations: catalog ? [translation] : [],
         limit: 10,
+        // The example verse shows whole, not cut after a few lines.
+        previewLength: 600,
       },
       strings: { label: labels.field, placeholder: labels.placeholder, search: labels.button },
     });
@@ -130,6 +137,7 @@ export function HomeSearch({
                 ref={fallback}
                 name="ref"
                 aria-label={labels.field}
+                defaultValue={labels.initial}
                 placeholder={labels.placeholder}
                 maxLength={200}
                 required

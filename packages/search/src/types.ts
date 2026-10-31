@@ -11,6 +11,11 @@ export interface SearchScope {
   readonly translations?: readonly string[];
   /** The most results of each kind. */
   readonly limit?: number;
+  /**
+   * How many characters of a passage a reference result's preview shows before it's cut at a
+   * word and ended with "…". The server's own (160) when left out.
+   */
+  readonly previewLength?: number;
 }
 
 /** A passage the query names ("jn 3 16"). */

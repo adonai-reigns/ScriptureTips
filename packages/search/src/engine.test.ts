@@ -249,13 +249,19 @@ describe("the registry", () => {
 describe("the API transport", () => {
   it("puts the words and the scope in the address", () => {
     const params = new URLSearchParams(
-      queryString("jn 3:16", { kinds: ["reference", "text"], translations: ["kjv"], limit: 5 }),
+      queryString("jn 3:16", {
+        kinds: ["reference", "text"],
+        translations: ["kjv"],
+        limit: 5,
+        previewLength: 400,
+      }),
     );
     expect(Object.fromEntries(params)).toEqual({
       q: "jn 3:16",
       kinds: "reference,text",
       translations: "kjv",
       limit: "5",
+      previewLength: "400",
     });
     expect(queryString("love", {})).toBe("q=love");
   });

@@ -19,6 +19,8 @@ const Params = z.object({
   /** Which translations to search (catalog IDs); all if left out. */
   translations: List(/^[A-Za-z0-9_-]{1,40}$/),
   limit: z.coerce.number().int().min(1).max(50).default(10),
+  /** How many characters of a passage a reference result's preview shows, before it's cut. */
+  previewLength: z.coerce.number().int().min(20).max(2000).default(160),
 });
 
 type Parsed = z.infer<typeof Params>;
@@ -50,6 +52,7 @@ export class SearchController {
       kinds: known,
       translations: p.translations ?? null,
       limit: p.limit,
+      previewLength: p.previewLength,
     });
     return { ...found, unavailable: unknown };
   }
