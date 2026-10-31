@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Start or stop the local development stack (testing.md §2): ./dev up, ./dev down, ./dev logs.
+# Start or stop the local development stack (testing.md §2): ./dev up, ./dev down, ./dev logs,
+# ./dev migrate (applies pending database migrations to the development database).
 # `./dev up --lan` also serves the web app to the local network (to try it on a phone or
 # tablet); the API and database stay on localhost. Runs on the host, since Docker isn't
 # available inside the toolbox.
@@ -51,8 +52,9 @@ case "${1:-}" in
     ;;
   down) exec docker compose --profile dev stop ;;
   logs) exec docker compose --profile dev logs -f "${@:2}" ;;
+  migrate) exec ./toolbox pnpm --filter @scripturetips/db migrate ;;
   *)
-    echo "Usage: ./dev up [--lan] | down | logs [service]" >&2
+    echo "Usage: ./dev up [--lan] | down | logs [service] | migrate" >&2
     exit 1
     ;;
 esac
