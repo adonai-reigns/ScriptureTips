@@ -1,0 +1,27 @@
+200 https://raw.githubusercontent.com/STEPBible/STEPBible-Data/be4191f0082aeedddb0eff0c02c966292b2bd641/Translators%20Amalgamated%20OT%2BNT/TAGNT%20Mat-Jhn%20-%20Translators%20Amalgamated%20Greek%20NT%20-%20STEPBible.org%20CC-BY.txt
+accept-ranges: bytes
+access-control-allow-origin: *
+cache-control: max-age=300
+connection: keep-alive
+content-encoding: gzip
+content-length: 2961478
+content-security-policy: default-src 'none'; style-src 'unsafe-inline'; sandbox
+content-type: text/plain; charset=utf-8
+cross-origin-resource-policy: cross-origin
+date: Sat, 31 Oct 2026 00:25:55 GMT
+etag: W/"d6f7fc973f88cbf423a639c5e6b9a3082f6418940be3af9951699343c8238056"
+expires: Sat, 31 Oct 2026 00:30:55 GMT
+source-age: 1
+strict-transport-security: max-age=31536000
+vary: Authorization,Accept-Encoding
+via: 1.1 varnish
+x-cache: MISS
+x-cache-hits: 0
+x-content-type-options: nosniff
+x-fastly-request-id: 9eee0302e6819546e71ad9bd13b5520f0843ce2b
+x-frame-options: deny
+x-github-edge-region: australiaeast
+x-github-request-id: 8166:8C5F7:4075C:8C954:6AE5358E
+x-served-by: cache-akl10321-AKL
+x-timer: S1793406354.784964,VS0,VE1513
+x-xss-protection: 1; mode=block

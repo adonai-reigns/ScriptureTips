@@ -1,0 +1,27 @@
+200 https://raw.githubusercontent.com/STEPBible/STEPBible-Data/be4191f0082aeedddb0eff0c02c966292b2bd641/Translators%20Amalgamated%20OT%2BNT/TAHOT%20Jos-Est%20-%20Translators%20Amalgamated%20Hebrew%20OT%20-%20STEPBible.org%20CC%20BY.txt
+accept-ranges: bytes
+access-control-allow-origin: *
+cache-control: max-age=300
+connection: keep-alive
+content-encoding: gzip
+content-length: 5466794
+content-security-policy: default-src 'none'; style-src 'unsafe-inline'; sandbox
+content-type: text/plain; charset=utf-8
+cross-origin-resource-policy: cross-origin
+date: Sat, 31 Oct 2026 00:25:49 GMT
+etag: W/"e101c4589a9aa9c08d7b5a247037c0f2bf1bba1d32f8702f0b0ee6f26ef246ac"
+expires: Sat, 31 Oct 2026 00:30:49 GMT
+source-age: 3
+strict-transport-security: max-age=31536000
+vary: Authorization,Accept-Encoding
+via: 1.1 varnish
+x-cache: MISS
+x-cache-hits: 0
+x-content-type-options: nosniff
+x-fastly-request-id: d086d582e6fa02e6f269e1340618bb0f47be2395
+x-frame-options: deny
+x-github-edge-region: australiaeast
+x-github-request-id: 45CC:37971B:4079E:8C94B:6AE5358A
+x-served-by: cache-akl10321-AKL
+x-timer: S1793406347.991349,VS0,VE2998
+x-xss-protection: 1; mode=block

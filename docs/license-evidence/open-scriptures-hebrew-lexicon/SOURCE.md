@@ -1,7 +1,7 @@
 # OSHB Hebrew Lexicon (Strong's and BDB): license evidence
 
 **Verdict:** Ready. The dictionary text is public domain; the files are CC BY 4.0, crediting the Open Scriptures Hebrew Bible Project.
-**Evidence gathered:** 2026-10-29 (NZ time). Obtained for glosses on the PDF engine trial's Hebrew interlinear page (book-designer.md §9); only `HebrewStrong.xml` so far. Assessed in [sources.md](../../sources.md) §6.
+**Evidence gathered:** 2026-10-29 (NZ time). Obtained for glosses on the PDF engine trial's Hebrew interlinear page (book-designer.md §9); `HebrewStrong.xml` first; on 2026-10-31 also `BrownDriverBriggs.xml` and `LexicalIndex.xml`, for the original-language data import (domain-model §2.4). Assessed in [sources.md](../../sources.md) §6.
 
 ## License as stated by the rights holder
 
@@ -35,3 +35,14 @@ Pinned to commit **`21c9add13bc727d3a951361778e97e3ff7afd1ce`** (2019-09-02, the
 | `download-headers-2026-10-29/` | HTTP response headers of each download |
 
 **To check for updates:** compare the latest commit with `21c9add`.
+
+## Obtained 2026-10-31: BDB and the lexical index
+
+From the same pinned commit (`21c9add`, still the latest), downloaded to `source-texts/open-scriptures-hebrew-lexicon/` from raw.githubusercontent.com. The terms are the readme's above (BDB's text public domain; files CC BY 4.0, credit the Open Scriptures Hebrew Bible Project). `LexicalIndex.xml` links each Strong's number to its BDB entry (and a TWOT number as a reference only: use none of the TWOT text).
+
+| File | Bytes | SHA-256 |
+|---|---|---|
+| `BrownDriverBriggs.xml` | 2,911,253 | `2b52658a4323d91674cda4090ab8b3ebddfff640f4f18143c28300e80b2c38f8` |
+| `LexicalIndex.xml` | 1,782,592 | `8f7a605c58899d2f44430149c143c00903976e1e91232476677972a69e5bc85f` |
+
+Download record: `open-scriptures-hebrew-lexicon-download-record-2026-10-31.json`; headers: `download-headers-2026-10-31/`.

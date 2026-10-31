@@ -1,0 +1,27 @@
+200 https://raw.githubusercontent.com/openscriptures/HebrewLexicon/21c9add13bc727d3a951361778e97e3ff7afd1ce/BrownDriverBriggs.xml
+accept-ranges: bytes
+access-control-allow-origin: *
+cache-control: max-age=300
+connection: keep-alive
+content-encoding: gzip
+content-length: 563365
+content-security-policy: default-src 'none'; style-src 'unsafe-inline'; sandbox
+content-type: text/plain; charset=utf-8
+cross-origin-resource-policy: cross-origin
+date: Sat, 31 Oct 2026 00:26:09 GMT
+etag: W/"75b83a9e4fef5e9a2e3a60d44748c124c5e91457435c3f11e3d2a83852f53d79"
+expires: Sat, 31 Oct 2026 00:31:09 GMT
+source-age: 0
+strict-transport-security: max-age=31536000
+vary: Authorization,Accept-Encoding
+via: 1.1 varnish
+x-cache: MISS
+x-cache-hits: 0
+x-content-type-options: nosniff
+x-fastly-request-id: 3fd6aab05db7b8341d8df52c0eae6c0e36927693
+x-frame-options: deny
+x-github-edge-region: australiaeast
+x-github-request-id: 83BA:3BAB75:42070:8E1EB:6AE5359F
+x-served-by: cache-akl10329-AKL
+x-timer: S1793406369.637282,VS0,VE461
+x-xss-protection: 1; mode=block

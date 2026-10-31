@@ -1,0 +1,27 @@
+200 https://raw.githubusercontent.com/STEPBible/STEPBible-Data/be4191f0082aeedddb0eff0c02c966292b2bd641/Proper%20Nouns/TIPNR%20-%20Translators%20Individualised%20Proper%20Names%20with%20all%20References%20-%20STEPBible.org%20CC%20BY.txt
+accept-ranges: bytes
+access-control-allow-origin: *
+cache-control: max-age=300
+connection: keep-alive
+content-encoding: gzip
+content-length: 1958278
+content-security-policy: default-src 'none'; style-src 'unsafe-inline'; sandbox
+content-type: text/plain; charset=utf-8
+cross-origin-resource-policy: cross-origin
+date: Sat, 31 Oct 2026 00:25:58 GMT
+etag: W/"a22c8db296c09d88638028fdab6c55a116758d6730c56bedb2f9737b34fd5c1a"
+expires: Sat, 31 Oct 2026 00:30:58 GMT
+source-age: 1
+strict-transport-security: max-age=31536000
+vary: Authorization,Accept-Encoding
+via: 1.1 varnish
+x-cache: MISS
+x-cache-hits: 0
+x-content-type-options: nosniff
+x-fastly-request-id: 47f7c1cca539c63b28a4a94ddfbfc8b7a6520fae
+x-frame-options: deny
+x-github-edge-region: australiaeast
+x-github-request-id: F3D4:BC6F5:3E697:8A8F4:6AE53595
+x-served-by: cache-akl10321-AKL
+x-timer: S1793406357.388478,VS0,VE1590
+x-xss-protection: 1; mode=block

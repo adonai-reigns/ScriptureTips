@@ -1,0 +1,19 @@
+{
+  "source": "https://github.com/openscriptures/HebrewLexicon",
+  "commit": "21c9add13bc727d3a951361778e97e3ff7afd1ce",
+  "retrieved": "2026-10-31T09:00+13:00",
+  "files": [
+    {
+      "file": "BrownDriverBriggs.xml",
+      "url": "https://raw.githubusercontent.com/openscriptures/HebrewLexicon/21c9add13bc727d3a951361778e97e3ff7afd1ce/BrownDriverBriggs.xml",
+      "bytes": 2911253,
+      "sha256": "2b52658a4323d91674cda4090ab8b3ebddfff640f4f18143c28300e80b2c38f8"
+    },
+    {
+      "file": "LexicalIndex.xml",
+      "url": "https://raw.githubusercontent.com/openscriptures/HebrewLexicon/21c9add13bc727d3a951361778e97e3ff7afd1ce/LexicalIndex.xml",
+      "bytes": 1782592,
+      "sha256": "8f7a605c58899d2f44430149c143c00903976e1e91232476677972a69e5bc85f"
+    }
+  ]
+}

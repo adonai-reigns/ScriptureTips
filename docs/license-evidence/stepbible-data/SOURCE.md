@@ -1,6 +1,6 @@
 # STEPBible-Data: license evidence
 
-**Verdict:** Ready (CC BY 4.0), with attribution. Obtained so far: **TVTMS** (versification mappings, for the versification package) and the repository README. The other datasets aren't held yet, and the exclusions in [sources.md](../../sources.md) §6 still apply to them.
+**Verdict:** Ready (CC BY 4.0), with attribution. Obtained so far: **TVTMS** (versification mappings, for the versification package), the repository README, and (2026-10-31) **TAHOT**, **TAGNT**, **TIPNR** and the morphology code tables, for the original-language data import. The other datasets aren't held yet, and the exclusions in [sources.md](../../sources.md) §6 still apply to them.
 **Evidence gathered:** 2026-10-26 (NZ time).
 
 ## License as stated by the rights holder
@@ -52,3 +52,30 @@ The URLs (raw.githubusercontent.com at the pinned commit) are in `stepbible-data
 | `download-headers-2026-10-26/` | HTTP response headers of each download |
 
 **To check for updates:** compare the latest commit touching `Versification/` with `1f34217`. A newer TVTMS is a new import: download it at its commit, record new hashes, and re-read the license header rather than overwriting this record.
+
+## Obtained 2026-10-31: TAHOT, TAGNT, TIPNR and the morphology codes
+
+Same pinned commit as above (**`be4191f0082aeedddb0eff0c02c966292b2bd641`**, still the latest on 2026-10-31). Downloaded to `source-texts/stepbible-data/` from raw.githubusercontent.com for the original-language data import (domain-model §2.4, `tools/original-import`). Each file's own header carries the same CC BY 4.0 statement as TVTMS (quoted in full from `TAHOT`, `TAGNT` and `TIPNR`):
+
+> "Data created by www.STEPBible.org based on work at Tyndale House Cambridge (CC BY 4.0)" … "Include any part of this data in software or publications without requesting permission" … "Refer others to github.com/STEPBible as the source of the data. Please do not redistribute it yourself." (`TIPNR` adds: "…in software or publications **and send it to AI servers** without requesting permission".)
+
+What we take, and leave out (sources.md §6):
+- **TAHOT** (Hebrew OT, 4 files): every word with its extended Strong's, grammar and gloss. Based on the Leningrad codex, following the Qere; the Ketiv and other readings are variant rows.
+- **TAGNT** (Greek NT, 2 files): only words found in the SBLGNT, Byzantine or Textus Receptus (the `editions` column). **Not** taken: the Spanish translation and the "sub-meaning" columns (Marvel Bible Project/OpenGNT terms not cleared). The Greek spelling follows NA28 where it has the word (a copyrighted edition); this is recorded as an open item (sources.md §8).
+- **TIPNR** (proper names): its brief and short descriptions were "adapted from the output by Claude 3 Opus AI in April 2024"; kept with an `ai_generated` flag and to be disclosed wherever shown.
+- **TEHMC / TEGMC**: the expansions of the Hebrew and Greek morphology codes.
+- **Changes:** any correction we make is recorded in a change note, as the license asks.
+
+| File | Bytes | SHA-256 |
+|---|---|---|
+| `Translators Amalgamated OT+NT/TAHOT Gen-Deu - Translators Amalgamated Hebrew OT - STEPBible.org CC BY.txt` | 18,190,455 | `e9b8546ee48fe0bfc57c3b70f5f40e98d96580e803526d19026224e31753368b` |
+| `Translators Amalgamated OT+NT/TAHOT Jos-Est - Translators Amalgamated Hebrew OT - STEPBible.org CC BY.txt` | 24,500,317 | `195fee1dc3653bab33701f170734eb894ed647c10cd08cc61749375fe8b73775` |
+| `Translators Amalgamated OT+NT/TAHOT Job-Sng - Translators Amalgamated Hebrew OT - STEPBible.org CC BY.txt` | 9,540,623 | `bb508af3af07822fca84cc43a0eba79eb70eecf672aabc0245b8d8cecf329d96` |
+| `Translators Amalgamated OT+NT/TAHOT Isa-Mal - Translators Amalgamated Hebrew OT - STEPBible.org CC BY.txt` | 17,977,518 | `f3ded203d2a74d6368932c97ae550d1d0754b271af491dc0dedf36fe3ba0bcc5` |
+| `Translators Amalgamated OT+NT/TAGNT Mat-Jhn - Translators Amalgamated Greek NT - STEPBible.org CC-BY.txt` | 14,189,032 | `ab8eaaeb68e17a1dcfa34e1e9350358f22f03bc2a97244d848750ad81044bc8e` |
+| `Translators Amalgamated OT+NT/TAGNT Act-Rev - Translators Amalgamated Greek NT - STEPBible.org CC-BY.txt` | 15,939,932 | `524e32375361e6d3fa2f7ef00b87605fdc4317a762f395651a05fdc31ad031b7` |
+| `Proper Nouns/TIPNR - Translators Individualised Proper Names with all References - STEPBible.org CC BY.txt` | 8,202,454 | `d595b9163d32a400bb0ef96b27a6de58335a63da840b82531fe9f5e1d16a318c` |
+| `Morphology codes/TEHMC - Translators Expansion of Hebrew Morphology Codes - STEPBible.org CC BY.txt` | 394,580 | `78779bea824b31d4467dec0161d547481c86f266bc39def12cd11dc7dcbe6da7` |
+| `Morphology codes/TEGMC - Translators Expansion of Greek Morphhology Codes - STEPBible.org CC BY.txt` | 467,056 | `5f0416f7617019a6082285214903bde569a980d5fd3b88b8d7020d944e94de82` |
+
+Pages: `github-amalgamated-folder-2026-10-31`, `github-proper-nouns-folder-2026-10-31`, `github-morphology-folder-2026-10-31` (`.pdf`, `.html`, `.headers.txt`). Download record: `stepbible-data-download-record-2026-10-31.json`; headers: `download-headers-2026-10-31/`.

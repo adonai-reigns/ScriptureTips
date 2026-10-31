@@ -1,0 +1,27 @@
+200 https://raw.githubusercontent.com/openscriptures/HebrewLexicon/21c9add13bc727d3a951361778e97e3ff7afd1ce/LexicalIndex.xml
+accept-ranges: bytes
+access-control-allow-origin: *
+cache-control: max-age=300
+connection: keep-alive
+content-encoding: gzip
+content-length: 314403
+content-security-policy: default-src 'none'; style-src 'unsafe-inline'; sandbox
+content-type: text/plain; charset=utf-8
+cross-origin-resource-policy: cross-origin
+date: Sat, 31 Oct 2026 00:26:09 GMT
+etag: W/"537fd8d47457cfa2500fa6d297c8f88ef67ea083070b7ee1a57ada2dd3df2738"
+expires: Sat, 31 Oct 2026 00:31:09 GMT
+source-age: 0
+strict-transport-security: max-age=31536000
+vary: Authorization,Accept-Encoding
+via: 1.1 varnish
+x-cache: MISS
+x-cache-hits: 0
+x-content-type-options: nosniff
+x-fastly-request-id: 56e0bb203131f7d5d249a214e9e187bd66015791
+x-frame-options: deny
+x-github-edge-region: australiaeast
+x-github-request-id: 5590:26D1D4:3F0CF:8B30A:6AE535A1
+x-served-by: cache-akl10329-AKL
+x-timer: S1793406369.153200,VS0,VE372
+x-xss-protection: 1; mode=block

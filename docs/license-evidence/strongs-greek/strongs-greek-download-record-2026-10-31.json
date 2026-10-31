@@ -1,0 +1,19 @@
+{
+  "source": "https://github.com/openscriptures/strongs",
+  "commit": "0acd2f251c2d35ff8db2dece4e0593979d3ac223",
+  "retrieved": "2026-10-31T09:00+13:00",
+  "files": [
+    {
+      "file": "strongsgreek.xml",
+      "url": "https://raw.githubusercontent.com/openscriptures/strongs/0acd2f251c2d35ff8db2dece4e0593979d3ac223/greek/StrongsGreekDictionaryXML_1.4/strongsgreek.xml",
+      "bytes": 2636209,
+      "sha256": "df928f01b37632f8af9f16289ce58d10b958014cb5dbd1e1ea715a8d311a0625"
+    },
+    {
+      "file": "README.txt",
+      "url": "https://raw.githubusercontent.com/openscriptures/strongs/0acd2f251c2d35ff8db2dece4e0593979d3ac223/greek/StrongsGreekDictionaryXML_1.4/README.txt",
+      "bytes": 806,
+      "sha256": "d6184a7ee7543fb2d0e4e50aa2e6e5de81edddcf3bd3255304b60e8622a515fc"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "source": "https://github.com/translatable-exegetical-tools/Abbott-Smith",
+  "commit": "8c00cb244761aa23659421a8cbbbf7a3b27b7d59",
+  "retrieved": "2026-10-31T09:00+13:00",
+  "files": [
+    {
+      "file": "abbott-smith.tei.xml",
+      "url": "https://raw.githubusercontent.com/translatable-exegetical-tools/Abbott-Smith/8c00cb244761aa23659421a8cbbbf7a3b27b7d59/abbott-smith.tei.xml",
+      "bytes": 5698817,
+      "sha256": "99821bee411626b4aa3e674040297b54b267eff86cb4f9b7ef69a8bdb18b6f90"
+    },
+    {
+      "file": "README.md",
+      "url": "https://raw.githubusercontent.com/translatable-exegetical-tools/Abbott-Smith/8c00cb244761aa23659421a8cbbbf7a3b27b7d59/README.md",
+      "bytes": 4416,
+      "sha256": "8c67a8c904d8cbf2b66a9a6eaaed19cc5462b24edec3dc07ee689d30140f2c59"
+    }
+  ]
+}

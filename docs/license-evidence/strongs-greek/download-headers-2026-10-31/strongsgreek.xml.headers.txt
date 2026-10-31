@@ -1,0 +1,27 @@
+200 https://raw.githubusercontent.com/openscriptures/strongs/0acd2f251c2d35ff8db2dece4e0593979d3ac223/greek/StrongsGreekDictionaryXML_1.4/strongsgreek.xml
+accept-ranges: bytes
+access-control-allow-origin: *
+cache-control: max-age=300
+connection: keep-alive
+content-encoding: gzip
+content-length: 462376
+content-security-policy: default-src 'none'; style-src 'unsafe-inline'; sandbox
+content-type: text/plain; charset=utf-8
+cross-origin-resource-policy: cross-origin
+date: Sat, 31 Oct 2026 00:26:10 GMT
+etag: W/"beededd1dc5c76dd13a4c7361c724642bc18c0fdcf222c5767a6043d0c37e750"
+expires: Sat, 31 Oct 2026 00:31:10 GMT
+source-age: 0
+strict-transport-security: max-age=31536000
+vary: Authorization,Accept-Encoding
+via: 1.1 varnish
+x-cache: MISS
+x-cache-hits: 0
+x-content-type-options: nosniff
+x-fastly-request-id: 2f6a3688cc949d2148908e3b1d087e93796406db
+x-frame-options: deny
+x-github-edge-region: australiaeast
+x-github-request-id: F3D4:BC6F5:3E6FA:8A9BF:6AE535A1
+x-served-by: cache-akl10329-AKL
+x-timer: S1793406370.564156,VS0,VE457
+x-xss-protection: 1; mode=block

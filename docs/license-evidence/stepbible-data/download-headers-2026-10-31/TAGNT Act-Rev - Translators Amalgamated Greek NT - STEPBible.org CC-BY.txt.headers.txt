@@ -1,0 +1,27 @@
+200 https://raw.githubusercontent.com/STEPBible/STEPBible-Data/be4191f0082aeedddb0eff0c02c966292b2bd641/Translators%20Amalgamated%20OT%2BNT/TAGNT%20Act-Rev%20-%20Translators%20Amalgamated%20Greek%20NT%20-%20STEPBible.org%20CC-BY.txt
+accept-ranges: bytes
+access-control-allow-origin: *
+cache-control: max-age=300
+connection: keep-alive
+content-encoding: gzip
+content-length: 3430966
+content-security-policy: default-src 'none'; style-src 'unsafe-inline'; sandbox
+content-type: text/plain; charset=utf-8
+cross-origin-resource-policy: cross-origin
+date: Sat, 31 Oct 2026 00:25:57 GMT
+etag: W/"50e16b25bcb7716947315d9e7d9eea6fb924111dedd3cd13c553d9a6d64fbae5"
+expires: Sat, 31 Oct 2026 00:30:57 GMT
+source-age: 1
+strict-transport-security: max-age=31536000
+vary: Authorization,Accept-Encoding
+via: 1.1 varnish
+x-cache: MISS
+x-cache-hits: 0
+x-content-type-options: nosniff
+x-fastly-request-id: 085a7b0aa89fa70e61a61d05d063e6d1eb44e0b4
+x-frame-options: deny
+x-github-edge-region: australiaeast
+x-github-request-id: 48DA:15A94C:3F7D6:8B9F5:6AE53590
+x-served-by: cache-akl10321-AKL
+x-timer: S1793406355.441619,VS0,VE1786
+x-xss-protection: 1; mode=block

@@ -29,14 +29,16 @@ A record of the license and distribution terms for every text ScriptureTips obta
 | [`unfoldingword-simplified-text`](unfoldingword-simplified-text/) | unfoldingWord Simplified Text (UST) | Ready (CC BY-SA 4.0, share-alike; terms read from the repository files) |
 | [`world-english-bible`](world-english-bible/) | World English Bible | Ready (public domain; trademark conditions) |
 | [`wycliffe-bible`](wycliffe-bible/) | Wycliffe Bible (c. 1395; Pentateuch and Gospels only) | Ready (public domain; partial) |
-| [`stepbible-data`](stepbible-data/) | STEPBible-Data: TVTMS versification mappings (other datasets not held yet) | Ready (CC BY 4.0; credit "STEP Bible"; record changes; don't republish the files) |
+| [`stepbible-data`](stepbible-data/) | STEPBible-Data: TVTMS versification mappings, TAHOT, TAGNT, TIPNR and the morphology codes | Ready (CC BY 4.0; credit "STEP Bible"; record changes; don't republish the files) |
 | [`big-username-blocklist`](big-username-blocklist/) | The Big Username Blocklist: reserved handles (not a text) | Ready (MIT; keep the notice with the generated table) |
 | [`shouldbee-reserved-usernames`](shouldbee-reserved-usernames/) | shouldbee/reserved-usernames: reserved handles (not a text) | Ready (MIT; keep the notice with the generated table) |
 | [`gentium`](gentium/) | Gentium 7.000: Latin and Greek font (not a text; obtained 2026-10-29 for the PDF engine trial) | Ready (SIL OFL 1.1; may be embedded in any PDF) |
 | [`ezra-sil`](ezra-sil/) | Ezra SIL 2.51: Biblical Hebrew font (not a text; obtained 2026-10-29 for the PDF engine trial) | Ready (SIL OFL 1.1, Hebrew layout code MIT/X11; may be embedded in any PDF) |
 | [`macula`](macula/) | MACULA Hebrew and Greek linguistic datasets (terms only; files not held) | Ready with exclusions (CC BY 4.0; leave out the UBS-derived fields and the SIL glosses, listed in `SOURCE.md`) |
 | [`open-scriptures-hebrew-bible`](open-scriptures-hebrew-bible/) | Open Scriptures Hebrew Bible: WLC text with lemmas and morphology (Genesis and Ruth so far) | Ready (WLC public domain; markup CC BY 4.0 with a set credit) |
-| [`open-scriptures-hebrew-lexicon`](open-scriptures-hebrew-lexicon/) | OSHB Hebrew Lexicon: Strong's Hebrew dictionary (`HebrewStrong.xml` so far) | Ready (text public domain; files CC BY 4.0, credit the OSHB Project) |
+| [`open-scriptures-hebrew-lexicon`](open-scriptures-hebrew-lexicon/) | OSHB Hebrew Lexicon: Strong's Hebrew dictionary, Brown-Driver-Briggs and the lexical index | Ready (text public domain; files CC BY 4.0, credit the OSHB Project) |
+| [`strongs-greek`](strongs-greek/) | Strong's Greek Dictionary (1890), XML version 1.4 | Ready (public domain; credit as a courtesy) |
+| [`abbott-smith`](abbott-smith/) | Abbott-Smith, A Manual Greek Lexicon of the NT (1922), TEI markup | Ready (public domain; not the Internet Archive PDF) |
 | [`translation-for-translators`](translation-for-translators/) | Translation for Translators (T4T) (terms only; files not held) | Ready (CC BY-SA 4.0, share-alike) |
 | [`open-english-translation`](open-english-translation/) | Open English Translation (OET) | Not for now: CC BY-SA 4.0, but its translators don't yet recommend it for Bible sites |
 | [`youngs-literal-translation`](youngs-literal-translation/) | Young's Literal Translation (1898) | Ready (public domain) |

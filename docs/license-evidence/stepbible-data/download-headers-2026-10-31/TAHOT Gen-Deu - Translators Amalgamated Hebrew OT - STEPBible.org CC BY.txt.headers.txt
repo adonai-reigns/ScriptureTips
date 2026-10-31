@@ -1,0 +1,27 @@
+200 https://raw.githubusercontent.com/STEPBible/STEPBible-Data/be4191f0082aeedddb0eff0c02c966292b2bd641/Translators%20Amalgamated%20OT%2BNT/TAHOT%20Gen-Deu%20-%20Translators%20Amalgamated%20Hebrew%20OT%20-%20STEPBible.org%20CC%20BY.txt
+accept-ranges: bytes
+access-control-allow-origin: *
+cache-control: max-age=300
+connection: keep-alive
+content-encoding: gzip
+content-length: 3792247
+content-security-policy: default-src 'none'; style-src 'unsafe-inline'; sandbox
+content-type: text/plain; charset=utf-8
+cross-origin-resource-policy: cross-origin
+date: Sat, 31 Oct 2026 00:25:46 GMT
+etag: W/"0ef7cc6eb12cd37aa43c71cc2ca17955a45c79ffa46e95fbbc8e5fae13dfbfbb"
+expires: Sat, 31 Oct 2026 00:30:46 GMT
+source-age: 2
+strict-transport-security: max-age=31536000
+vary: Authorization,Accept-Encoding
+via: 1.1 varnish
+x-cache: MISS
+x-cache-hits: 0
+x-content-type-options: nosniff
+x-fastly-request-id: 7e530c556cedbdcc196f23a0fad0015f200e8c24
+x-frame-options: deny
+x-github-edge-region: australiaeast
+x-github-request-id: A512:271502:406AD:8C7C6:6AE53588
+x-served-by: cache-akl10321-AKL
+x-timer: S1793406344.363773,VS0,VE2421
+x-xss-protection: 1; mode=block

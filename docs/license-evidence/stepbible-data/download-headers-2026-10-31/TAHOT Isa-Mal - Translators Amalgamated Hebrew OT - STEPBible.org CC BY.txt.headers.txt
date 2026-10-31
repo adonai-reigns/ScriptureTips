@@ -1,0 +1,27 @@
+200 https://raw.githubusercontent.com/STEPBible/STEPBible-Data/be4191f0082aeedddb0eff0c02c966292b2bd641/Translators%20Amalgamated%20OT%2BNT/TAHOT%20Isa-Mal%20-%20Translators%20Amalgamated%20Hebrew%20OT%20-%20STEPBible.org%20CC%20BY.txt
+accept-ranges: bytes
+access-control-allow-origin: *
+cache-control: max-age=300
+connection: keep-alive
+content-encoding: gzip
+content-length: 4290820
+content-security-policy: default-src 'none'; style-src 'unsafe-inline'; sandbox
+content-type: text/plain; charset=utf-8
+cross-origin-resource-policy: cross-origin
+date: Sat, 31 Oct 2026 00:25:53 GMT
+etag: W/"a38b86d5095cb6719d42d120731b9cd44588867ae1477769176f551fe5990fe3"
+expires: Sat, 31 Oct 2026 00:30:53 GMT
+source-age: 2
+strict-transport-security: max-age=31536000
+vary: Authorization,Accept-Encoding
+via: 1.1 varnish
+x-cache: MISS
+x-cache-hits: 0
+x-content-type-options: nosniff
+x-fastly-request-id: 3140c454e6177b62fcf5ca39dfd2766a8f588511
+x-frame-options: deny
+x-github-edge-region: australiaeast
+x-github-request-id: 1382:163571:40DF3:8D004:6AE5358E
+x-served-by: cache-akl10321-AKL
+x-timer: S1793406352.538089,VS0,VE2026
+x-xss-protection: 1; mode=block
