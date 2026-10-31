@@ -838,6 +838,16 @@ main:has(> .compilation) {
   cursor: pointer;
 }
 
+/* The home page's search: the translation and the field in a row, the results under them. */
+.home-search .search {
+  margin-bottom: 1rem;
+}
+
+.search-ref .search-label {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
 .error {
   color: #8a1c1c;
 }

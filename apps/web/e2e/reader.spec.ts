@@ -7,13 +7,27 @@ test("the landing page offers translations and a passage box", async ({ page }) 
   await page.screenshot(shot("landing"));
 });
 
-test("the search form reads a reference and opens its passage", async ({ page }) => {
+test("the home search finds a passage, and picking it opens the reader", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("combobox", { name: "Translation" }).selectOption("leb");
-  await page.getByRole("textbox", { name: "Passage" }).fill("gen 2 18-25");
-  await page.getByRole("button", { name: "Read" }).click();
+  const field = page.getByRole("combobox", { name: "Passage or words" });
+  await field.fill("gen 2 18-25");
+  await page.getByRole("button", { name: "Search", exact: true }).click();
+  await page.getByRole("listitem").filter({ hasText: "Genesis 2:18" }).first().click();
   await expect(page).toHaveURL(/\/read\/leb\/genesis\/2\/18-25$/);
   await expect(page.getByRole("heading", { level: 1, name: "Genesis 2:18–25" })).toBeVisible();
+});
+
+test("the home search lists verses with the words, narrowed to the translation chosen", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("combobox", { name: "Translation" }).selectOption("eng-kjv");
+  await page.getByRole("combobox", { name: "Passage or words" }).fill("Cain");
+  await page.getByRole("button", { name: "Search", exact: true }).click();
+  const results = page.locator("st-search-results");
+  await expect(results).toContainText("Genesis 4");
+  await expect(results).not.toContainText("LEB");
 });
 
 test("LEB Genesis 2: idiom brackets, verse numbers and the translator's notes", async ({
