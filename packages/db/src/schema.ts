@@ -6,6 +6,7 @@
 
 import { sql } from "drizzle-orm";
 import {
+  type AnyPgColumn,
   boolean,
   check,
   customType,
@@ -695,5 +696,182 @@ export const pdfBuild = pgTable(
   (t) => [
     index("pdf_build_compilation_idx").on(t.compilationId, t.requestedAt),
     index("pdf_build_requested_by_idx").on(t.requestedBy, t.requestedAt),
+  ],
+);
+
+/*
+ * Original-language data (domain-model §2.4): the Hebrew and Greek texts word by word, the
+ * lexicons, proper names, and how translations rendered each word. Loaded by
+ * `tools/original-import`; each source keeps its own license key.
+ */
+
+/** One edition of an original-language text, e.g. TAHOT (Hebrew OT) or TAGNT (Greek NT). */
+export const sourceText = pgTable("source_text", {
+  id: id(),
+  /** The import's ID (`tahot`, `tagnt`): stable across imports. */
+  catalogId: text("catalog_id").notNull().unique(),
+  name: text("name").notNull(),
+  language: text("language", { enum: ["heb", "grc"] }).notNull(),
+  /** E.g. `Masoretic`, `Textus Receptus, critical and Byzantine`. */
+  tradition: text("tradition").notNull(),
+  /** The license module's key (domain-model §7). */
+  licenseKey: text("license_key").notNull(),
+  importedAt: timestamp("imported_at", { withTimezone: true }).notNull().defaultNow(),
+  /** What the import reported: counts, rows skipped and why. */
+  report: jsonb("report").notNull(),
+});
+
+/** A dictionary: Strong's, Brown-Driver-Briggs, Abbott-Smith. */
+export const lexicon = pgTable("lexicon", {
+  id: id(),
+  catalogId: text("catalog_id").notNull().unique(),
+  name: text("name").notNull(),
+  author: text("author").notNull(),
+  year: integer("year"),
+  language: text("language", { enum: ["heb", "grc"] }).notNull(),
+  licenseKey: text("license_key").notNull(),
+  importedAt: timestamp("imported_at", { withTimezone: true }).notNull().defaultNow(),
+  report: jsonb("report").notNull(),
+});
+
+/**
+ * A person, place or other proper name from STEPBible's TIPNR, one row per individual
+ * (`Abraham@Gen.11.26-1Pe`). The descriptions were written by an AI (domain-model §2.4).
+ */
+export const properName = pgTable("proper_name", {
+  id: id(),
+  /** TIPNR's unique name, e.g. `Abram|Abraham@Gen.11.26-1Pe`. */
+  tipnrId: text("tipnr_id").notNull().unique(),
+  /** The most common form, e.g. `Abraham`. */
+  name: text("name").notNull(),
+  kind: text("kind", { enum: ["person", "place", "place_person", "other"] }).notNull(),
+  /** The disambiguated Strong's numbers the name is tagged with. */
+  strongs: text("strongs").array().notNull(),
+  /** A short description, and TIPNR's longer summary. */
+  description: text("description"),
+  summary: text("summary"),
+  /** Parents, siblings, partners, offspring, tribe, the briefest description and the article. */
+  details: jsonb("details"),
+  aiGenerated: boolean("ai_generated").notNull().default(true),
+});
+
+/**
+ * A word's dictionary identity. `strong` is Strong's number (`H7225`, `G0976`); STEPBible's
+ * extended (disambiguated) number (`H7225G`) tells apart lemmas that share one, and gives
+ * `key`. Every Strong's number has a base lemma (no extended number) that the lexicon entries
+ * hang from; an extended lemma points to it. Strong's numbers are attributes, not identity
+ * (one number can cover several lemmas, and some are unused).
+ */
+export const lemma = pgTable(
+  "lemma",
+  {
+    id: id(),
+    language: text("language", { enum: ["heb", "arc", "grc"] }).notNull(),
+    strong: text("strong").notNull(),
+    extendedStrong: text("extended_strong"),
+    /** `extended_strong`, or `strong` for a base lemma: unique. */
+    key: text("key").notNull().unique(),
+    baseLemmaId: uuid("base_lemma_id").references((): AnyPgColumn => lemma.id),
+    /** The dictionary form, with its vowels (Hebrew) or accents (Greek). */
+    headword: text("headword"),
+    transliteration: text("transliteration"),
+    /** Part of speech, as the dictionary or the morphology code gives it. */
+    partOfSpeech: text("part_of_speech"),
+    nameKind: text("name_kind", { enum: ["person", "place", "other"] }),
+    properNameId: uuid("proper_name_id").references(() => properName.id),
+    /** STEPBible's brief gloss. */
+    gloss: text("gloss"),
+  },
+  (t) => [index("lemma_strong_idx").on(t.strong), index("lemma_base_idx").on(t.baseLemmaId)],
+);
+
+/** One dictionary's entry for a lemma (a base lemma; domain-model §2.4 `LexiconEntry`). */
+export const lexiconEntry = pgTable(
+  "lexicon_entry",
+  {
+    id: id(),
+    lexiconId: uuid("lexicon_id")
+      .notNull()
+      .references(() => lexicon.id, { onDelete: "cascade" }),
+    lemmaId: uuid("lemma_id")
+      .notNull()
+      .references(() => lemma.id, { onDelete: "cascade" }),
+    /** The dictionary's own entry ID (a BDB `a.aa.ab`, an Abbott-Smith lemma), if it has one. */
+    entryRef: text("entry_ref").notNull().default(""),
+    headword: text("headword"),
+    /** The entry's parts: `{ source, meaning, usage, definition, … }` as the dictionary gives them. */
+    body: jsonb("body").notNull(),
+  },
+  (t) => [
+    unique().on(t.lexiconId, t.lemmaId, t.entryRef),
+    index("lexicon_entry_lemma_idx").on(t.lemmaId),
+  ],
+);
+
+/**
+ * One original-language word in a verse (domain-model §2.4 `Token`), in the source's own
+ * numbering (`canonical_range` through the versification scheme). A Hebrew word's prefixes
+ * and suffixes are `affixes`; `lemma_id` is its root.
+ */
+export const token = pgTable(
+  "token",
+  {
+    id: id(),
+    sourceTextId: uuid("source_text_id")
+      .notNull()
+      .references(() => sourceText.id, { onDelete: "cascade" }),
+    book: text("book").notNull(),
+    chapter: integer("chapter").notNull(),
+    verse: integer("verse").notNull(),
+    /** The word's place in the verse (the source's own number). */
+    position: integer("position").notNull(),
+    /** Which reading: `L` Leningrad, `Q` Qere, `R` restored, `X` from the LXX; Greek: `NKO` … */
+    reading: text("reading").notNull(),
+    surface: text("surface").notNull(),
+    transliteration: text("transliteration"),
+    lemmaId: uuid("lemma_id").references(() => lemma.id),
+    /** The individual a Hebrew name refers to (TAHOT's tag, e.g. `Abram»Abraham@Gen.11.26-1Pe`). */
+    properNameId: uuid("proper_name_id").references(() => properName.id),
+    /** Prefix and suffix morphemes, in order: `[{ strong, form, gloss, role }]`. */
+    affixes: jsonb("affixes"),
+    /** The source's morphology code (`HNcfsa`, `N-NSF`), and its expansion. */
+    morphology: text("morphology"),
+    gloss: text("gloss"),
+    /** Greek: the editions that have the word (`SBL`, `TR`, `Byz` …). */
+    editions: text("editions").array(),
+    canonical: text("canonical").array().notNull(),
+    canonicalRange: int4range("canonical_range"),
+  },
+  (t) => [
+    unique().on(t.sourceTextId, t.book, t.chapter, t.verse, t.position, t.reading),
+    index("token_lemma_idx").on(t.lemmaId),
+    index().using("gist", t.canonicalRange),
+  ],
+);
+
+/**
+ * How a published translation rendered an original word (domain-model §2.4
+ * `TranslationAlignment`): a tagged English word (`position` among the verse's `w` nodes),
+ * its Strong's number, and, where it resolves, the lemma and the one token it renders.
+ * Derived from the Strong's tags in the verse text.
+ */
+export const translationAlignment = pgTable(
+  "translation_alignment",
+  {
+    id: id(),
+    verseTextId: uuid("verse_text_id")
+      .notNull()
+      .references(() => verseText.id, { onDelete: "cascade" }),
+    /** Which of the verse's words, counting every `w` node from 0. */
+    position: integer("position").notNull(),
+    /** The number as tagged, normalized (`H0430`); a word with two numbers has two rows. */
+    strong: text("strong").notNull(),
+    lemmaId: uuid("lemma_id").references(() => lemma.id),
+    tokenId: uuid("token_id").references(() => token.id, { onDelete: "set null" }),
+  },
+  (t) => [
+    unique().on(t.verseTextId, t.position, t.strong),
+    index("translation_alignment_lemma_idx").on(t.lemmaId),
+    index("translation_alignment_token_idx").on(t.tokenId),
   ],
 );
