@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { type CSSProperties, useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
@@ -22,6 +22,7 @@ export function CompareChoice({
   slug,
   chosen,
   options,
+  modes,
 }: {
   /** The compilation's abbreviation, changed here on a phone. */
   abbreviation: string;
@@ -29,12 +30,18 @@ export function CompareChoice({
   /** The translations compared with now, in order (catalog IDs). */
   chosen: string[];
   options: TranslationOption[];
+  /** The read, compare and edit buttons, on a phone while study mode is on (they leave the head). */
+  modes?: React.ReactNode;
 }) {
   const t = useTranslations("reading");
   const tSearch = useTranslations("search");
   const errorText = useErrorText();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  // Choosing another mode in the menu opens the page for it: the menu closes.
+  const mode = useSearchParams().get("mode");
+  // biome-ignore lint/correctness/useExhaustiveDependencies: it closes when the mode changes.
+  useEffect(() => setOpen(false), [mode]);
   const [ids, setIds] = useState(chosen);
   const list = useMoreTranslations(options, ids);
   const [saving, setSaving] = useState(false);
@@ -112,6 +119,7 @@ export function CompareChoice({
               aria-labelledby="compare-choice-heading"
               aria-busy={busy}
             >
+              {modes}
               <div className="compare-choice-abbreviation">
                 <p className="book-menu-heading">{t("abbreviationHeading")}</p>
                 <InPlaceField slug={slug} field="abbreviation" value={abbreviation} />

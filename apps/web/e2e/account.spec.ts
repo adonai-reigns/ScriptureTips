@@ -117,8 +117,15 @@ test("the handle at the top right opens a menu: profile, compilations, settings,
   await page.goto("/read/eng-web");
   const toggle = page.getByRole("button", { name: `@${handle}` });
   await expect(toggle).toHaveAttribute("aria-expanded", "false");
-  await toggle.click();
   const menu = page.getByRole("menu", { name: `@${handle}` });
+  // A page has just loaded before each press, so a first press can come before its script has
+  // run: press again until the menu is open.
+  const openMenu = () =>
+    expect(async () => {
+      await toggle.click();
+      await expect(menu).toBeVisible({ timeout: 1_000 });
+    }).toPass();
+  await openMenu();
   await expect(menu.getByRole("menuitem")).toHaveText([
     "Profile",
     "Compilations",
@@ -128,17 +135,10 @@ test("the handle at the top right opens a menu: profile, compilations, settings,
   // Escape closes it, and a press outside does too.
   await page.keyboard.press("Escape");
   await expect(menu).toBeHidden();
-  await toggle.click();
+  await openMenu();
   // The bottom left corner of the screen: on a phone the open menu covers the page's heading.
   await page.mouse.click(2, (page.viewportSize()?.height ?? 600) - 2);
   await expect(menu).toBeHidden();
-  // A page has just loaded after each item, so a first press can come before its script has run:
-  // press again until the menu is open.
-  const openMenu = () =>
-    expect(async () => {
-      await toggle.click();
-      await expect(menu).toBeVisible({ timeout: 1_000 });
-    }).toPass();
   // The items go where they say; Settings is the canon choice on the account page.
   await openMenu();
   await menu.getByRole("menuitem", { name: "Settings" }).click();

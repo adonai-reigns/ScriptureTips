@@ -161,6 +161,23 @@ export async function ReadingArea({
     );
   }
 
+  /** The mode buttons: in the head, or (on a phone, while study mode is on) in the ⋮ menu. */
+  const modeButtons = (inMenu: boolean) => (
+    <nav className={`reading-modes${inMenu ? " in-menu" : ""}`} aria-label={t("modes")}>
+      {READING_MODES.map((m) => (
+        <Link
+          scroll={false}
+          key={m}
+          href={readingHref(osis, chapter, m, null, study)}
+          aria-current={m === mode ? "page" : undefined}
+        >
+          {t(`mode.${m}`)}
+          <LinkPending />
+        </Link>
+      ))}
+    </nav>
+  );
+
   return (
     <section
       className="reading"
@@ -170,19 +187,9 @@ export async function ReadingArea({
       {/* The modes and the chapter bar stay at the top of the window while it scrolls. */}
       <div className="reading-head">
         <div className="reading-tools">
-          <nav className="reading-modes" aria-label={t("modes")}>
-            {READING_MODES.map((m) => (
-              <Link
-                scroll={false}
-                key={m}
-                href={readingHref(osis, chapter, m, null, study)}
-                aria-current={m === mode ? "page" : undefined}
-              >
-                {t(`mode.${m}`)}
-                <LinkPending />
-              </Link>
-            ))}
-          </nav>
+          {/* Holds the minimized study window's place at the far left of the head (StudyMenu). */}
+          {mode !== "read" ? <span className="study-dock" aria-hidden="true" /> : null}
+          {modeButtons(false)}
           {mode !== "read" ? (
             <StudyMenu
               on={study}
@@ -190,6 +197,7 @@ export async function ReadingArea({
               label={t("studyToggle")}
               switchLabel={t("studySwitch")}
               closeLabel={t("studyClose")}
+              expandLabel={t("studyExpand")}
               searchTranslations={[...new Set([c.base.id, ...columnIds])]}
             >
               {/* What the colors mean, beside the switch: grey until word types are shown. */}
@@ -219,6 +227,7 @@ export async function ReadingArea({
               slug={c.slug}
               chosen={columnIds}
               options={options}
+              modes={study ? modeButtons(true) : undefined}
             />
           )}
         </div>

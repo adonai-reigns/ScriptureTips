@@ -3123,6 +3123,59 @@ html[data-study-types="off"] :is(.compare-grid, .compare-list) .c-study-unit {
   overflow: auto;
 }
 
+/* The welcome in the results area, until a search is made, and a tip row under it (`study-hint`:
+   the selection tooltip has `study-tip`). */
+.study-welcome {
+  display: flex;
+  flex-direction: column;
+  /* Fills the results area when the window is taller than its content (as a window that fits its
+     content has nothing to fill: a percentage there counts for nothing), the tip in the middle. */
+  min-height: 100%;
+  justify-content: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.study-welcome p {
+  margin: 0;
+}
+
+.study-hint {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  /* As wide as its content, in the middle. */
+  align-self: center;
+  padding: 0.5rem 0;
+  color: var(--ink);
+}
+
+.study-hint-icon {
+  flex: none;
+  width: 4.5rem;
+  height: 4.5rem;
+}
+
+.study-hint-text {
+  min-width: 0;
+  font-family: var(--serif);
+  font-style: italic;
+}
+
+.study-hint-text strong {
+  display: block;
+  margin-bottom: 0.1rem;
+  font-size: 1.7rem;
+  line-height: 1.1;
+}
+
+.study-hint-text p {
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
 /* The footer: the switch alone, then what the colors mean along the same row. */
 .study-menu-footer {
   display: flex;
@@ -3163,6 +3216,90 @@ html[data-study-types="off"] :is(.compare-grid, .compare-list) .c-study-unit {
   .study-menu-resize {
     width: 2.75rem;
     height: 2.75rem;
+  }
+}
+
+/*
+ * The minimized study window: a bar of fixed width at the far left of the reading head. The head
+ * holds its place (the dock, empty and without width until the window is minimized, then as wide
+ * as the bar: DOCK_W in study/StudyMenu.tsx), and the window, which is over the page, travels
+ * between its place and the dock's. Only its header shows, once it's there.
+ */
+.study-dock {
+  flex: none;
+  width: 0;
+  height: 2.25rem;
+  /* Takes back the gap the row puts after it, while it has no width. */
+  margin-right: -0.4rem;
+  transition:
+    width 0.32s ease,
+    margin-right 0.32s ease;
+}
+
+html[data-study-docked] .study-dock {
+  width: 176px;
+  margin-right: 0;
+}
+
+.study-menu.moving {
+  transition:
+    left 0.32s ease,
+    top 0.32s ease,
+    width 0.32s ease,
+    height 0.32s ease,
+    max-height 0.32s ease;
+}
+
+.study-menu.docked {
+  border-radius: 6px;
+  box-shadow: none;
+}
+
+.study-menu.docked .study-menu-header {
+  flex: 1;
+  gap: 0.4rem;
+  padding: 0 0.25rem 0 0.75rem;
+  border-bottom: 0;
+  cursor: default;
+}
+
+.study-menu.docked .study-menu-header h3 {
+  font-size: 0.95rem;
+}
+
+.study-menu.compact .study-menu-body,
+.study-menu.compact .study-menu-footer,
+.study-menu.compact .study-menu-resize {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .study-dock,
+  .study-menu.moving {
+    transition: none;
+  }
+}
+
+/* On a phone, while study mode is on, the read, compare and edit buttons are in the ⋮ menu, which
+   leaves the head room for the bar (CompareChoice). */
+.reading-modes.in-menu {
+  display: none;
+}
+
+@media (max-width: 48rem) {
+  [data-study] .reading-tools > .reading-modes {
+    display: none;
+  }
+
+  .compare-choice .reading-modes.in-menu {
+    display: flex;
+    width: 100%;
+    margin: 0 0 0.5rem;
+  }
+
+  .compare-choice .reading-modes.in-menu a {
+    flex: 1;
+    text-align: center;
   }
 }
 

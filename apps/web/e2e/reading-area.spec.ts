@@ -1,5 +1,5 @@
 import { expect as baseExpect, type Page, test } from "@playwright/test";
-import { arriveFromOwnAddress, openNewCompilation, shot, signUp } from "./support.ts";
+import { arriveFromOwnAddress, openNewCompilation, openStudy, shot, signUp } from "./support.ts";
 
 arriveFromOwnAddress();
 
@@ -491,6 +491,9 @@ test("vision §3.2: study mode paints each tagged word by its kind, and moves no
   await toggle.click();
   const menu = page.getByRole("dialog", { name: "Study" });
   await expect(menu).toBeVisible();
+  // It starts as a bar; expanded, it is the window.
+  await menu.getByRole("button", { name: "Expand the study window" }).click();
+  await expect(menu).not.toHaveClass(/moving/);
   await expect(page).toHaveURL(/mode=compare&study=1/);
   await expect(page.locator(".study-toggle.on")).toHaveCount(1);
   // The footer's checkbox is for the word types (the colors), on to start with.
@@ -557,8 +560,7 @@ test("vision §3.2: study mode paints each tagged word by its kind, and moves no
 
   // The checkbox shows and hides the word types only: the words stay marked, study mode stays on.
   await page.goto("/compilations/lexis?book=Gen&chapter=2&mode=compare");
-  await page.getByRole("button", { name: "Study", exact: true }).click();
-  const again = page.getByRole("dialog", { name: "Study" });
+  const again = await openStudy(page);
   const types = again.getByRole("switch", { name: "Show word types" });
   const marked = page.locator("td.compare-own .study-word").first();
   await expect(types).toBeChecked();
@@ -574,20 +576,16 @@ test("vision §3.2: study mode paints each tagged word by its kind, and moves no
   await expect(again.locator(".study-legend .study-word").first()).toHaveCSS("opacity", "0.45");
   // It's remembered: after a reload the word types are still off.
   await page.goto("/compilations/lexis?book=Gen&chapter=2&mode=compare");
-  await page.getByRole("button", { name: "Study", exact: true }).click();
-  await expect(
-    page.getByRole("dialog", { name: "Study" }).getByRole("switch", { name: "Show word types" }),
-  ).not.toBeChecked();
-  await page
-    .getByRole("dialog", { name: "Study" })
-    .getByRole("switch", { name: "Show word types" })
-    .check();
+  const reopened = await openStudy(page);
+  await expect(reopened.getByRole("switch", { name: "Show word types" })).not.toBeChecked();
+  await reopened.getByRole("switch", { name: "Show word types" }).check();
   await expect(marked).not.toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
 
-  // The window's × closes only the window; study mode stays on until the Study button turns it off.
+  // The window's × only minimizes it; study mode stays on until the Study button turns it off.
   const studyWindow = page.getByRole("dialog", { name: "Study" });
-  await studyWindow.getByRole("button", { name: "Close" }).click();
-  await expect(studyWindow).toBeHidden();
+  await studyWindow.getByRole("button", { name: "Minimise" }).click();
+  await expect(studyWindow.getByRole("button", { name: "Expand the study window" })).toBeVisible();
+  await expect(studyWindow.getByRole("switch")).toBeHidden();
   await expect(page.locator(".study-toggle.on")).toHaveCount(1);
   await page.getByRole("button", { name: "Study", exact: true }).click();
   await expect(page).not.toHaveURL(/study=1/);
@@ -680,8 +678,7 @@ test("vision §3.14: the study window's search finds passages, words and origina
   await create(page, "Search Words", "Seek");
   await page.goto("/compilations/seek?book=Gen&chapter=4&mode=compare");
   await settled(page);
-  await page.getByRole("button", { name: "Study", exact: true }).click();
-  const study = page.getByRole("dialog", { name: "Study" });
+  const study = await openStudy(page);
   const field = study.getByRole("combobox", { name: "Search" });
   await expect(field).toBeVisible();
 
@@ -725,8 +722,7 @@ test("vision §3.14: an integration drives the search through its API and subscr
   await create(page, "Drive Search", "Drive");
   await page.goto("/compilations/drive?book=Gen&chapter=4&mode=compare");
   await settled(page);
-  await page.getByRole("button", { name: "Study", exact: true }).click();
-  const study = page.getByRole("dialog", { name: "Study" });
+  const study = await openStudy(page);
   await expect(study.getByRole("combobox", { name: "Search" })).toBeVisible();
 
   // Subscribe, set the words, and search: the field shows them, and the events arrive.
@@ -798,7 +794,7 @@ test("vision §3.14: several searches on one page keep their own scope, and thei
   await create(page, "Many Searches", "Many");
   await page.goto("/compilations/many?book=Gen&chapter=4&mode=compare");
   await settled(page);
-  await page.getByRole("button", { name: "Study", exact: true }).click();
+  await openStudy(page);
   await expect(page.getByRole("dialog", { name: "Study" }).getByRole("combobox")).toBeVisible();
 
   // A big field in one place, its results in another, one search (as a home page might have);
@@ -881,4 +877,119 @@ test("vision §3.1: stepping to another chapter starts it at its first verse, in
       )
       .toBe(true);
   }
+});
+
+test("vision §3.2: study mode starts its window as a bar, which expands to a window and minimizes back to where it was", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  await create(page, "Study Dock", "Dock");
+  await page.goto("/compilations/dock?book=Gen&chapter=4&mode=compare");
+  await settled(page);
+  const study = page.getByRole("dialog", { name: "Study" });
+  await expect(study).toHaveCount(0);
+
+  // Study mode starts the window as a bar: its header only, at the far left of the reading head,
+  // with the modes to its right.
+  await page.getByRole("button", { name: "Study", exact: true }).click();
+  await expect(study).toBeVisible();
+  const expand = study.getByRole("button", { name: "Expand the study window" });
+  await expect(expand).toBeVisible();
+  await expect(study.getByRole("combobox")).toBeHidden();
+  await expect(study.getByRole("switch")).toBeHidden();
+  const head = page.locator(".reading-head");
+  const modes = page.getByRole("navigation", { name: "Reading mode" });
+  await expect
+    .poll(async () => {
+      const [bar, area, buttons] = [
+        await study.boundingBox(),
+        await head.boundingBox(),
+        await modes.boundingBox(),
+      ];
+      return (
+        !!bar &&
+        !!area &&
+        !!buttons &&
+        Math.abs(bar.x - area.x) < 3 &&
+        Math.round(bar.width) === 176 &&
+        buttons.x >= bar.x + bar.width - 1
+      );
+    })
+    .toBe(true);
+  await page.screenshot(shot("study-bar"));
+
+  // Expanded, it is the window, with the search field and a tip: our logo, then "Tip" and its text.
+  await expand.click();
+  const field = study.getByRole("combobox", { name: "Search" });
+  await expect(field).toBeVisible();
+  await expect(study).not.toHaveClass(/moving/);
+  await expect(study.getByRole("switch")).toBeVisible();
+  await expect(study.getByText("Tip", { exact: true })).toBeVisible();
+  await expect(study.getByText("Select some verse text to see the study tools")).toBeVisible();
+  await page.screenshot(shot("study-window-tip"));
+  const icon = study.locator(".study-hint-icon");
+  await expect(icon).toHaveAttribute("src", /logo-128/);
+  const [row, iconBox, textBox, results] = [
+    await study.locator(".study-hint").boundingBox(),
+    await icon.boundingBox(),
+    await study.locator(".study-hint-text").boundingBox(),
+    await study.locator("st-search-results").boundingBox(),
+  ];
+  if (!row || !iconBox || !textBox || !results) throw new Error("The tip isn't on screen.");
+  // The logo is on the left, the text on its right; the row is as wide as its content, in the middle.
+  expect(iconBox.x + iconBox.width).toBeLessThanOrEqual(textBox.x);
+  expect(row.width).toBeLessThanOrEqual(results.width);
+  expect(Math.abs(row.x + row.width / 2 - (results.x + results.width / 2))).toBeLessThan(3);
+
+  // Moved, it goes to the bar and comes back to where it was left.
+  const header = study.locator(".study-menu-header");
+  const grip = await header.boundingBox();
+  if (!grip) throw new Error("No header.");
+  await page.mouse.move(grip.x + 30, grip.y + 10);
+  await page.mouse.down();
+  await page.mouse.move(grip.x - 90, grip.y + 150, { steps: 8 });
+  await page.mouse.up();
+  const left = await study.boundingBox();
+  if (!left) throw new Error("No window.");
+  expect(left.x).toBeLessThan(grip.x - 60);
+  await study.getByRole("button", { name: "Minimise" }).click();
+  await expect(study.getByRole("button", { name: "Expand the study window" })).toBeVisible();
+  await expect(field).toBeHidden();
+  await study.getByRole("button", { name: "Expand the study window" }).click();
+  await expect(field).toBeVisible();
+  await expect(study).not.toHaveClass(/moving/);
+  await expect
+    .poll(async () => {
+      const back = await study.boundingBox();
+      return (
+        !!back &&
+        Math.abs(back.x - left.x) < 2 &&
+        Math.abs(back.y - left.y) < 2 &&
+        Math.abs(back.width - left.width) < 2
+      );
+    })
+    .toBe(true);
+
+  // Starting study mode again clears the last session's search, and shows the tip.
+  await field.fill("forgave");
+  await field.press("Enter");
+  await expect(study.getByRole("heading", { name: "Verses" })).toBeVisible();
+  await expect(study.getByText("Select some verse text to see the study tools")).toBeHidden();
+  await page.getByRole("button", { name: "Study", exact: true }).click();
+  await expect(page).not.toHaveURL(/study=1/);
+  await expect(study).toHaveCount(0);
+  await page.getByRole("button", { name: "Study", exact: true }).click();
+  await expect(study).toBeVisible();
+  await study.getByRole("button", { name: "Expand the study window" }).click();
+  await expect(field).toHaveValue("");
+  await expect(study.getByRole("heading", { name: "Verses" })).toBeHidden();
+  await expect(study.getByText("Select some verse text to see the study tools")).toBeVisible();
+
+  // A page loaded with study mode on starts with the bar too.
+  await page.goto("/compilations/dock?book=Gen&chapter=4&mode=compare&study=1");
+  await expect(
+    page
+      .getByRole("dialog", { name: "Study" })
+      .getByRole("button", { name: "Expand the study window" }),
+  ).toBeVisible();
 });

@@ -140,3 +140,18 @@ export async function touchDrag(
   await touch("touchEnd", to);
   await cdp.detach();
 }
+
+/**
+ * Turns study mode on and opens its window out of the bar it starts as. Returns the window.
+ * Study mode starts with the window minimized, to a bar at the far left of the reading head.
+ */
+export async function openStudy(page: Page): Promise<Locator> {
+  await page.getByRole("button", { name: "Study", exact: true }).click();
+  const study = page.getByRole("dialog", { name: "Study" });
+  await expect(study).toBeVisible();
+  await study.getByRole("button", { name: "Expand the study window" }).click();
+  await expect(study.getByRole("button", { name: "Minimise" })).toBeVisible();
+  // Its size settles once it has traveled out of the bar.
+  await expect(study).not.toHaveClass(/moving/);
+  return study;
+}

@@ -183,3 +183,5 @@ Sark
 Türkiye
 favourite
 favourites
+minimise
+Minimise

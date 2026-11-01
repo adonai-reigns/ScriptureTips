@@ -482,6 +482,8 @@ The first three stages complete the primary purpose: **ScriptureTips as a study 
 | **5. Your data** | Full export, account deletion with its options, legacy contact. |
 | **Later** | The social features: discussion, groups and collaboration, public content search, guardian links for minors (§5.2). Also notifications beyond the basics, offline and mobile, AI assistance (BYOK), content in other languages, global wording preferences (§3.1), volunteer UI translation, federation, satellite installations. |
 
+**The study window's welcome is a placeholder.** When study mode starts, the window shows its search field and one tip ("Select some verse text to see the study tools"). Planned for stage 2 (study tools): a rich welcome page for the window's tips section, which teaches what study mode can do as the tools arrive (selecting words, the dictionaries, searching by Strong's number, linking passages). The single tip stands in until then.
+
 **Privacy selectors are not implemented yet.** The account page shows a "Who can see your …" menu (private, members only, public) beside each optional detail, but they're placeholders: choices aren't saved and nothing reads them, so every detail is private. They're needed before the features that show a person to others: publishing (stage 1, with the age declaration, §5.2), sharing (stage 4) and the social features. Build them with the visibility model, and add a test that no detail reaches another person unless its selector allows it.
 
 Foundations for the later stages are still built from the start where retrofitting would be costly: language files and language tags, RTL-ready layouts, client-generated IDs, revision-based check-in and the sync API, the visibility model and the authorization matrix test.

@@ -3,6 +3,7 @@ import {
   arriveFromOwnAddress,
   longPress,
   openNewCompilation,
+  openStudy,
   shot,
   signUp,
   tapAt,
@@ -507,8 +508,8 @@ test("vision §3.2: study mode on a phone paints the verses' tagged words, and m
     );
   const before = await boxes();
 
-  await page.getByRole("button", { name: "Study", exact: true }).click();
-  await expect(page.getByRole("dialog", { name: "Study" }).getByRole("switch")).toBeChecked();
+  const opened = await openStudy(page);
+  await expect(opened.getByRole("switch")).toBeChecked();
   await expect(page).toHaveURL(/mode=compare&study=1/);
   await expect(verses.first().locator('.study-word[data-category="person"]').first()).toContainText(
     "Eve",
@@ -595,9 +596,7 @@ test("vision §3.2: on a phone, the study window stays on screen and its corner 
   await create(page, "Size Window", "Sizer");
   await page.goto("/compilations/sizer?book=Gen&chapter=4&mode=compare");
   await page.waitForLoadState("networkidle");
-  await page.getByRole("button", { name: "Study", exact: true }).click();
-  const study = page.getByRole("dialog", { name: "Study" });
-  await expect(study).toBeVisible();
+  const study = await openStudy(page);
   // The search is loaded once the window has it.
   await expect(study.getByRole("combobox", { name: "Search" })).toBeVisible();
   // A search that fills the window with results: it must not run off the bottom of the screen.
@@ -632,4 +631,60 @@ test("vision §3.2: on a phone, the study window stays on screen and its corner 
   const results = study.locator("st-search-results");
   expect(await results.evaluate((e) => e.scrollHeight > e.clientHeight)).toBe(true);
   await page.screenshot({ ...shot("reading-area-phone-study-window"), fullPage: false });
+});
+
+test("vision §3.2: on a phone, study mode moves the modes into the ⋮ menu, and starts the window as a bar", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  await create(page, "Study Menu", "Modes");
+  await page.goto("/compilations/modes?book=Gen&chapter=1&mode=compare");
+  await page.waitForLoadState("networkidle");
+  const head = page.locator(".reading-head");
+  const modes = head.getByRole("navigation", { name: "Reading mode" });
+  // Without study mode the modes stay in the head.
+  await expect(modes).toBeVisible();
+
+  await page.getByRole("button", { name: "Study", exact: true }).click();
+  const study = page.getByRole("dialog", { name: "Study" });
+  await expect(study.getByRole("button", { name: "Expand the study window" })).toBeVisible();
+  // The head has room for the bar, at its far left; the modes have left it.
+  await expect(modes).toBeHidden();
+  await expect
+    .poll(async () => {
+      const [bar, area, button] = [
+        await study.boundingBox(),
+        await head.boundingBox(),
+        await head.getByRole("button", { name: "Study", exact: true }).boundingBox(),
+      ];
+      return (
+        !!bar &&
+        !!area &&
+        !!button &&
+        Math.abs(bar.x - area.x) < 3 &&
+        Math.round(bar.width) === 176 &&
+        button.x >= bar.x + bar.width - 1
+      );
+    })
+    .toBe(true);
+  await page.screenshot({ ...shot("reading-area-phone-study-bar"), fullPage: false });
+
+  // They are in the ⋮ menu, which closes when one is chosen.
+  await head.getByRole("button", { name: "Translations to compare with" }).click();
+  const menu = page.locator(".compare-choice");
+  const inMenu = menu.getByRole("navigation", { name: "Reading mode" });
+  await expect(inMenu.getByRole("link")).toHaveText(["Read", "Compare", "Edit"]);
+  await expect(inMenu.getByRole("link", { name: "Compare" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  await page.screenshot({ ...shot("reading-area-phone-study-menu"), fullPage: false });
+  await inMenu.getByRole("link", { name: "Edit" }).click();
+  await expect(page).toHaveURL(/mode=edit&study=1/);
+  await expect(menu).toBeHidden();
+
+  // Study mode off: the modes are back in the head.
+  await page.getByRole("button", { name: "Study", exact: true }).click();
+  await expect(page).not.toHaveURL(/study=1/);
+  await expect(modes).toBeVisible();
 });
